@@ -23,7 +23,7 @@ function initApp() {
         // ensure marker icons load from CDN
         try {
             delete L.Icon.Default.prototype._getIconUrl;
-        } catch (e) {}
+        } catch (e) { }
         L.Icon.Default.mergeOptions({
             iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
             iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -145,10 +145,10 @@ function attachHandlers() {
     if (createForm) {
         createForm.onsubmit = (e) => {
             e.preventDefault();
-            const title = document.getElementById('evt-title').value; 
+            const title = document.getElementById('evt-title').value;
             const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
             const publicLink = window.location.origin + window.location.pathname + '#event/' + slug;
-            currentEvent = { title: title, date: document.getElementById('evt-date').value, link: publicLink }; 
+            currentEvent = { title: title, date: document.getElementById('evt-date').value, link: publicLink };
             updateDashboardState();
         };
     }
@@ -159,7 +159,7 @@ function attachHandlers() {
     if (addForm) {
         addForm.onsubmit = (e) => {
             e.preventDefault();
-            const addressInput = document.getElementById('address').value; 
+            const addressInput = document.getElementById('address').value;
             const coords = mockBackendGeocode(addressInput);
             const newSpot = {
                 description: document.getElementById('desc').value,

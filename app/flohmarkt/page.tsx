@@ -2,18 +2,18 @@
 import { useEffect, useRef } from "react";
 
 export default function FlohmarktPage() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const injectedRef = useRef(false);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const injectedRef = useRef(false);
 
-  useEffect(() => {
-    if (injectedRef.current) return;
-    injectedRef.current = true;
+    useEffect(() => {
+        if (injectedRef.current) return;
+        injectedRef.current = true;
 
-    const container = containerRef.current;
-    if (!container) return;
+        const container = containerRef.current;
+        if (!container) return;
 
-    // Insert the CSS blocks + HTML body content from original file
-    container.innerHTML = `
+        // Insert the CSS blocks + HTML body content from original file
+        container.innerHTML = `
       <style>
         body {
             font-family: sans-serif;
@@ -1042,40 +1042,40 @@ export default function FlohmarktPage() {
       </div>
     `;
 
-    // Ensure Leaflet CSS is available
-    if (!document.querySelector('link[href*="leaflet"]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
+        // Ensure Leaflet CSS is available
+        if (!document.querySelector('link[href*="leaflet"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(link);
+        }
 
-    // Load Leaflet (CDN) if necessary, then load the legacy script we created under /js
-    const loadLegacyScript = () => {
-      // avoid loading twice
-      if (document.getElementById('flohmarkt-legacy')) return;
-      const s = document.createElement('script');
-      s.id = 'flohmarkt-legacy';
-      s.src = '/js/flohmarkt-legacy.js';
-      s.defer = true;
-      document.body.appendChild(s);
-    };
+        // Load Leaflet (CDN) if necessary, then load the legacy script we created under /js
+        const loadLegacyScript = () => {
+            // avoid loading twice
+            if (document.getElementById('flohmarkt-legacy')) return;
+            const s = document.createElement('script');
+            s.id = 'flohmarkt-legacy';
+            s.src = '/js/flohmarkt-legacy.js';
+            s.defer = true;
+            document.body.appendChild(s);
+        };
 
-    if (typeof (window as any).L === 'undefined') {
-      const s = document.createElement('script');
-      s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      s.onload = () => loadLegacyScript();
-      document.head.appendChild(s);
-    } else {
-      loadLegacyScript();
-    }
+        if (typeof (window as any).L === 'undefined') {
+            const s = document.createElement('script');
+            s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            s.onload = () => loadLegacyScript();
+            document.head.appendChild(s);
+        } else {
+            loadLegacyScript();
+        }
 
-  }, []);
+    }, []);
 
-  return (
-    <div style={{ height: '100vh', width: '100%' }}>
-      {/* The styles from the original HTML's <style> blocks are included inside the markup and will apply. */}
-      <div ref={containerRef} />
-    </div>
-  );
+    return (
+        <div style={{ height: '100vh', width: '100%' }}>
+            {/* The styles from the original HTML's <style> blocks are included inside the markup and will apply. */}
+            <div ref={containerRef} />
+        </div>
+    );
 }
