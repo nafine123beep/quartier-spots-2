@@ -18,5 +18,10 @@ export interface FlohmarktEvent {
   link: string;
 }
 
-export type ViewType = 'frontpage' | 'login' | 'register' | 'dashboard' | 'app';
+export interface User {
+  email: string;
+  name: string;
+}
+
+export type ViewType = 'frontpage' | 'dashboard' | 'app';
 export type AppTabType = 'list' | 'map' | 'form' | 'delete';

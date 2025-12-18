@@ -6,13 +6,20 @@ import { EventControlPanel } from "./EventControlPanel";
 import { AdminSpotTable } from "./AdminSpotTable";
 
 export function OrganizerDashboard() {
-  const { currentEvent, logout } = useFlohmarkt();
+  const { currentEvent, logout, user } = useFlohmarkt();
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
       {/* Header */}
       <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <span className="font-bold text-lg">Veranstaltungsbereich</span>
+        <div>
+          <span className="font-bold text-lg">Veranstaltungsbereich</span>
+          {user && (
+            <div className="text-sm text-gray-300 mt-1">
+              {user.name !== user.email ? `${user.name} (${user.email})` : user.email}
+            </div>
+          )}
+        </div>
         <button
           onClick={logout}
           className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10"

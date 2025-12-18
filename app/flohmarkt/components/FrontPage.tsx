@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useFlohmarkt } from "../FlohmarktContext";
 import type { Map as LeafletMap } from "leaflet";
 
@@ -103,18 +104,12 @@ export function FrontPage() {
 
         {/* Footer */}
         <footer className="mt-5 flex gap-5 text-sm">
-          <a
-            onClick={() => setCurrentView("login")}
+          <Link
+            href="/auth/login"
             className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
           >
             Veranstalter-Login
-          </a>
-          <a
-            onClick={() => setCurrentView("register")}
-            className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
-          >
-            Event anlegen (Registrieren)
-          </a>
+          </Link>
         </footer>
       </div>
     </div>

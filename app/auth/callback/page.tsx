@@ -1,40 +1,57 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AuthCallbackPage() {
+  const [status, setStatus] = useState("Login wird abgeschlossen…");
+
   useEffect(() => {
-    (async () => {
-      const supabase = createClient();
+    const supabase = createClient();
 
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
-
-      // Kein Code = kein Login
-      if (!code) {
-        window.location.replace("/login");
-        return;
+    // Listen for auth state changes - Supabase automatically handles the token from URL
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
+        window.location.replace("/flohmarkt");
       }
+    });
 
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
-
+    // Also check if already signed in (session might already be established)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error("Auth callback error:", error);
-        window.location.replace("/login");
+        console.error("Session error:", error);
+        setStatus("Fehler beim Login. Weiterleitung...");
+        setTimeout(() => window.location.replace("/auth/login"), 2000);
         return;
       }
 
-      // Mini-Delay, damit Session sicher persistiert ist (Dev-Mode!)
-      await new Promise((r) => setTimeout(r, 100));
+      if (session) {
+        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
+        window.location.replace("/flohmarkt");
+      }
+    });
 
-      window.location.replace("/app");
-    })();
+    // Timeout fallback - if nothing happens after 5 seconds, redirect to login
+    const timeout = setTimeout(() => {
+      setStatus("Timeout - Weiterleitung zum Login...");
+      window.location.replace("/auth/login");
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Login wird abgeschlossen…</h1>
+    <main className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003366] mx-auto mb-4"></div>
+        <h1 className="text-xl text-[#003366]">{status}</h1>
+      </div>
     </main>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { Spot, FlohmarktEvent, ViewType, AppTabType } from "./types";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Spot, FlohmarktEvent, ViewType, AppTabType, User } from "./types";
 
 // Initial demo data
 const INITIAL_SPOTS: Spot[] = [
@@ -44,6 +45,7 @@ interface FlohmarktContextType {
   currentView: ViewType;
   currentTab: AppTabType;
   isAuthenticated: boolean;
+  user: User | null;
   deletePreFill: string;
 
   // Actions
@@ -53,7 +55,6 @@ interface FlohmarktContextType {
   deleteSpot: (id: string) => void;
   deleteSpotByVerification: (address: string, name: string, contact: string) => boolean;
   createEvent: (title: string, date: string, startTime: string, endTime: string) => void;
-  login: () => void;
   logout: () => void;
   setDeletePreFill: (address: string) => void;
   getAllEmails: () => string[];
@@ -67,7 +68,45 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   const [currentView, setCurrentView] = useState<ViewType>("frontpage");
   const [currentTab, setCurrentTab] = useState<AppTabType>("list");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [deletePreFill, setDeletePreFill] = useState("");
+
+  // Check Supabase session on mount and listen for auth changes
+  useEffect(() => {
+    const supabase = createClient();
+
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          email: session.user.email ?? "",
+          name: session.user.user_metadata?.full_name ?? session.user.email ?? "",
+        });
+        setIsAuthenticated(true);
+        setCurrentView("dashboard");
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        setUser({
+          email: session.user.email ?? "",
+          name: session.user.user_metadata?.full_name ?? session.user.email ?? "",
+        });
+        setIsAuthenticated(true);
+        setCurrentView("dashboard");
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        setIsAuthenticated(false);
+        setCurrentView("frontpage");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const addSpot = useCallback((spotData: Omit<Spot, "id">) => {
     const newSpot: Spot = {
@@ -118,12 +157,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const login = useCallback(() => {
-    setIsAuthenticated(true);
-    setCurrentView("dashboard");
-  }, []);
-
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUser(null);
     setIsAuthenticated(false);
     setCurrentView("frontpage");
   }, []);
@@ -140,6 +177,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         currentView,
         currentTab,
         isAuthenticated,
+        user,
         deletePreFill,
         setCurrentView,
         setCurrentTab,
@@ -147,7 +185,6 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         deleteSpot,
         deleteSpotByVerification,
         createEvent,
-        login,
         logout,
         setDeletePreFill,
         getAllEmails,
