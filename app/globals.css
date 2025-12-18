@@ -3,6 +3,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Flohmarkt Design System */
+  --primary-color: #003366;
+  --accent-color: #FFCC00;
+  --danger-color: #dc3545;
+  --success-color: #28a745;
+  --text-on-primary: #FFFFFF;
+  --text-dark: #222222;
+  --text-light: #777777;
 }
 
 @theme inline {
@@ -23,4 +32,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Leaflet map container fix */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
 }
