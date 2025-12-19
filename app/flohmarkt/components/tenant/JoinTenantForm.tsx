@@ -78,7 +78,7 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
       {!selectedTenant ? (
         <div>
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Organisation suchen
             </label>
             <input
@@ -86,12 +86,12 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Name der Organisation eingeben..."
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />
           </div>
 
           {searching && (
-            <p className="text-gray-500 text-sm">Suche...</p>
+            <p className="text-gray-600 text-sm">Suche...</p>
           )}
 
           {results.length > 0 && (
@@ -103,14 +103,14 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
                   className="w-full p-3 text-left bg-white hover:bg-gray-50 border-b border-gray-200 last:border-b-0 cursor-pointer"
                 >
                   <span className="font-medium text-[#003366]">{tenant.name}</span>
-                  <span className="text-gray-500 text-sm ml-2">/{tenant.slug}</span>
+                  <span className="text-gray-600 text-sm ml-2">/{tenant.slug}</span>
                 </button>
               ))}
             </div>
           )}
 
           {query.length >= 2 && results.length === 0 && !searching && (
-            <p className="text-gray-500 text-sm">Keine Organisation gefunden.</p>
+            <p className="text-gray-600 text-sm">Keine Organisation gefunden.</p>
           )}
         </div>
       ) : (
@@ -119,12 +119,12 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
             <div className="flex justify-between items-center">
               <div>
                 <span className="font-bold text-[#003366]">{selectedTenant.name}</span>
-                <span className="text-gray-500 text-sm ml-2">/{selectedTenant.slug}</span>
+                <span className="text-gray-600 text-sm ml-2">/{selectedTenant.slug}</span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedTenant(null)}
-                className="text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer"
+                className="text-gray-600 hover:text-gray-800 bg-transparent border-none cursor-pointer"
               >
                 Ändern
               </button>
@@ -132,7 +132,7 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Beitritts-Passwort
             </label>
             <input
@@ -142,7 +142,7 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
               placeholder="Passwort eingeben..."
               required
               disabled={loading}
-              className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
             />
           </div>
 

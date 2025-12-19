@@ -80,6 +80,13 @@ interface FlohmarktContextType {
   updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
   currentTenantEvent: TenantEvent | null;
+
+  // Profile & Tenant update actions
+  updateUserProfile: (name: string, email?: string) => Promise<{ success: boolean; error?: string; emailChanged?: boolean }>;
+  updateTenant: (name: string) => Promise<{ success: boolean; error?: string }>;
+
+  // Tenant lookup
+  findTenantBySlug: (slug: string) => Tenant | undefined;
 }
 
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
@@ -460,6 +467,64 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     return { success: true };
   }, [currentTenant, isAdmin, loadMembers]);
 
+  const updateUserProfile = useCallback(async (name: string, email?: string) => {
+    if (!user) return { success: false, error: "Not authenticated" };
+
+    const supabase = createClient();
+
+    // Update user metadata (name)
+    const { error: metaError } = await supabase.auth.updateUser({
+      data: { full_name: name }
+    });
+
+    if (metaError) return { success: false, error: metaError.message };
+
+    // Update profiles table display_name
+    await supabase.from("profiles").upsert({
+      id: user.id,
+      display_name: name,
+      email: email || user.email
+    });
+
+    let emailChanged = false;
+
+    // If email changed, trigger verification
+    if (email && email !== user.email) {
+      const { error: emailError } = await supabase.auth.updateUser({ email });
+      if (emailError) return { success: false, error: emailError.message };
+      emailChanged = true;
+    }
+
+    // Update local state
+    setUser({ ...user, name, email: emailChanged ? user.email : (email || user.email) });
+
+    return { success: true, emailChanged };
+  }, [user]);
+
+  const updateTenant = useCallback(async (name: string) => {
+    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+
+    const supabase = createClient();
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
+    const { error } = await supabase
+      .from("tenants")
+      .update({ name, slug })
+      .eq("id", currentTenant.id);
+
+    if (error) return { success: false, error: error.message };
+
+    // Update local state
+    setCurrentTenant({ ...currentTenant, name, slug });
+    await loadTenants();
+
+    return { success: true };
+  }, [currentTenant, isAdmin, loadTenants]);
+
+  const findTenantBySlug = useCallback((slug: string): Tenant | undefined => {
+    return tenants.find((t) => t.slug === slug);
+  }, [tenants]);
+
   const addSpot = useCallback((spotData: Omit<Spot, "id">) => {
     const newSpot: Spot = {
       ...spotData,
@@ -562,6 +627,9 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         removeMember,
         updateMemberRole,
         setCurrentTenantEvent,
+        updateUserProfile,
+        updateTenant,
+        findTenantBySlug,
       }}
     >
       {children}

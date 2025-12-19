@@ -44,7 +44,7 @@ export function DeleteSpotForm() {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Adresse (exakt wie beim Eintrag)
             </label>
             <input
@@ -52,31 +52,31 @@ export function DeleteSpotForm() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Dein Name (wie beim Eintrag)
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Kontakt (wie beim Eintrag)
             </label>
             <input
               type="text"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>
 

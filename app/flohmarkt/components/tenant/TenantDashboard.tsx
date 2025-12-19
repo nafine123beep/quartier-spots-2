@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { CreateTenantForm } from "./CreateTenantForm";
 import { JoinTenantForm } from "./JoinTenantForm";
@@ -16,13 +17,21 @@ export function TenantDashboard() {
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
       {/* Header */}
       <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div>
-          <span className="font-bold text-lg">Meine Organisationen</span>
-          {user && (
-            <div className="text-sm text-gray-300 mt-1">
-              {user.name !== user.email ? `${user.name} (${user.email})` : user.email}
-            </div>
-          )}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/flohmarkt"
+            className="bg-transparent border-none text-white text-2xl cursor-pointer hover:opacity-80 no-underline"
+          >
+            ←
+          </Link>
+          <div>
+            <span className="font-bold text-lg">Meine Organisationen</span>
+            {user && (
+              <div className="text-sm text-gray-300 mt-1">
+                {user.name !== user.email ? `${user.name} (${user.email})` : user.email}
+              </div>
+            )}
+          </div>
         </div>
         <button
           onClick={logout}

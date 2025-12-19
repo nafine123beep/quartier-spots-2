@@ -24,7 +24,7 @@ export function EventCreateForm() {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-gray-600 text-sm">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
             Titel der Veranstaltung
           </label>
           <input
@@ -33,12 +33,12 @@ export function EventCreateForm() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="z.B. Hof-Flohmarkt im Neuen Quartier"
             required
-            className="w-full p-3 border border-gray-300 rounded-md text-base"
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
           />
         </div>
 
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-gray-600 text-sm">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
             Datum
           </label>
           <input
@@ -46,13 +46,13 @@ export function EventCreateForm() {
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
-            className="w-full p-3 border border-gray-300 rounded-md text-base"
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
           />
         </div>
 
         <div className="flex gap-4">
           <div className="flex-1 mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Beginn
             </label>
             <input
@@ -60,11 +60,11 @@ export function EventCreateForm() {
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>
           <div className="flex-1 mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Ende
             </label>
             <input
@@ -72,7 +72,7 @@ export function EventCreateForm() {
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>
         </div>

@@ -22,7 +22,7 @@ export function ListView() {
         <h2 className="text-[#003366] mt-0">Alle Spots</h2>
 
         {spots.length === 0 ? (
-          <p className="text-gray-500">Noch keine Spots eingetragen.</p>
+          <p className="text-gray-600">Noch keine Spots eingetragen.</p>
         ) : (
           spots.map((spot) => (
             <SpotItem

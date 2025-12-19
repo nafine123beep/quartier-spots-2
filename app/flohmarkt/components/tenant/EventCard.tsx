@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { TenantEvent } from "../../types";
 
@@ -8,12 +9,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const { setCurrentTenantEvent, setCurrentView } = useFlohmarkt();
-
-  const handleManage = () => {
-    setCurrentTenantEvent(event);
-    setCurrentView("eventDetail");
-  };
+  const { currentTenant } = useFlohmarkt();
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Kein Datum";
@@ -51,7 +47,7 @@ export function EventCard({ event }: EventCardProps) {
           {event.description && (
             <p className="text-gray-600 text-sm m-0 mb-2">{event.description}</p>
           )}
-          <div className="text-gray-500 text-sm">
+          <div className="text-gray-600 text-sm">
             {event.starts_at && (
               <span>Start: {formatDate(event.starts_at)}</span>
             )}
@@ -60,12 +56,12 @@ export function EventCard({ event }: EventCardProps) {
             )}
           </div>
         </div>
-        <button
-          onClick={handleManage}
-          className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] ml-4"
+        <Link
+          href={`/flohmarkt/organizations/${currentTenant?.id}/events/${event.id}`}
+          className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] ml-4 no-underline"
         >
           Verwalten
-        </button>
+        </Link>
       </div>
     </div>
   );

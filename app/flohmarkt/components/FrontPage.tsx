@@ -2,11 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { useFlohmarkt } from "../FlohmarktContext";
 import type { Map as LeafletMap } from "leaflet";
 
 export function FrontPage() {
-  const { setCurrentView, setCurrentTab } = useFlohmarkt();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
 
@@ -42,11 +40,6 @@ export function FrontPage() {
     };
   }, []);
 
-  const goToApp = (tab: "map" | "list") => {
-    setCurrentTab(tab);
-    setCurrentView("app");
-  };
-
   return (
     <div className="fixed inset-0 z-[3000] bg-[#003366]">
       {/* Leaflet CSS */}
@@ -78,27 +71,27 @@ export function FrontPage() {
           <div className="flex flex-col gap-4 w-full">
             {/* Navigation Group */}
             <div className="flex gap-2.5">
-              <button
-                onClick={() => goToApp("map")}
-                className="flex-1 text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors"
+              <Link
+                href="/flohmarkt/demo?tab=map"
+                className="flex-1 text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline"
               >
                 🗺️ Karte (Demo)
-              </button>
-              <button
-                onClick={() => goToApp("list")}
-                className="flex-1 text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors"
+              </Link>
+              <Link
+                href="/flohmarkt/demo?tab=list"
+                className="flex-1 text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline"
               >
                 📋 Liste (Demo)
-              </button>
+              </Link>
             </div>
 
             {/* Support Button */}
-            <button
-              onClick={() => (window.location.href = "mailto:info@werderau.de")}
-              className="text-lg font-bold p-4 border-2 border-[#003366] rounded-lg bg-transparent text-[#003366] cursor-pointer hover:bg-[#003366] hover:text-white transition-colors mt-2"
+            <a
+              href="mailto:info@werderau.de"
+              className="text-lg font-bold p-4 border-2 border-[#003366] rounded-lg bg-transparent text-[#003366] cursor-pointer hover:bg-[#003366] hover:text-white transition-colors mt-2 text-center no-underline"
             >
               ✉️ Support kontaktieren
-            </button>
+            </a>
           </div>
         </main>
 

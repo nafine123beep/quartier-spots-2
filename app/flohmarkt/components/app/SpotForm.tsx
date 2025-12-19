@@ -53,7 +53,7 @@ export function SpotForm() {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Adresse
             </label>
             <input
@@ -62,7 +62,7 @@ export function SpotForm() {
               onChange={(e) => setAddress(e.target.value)}
               placeholder="Straße, Hausnummer, Stadt"
               required
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />
           </div>
 
@@ -82,7 +82,7 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Dein Name (Optional)
             </label>
             <input
@@ -90,12 +90,12 @@ export function SpotForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Name"
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Kontakt (Email/Telefon) (Optional)
             </label>
             <input
@@ -103,18 +103,18 @@ export function SpotForm() {
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               placeholder="Email oder Telefonnummer"
-              className="w-full p-3 border border-gray-300 rounded-md text-base"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />
           </div>
 
-          <div className="text-xs text-gray-500 -mt-2.5 mb-5 bg-gray-50 p-2.5 rounded leading-snug">
+          <div className="text-xs text-gray-600 -mt-2.5 mb-5 bg-gray-50 p-2.5 rounded leading-snug">
             Hinweis: Name und E-Mail-Adresse werden nicht öffentlich angezeigt.
             Daten dienen lediglich der Kontaktaufnahme seitens der
             Veranstalter:innen.
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Was verkaufst du?
             </label>
             <textarea
@@ -123,7 +123,7 @@ export function SpotForm() {
               rows={3}
               placeholder="z.B. Kindersachen, Bücher..."
               required
-              className="w-full p-3 border border-gray-300 rounded-md text-base resize-y"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 resize-y"
             />
           </div>
 

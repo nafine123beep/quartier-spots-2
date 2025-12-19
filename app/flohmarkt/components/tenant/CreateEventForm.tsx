@@ -48,7 +48,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-gray-600 text-sm">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
             Titel der Veranstaltung *
           </label>
           <input
@@ -58,12 +58,12 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
             placeholder="z.B. Hof-Flohmarkt im Neuen Quartier"
             required
             disabled={loading}
-            className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100"
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
           />
         </div>
 
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-gray-600 text-sm">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
             Beschreibung
           </label>
           <textarea
@@ -72,13 +72,13 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
             placeholder="Optional: Weitere Infos zum Event..."
             disabled={loading}
             rows={3}
-            className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100 resize-vertical"
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100 resize-vertical"
           />
         </div>
 
         <div className="flex gap-4">
           <div className="flex-1 mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Start
             </label>
             <input
@@ -86,11 +86,11 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
               value={startsAt}
               onChange={(e) => setStartsAt(e.target.value)}
               disabled={loading}
-              className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
             />
           </div>
           <div className="flex-1 mb-4">
-            <label className="block mb-1 font-bold text-gray-600 text-sm">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
               Ende
             </label>
             <input
@@ -98,7 +98,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
               value={endsAt}
               onChange={(e) => setEndsAt(e.target.value)}
               disabled={loading}
-              className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
             />
           </div>
         </div>

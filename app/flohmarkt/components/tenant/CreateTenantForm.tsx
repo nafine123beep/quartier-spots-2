@@ -55,7 +55,7 @@ export function CreateTenantForm({ onBack }: CreateTenantFormProps) {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-gray-600 text-sm">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
             Name der Organisation
           </label>
           <input
@@ -65,15 +65,15 @@ export function CreateTenantForm({ onBack }: CreateTenantFormProps) {
             placeholder="z.B. Werderau Verein"
             required
             disabled={loading}
-            className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100"
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
           />
           {slug && (
-            <p className="text-gray-500 text-sm mt-1">URL: /{slug}</p>
+            <p className="text-gray-600 text-sm mt-1">URL: /{slug}</p>
           )}
         </div>
 
         <div className="mb-4">
-          <label className="block mb-1 font-bold text-gray-600 text-sm">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
             Beitritts-Passwort
           </label>
           <input
@@ -83,9 +83,9 @@ export function CreateTenantForm({ onBack }: CreateTenantFormProps) {
             placeholder="z.B. werderau2024"
             required
             disabled={loading}
-            className="w-full p-3 border border-gray-300 rounded-md text-base disabled:bg-gray-100"
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
           />
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-gray-600 text-sm mt-1">
             Andere können mit diesem Passwort deiner Organisation beitreten.
           </p>
         </div>

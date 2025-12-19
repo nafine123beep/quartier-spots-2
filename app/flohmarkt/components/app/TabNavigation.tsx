@@ -24,7 +24,7 @@ export function TabNavigation() {
             ${
               currentTab === tab.id
                 ? "text-[#003366] border-b-[#FFCC00] bg-gray-50"
-                : "text-gray-500 border-b-transparent hover:text-gray-700"
+                : "text-gray-600 border-b-transparent hover:text-gray-800"
             }
           `}
         >

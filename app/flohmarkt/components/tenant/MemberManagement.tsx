@@ -48,10 +48,10 @@ export function MemberManagement() {
               <div>
                 <div className="font-medium text-gray-900">
                   {displayName}
-                  {isCurrentUser && <span className="text-gray-500 ml-2">(Du)</span>}
+                  {isCurrentUser && <span className="text-gray-600 ml-2">(Du)</span>}
                 </div>
                 {member.email && member.email !== displayName && (
-                  <div className="text-sm text-gray-500">{member.email}</div>
+                  <div className="text-sm text-gray-600">{member.email}</div>
                 )}
               </div>
 
@@ -93,7 +93,7 @@ export function MemberManagement() {
       </div>
 
       {members.length === 0 && (
-        <p className="text-gray-500 text-center py-4">Keine Mitglieder gefunden.</p>
+        <p className="text-gray-600 text-center py-4">Keine Mitglieder gefunden.</p>
       )}
     </div>
   );

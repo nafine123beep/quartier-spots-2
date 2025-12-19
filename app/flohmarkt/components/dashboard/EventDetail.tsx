@@ -1,31 +1,28 @@
 "use client";
 
+import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { EventControlPanel } from "./EventControlPanel";
 import { AdminSpotTable } from "./AdminSpotTable";
 
 export function EventDetail() {
-  const { currentTenantEvent, currentTenant, user, logout, setCurrentView, isAdmin } = useFlohmarkt();
+  const { currentTenantEvent, currentTenant, user, logout, isAdmin } = useFlohmarkt();
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
   }
-
-  const handleBack = () => {
-    setCurrentView("eventOverview");
-  };
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
       {/* Header */}
       <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <button
-            onClick={handleBack}
-            className="bg-transparent border-none text-white text-2xl cursor-pointer hover:opacity-80"
+          <Link
+            href={`/flohmarkt/organizations/${currentTenant.id}`}
+            className="bg-transparent border-none text-white text-2xl cursor-pointer hover:opacity-80 no-underline"
           >
             ←
-          </button>
+          </Link>
           <div>
             <span className="font-bold text-lg">{currentTenantEvent.title}</span>
             <div className="text-sm text-gray-300 mt-1">
@@ -59,7 +56,7 @@ export function EventDetail() {
               {currentTenantEvent.description && (
                 <p className="text-gray-600 mt-2">{currentTenantEvent.description}</p>
               )}
-              <div className="text-sm text-gray-500 mt-2">
+              <div className="text-sm text-gray-600 mt-2">
                 {currentTenantEvent.starts_at && (
                   <span>
                     Start: {new Date(currentTenantEvent.starts_at).toLocaleString("de-DE")}
