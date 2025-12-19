@@ -57,7 +57,7 @@ export function EventCard({ event }: EventCardProps) {
           </div>
         </div>
         <Link
-          href={`/flohmarkt/organizations/${currentTenant?.id}/events/${event.id}`}
+          href={`/flohmarkt/organizations/${currentTenant?.slug}/events/${event.id}`}
           className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] ml-4 no-underline"
         >
           Verwalten

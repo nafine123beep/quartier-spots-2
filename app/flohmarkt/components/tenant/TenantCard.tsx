@@ -15,7 +15,7 @@ export function TenantCard({ tenant }: TenantCardProps) {
         <p className="text-gray-600 text-sm m-0 mt-1">/{tenant.slug}</p>
       </div>
       <Link
-        href={`/flohmarkt/organizations/${tenant.id}`}
+        href={`/flohmarkt/organizations/${tenant.slug}`}
         className="bg-[#003366] text-white px-5 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] no-underline"
       >
         Auswählen

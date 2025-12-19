@@ -18,7 +18,7 @@ export function EventDetail() {
       <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Link
-            href={`/flohmarkt/organizations/${currentTenant.id}`}
+            href={`/flohmarkt/organizations/${currentTenant.slug}`}
             className="bg-transparent border-none text-white text-2xl cursor-pointer hover:opacity-80 no-underline"
           >
             ←
