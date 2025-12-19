@@ -3,13 +3,15 @@
 import { useFlohmarkt } from "../../FlohmarktContext";
 
 export function EventControlPanel() {
-  const { currentEvent, setCurrentView, setCurrentTab } = useFlohmarkt();
+  const { currentTenantEvent, currentTenant, setCurrentView, setCurrentTab } = useFlohmarkt();
 
-  if (!currentEvent) return null;
+  if (!currentTenantEvent || !currentTenant) return null;
+
+  const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.id}`;
 
   const copyLink = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(currentEvent.link).then(() => {
+      navigator.clipboard.writeText(publicLink).then(() => {
         alert("Link kopiert!");
       });
     } else {
@@ -25,13 +27,13 @@ export function EventControlPanel() {
   return (
     <div className="bg-white border border-gray-200 border-l-4 border-l-green-500 p-5 rounded-lg">
       <h3 className="mt-0 text-green-600">
-        Aktiv: <span>{currentEvent.title}</span>
+        Öffentlicher Link
       </h3>
-      <p>Öffentlicher Link für Teilnehmer:</p>
+      <p>Teile diesen Link mit Teilnehmern:</p>
 
       <div className="flex items-center gap-2.5 mt-2.5">
         <div className="flex-grow bg-gray-100 p-2.5 border border-gray-300 rounded font-mono break-all text-sm">
-          {currentEvent.link}
+          {publicLink}
         </div>
         <button
           onClick={copyLink}

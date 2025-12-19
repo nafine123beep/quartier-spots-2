@@ -2,7 +2,10 @@
 
 import { FlohmarktProvider, useFlohmarkt } from "./FlohmarktContext";
 import { FrontPage } from "./components/FrontPage";
-import { OrganizerDashboard } from "./components/dashboard/OrganizerDashboard";
+import { TenantDashboard } from "./components/tenant/TenantDashboard";
+import { EventOverview } from "./components/tenant/EventOverview";
+import { EventDetail } from "./components/dashboard/EventDetail";
+import { SettingsPage } from "./components/settings/SettingsPage";
 import { AppView } from "./components/app/AppView";
 
 function FlohmarktApp() {
@@ -12,7 +15,10 @@ function FlohmarktApp() {
     <div className="h-screen w-full overflow-hidden">
       {/* Render current view */}
       {currentView === "frontpage" && <FrontPage />}
-      {currentView === "dashboard" && <OrganizerDashboard />}
+      {currentView === "tenantDashboard" && <TenantDashboard />}
+      {currentView === "eventOverview" && <EventOverview />}
+      {currentView === "eventDetail" && <EventDetail />}
+      {currentView === "settings" && <SettingsPage />}
       {currentView === "app" && <AppView />}
     </div>
   );
