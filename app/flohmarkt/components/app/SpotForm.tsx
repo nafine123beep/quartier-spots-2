@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 
 export function SpotForm() {
-  const { addSpot, setCurrentTab } = useFlohmarkt();
-  const [address, setAddress] = useState("");
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [description, setDescription] = useState("");
-  const [consent, setConsent] = useState(false);
+  const { addSpot, setCurrentTab, currentTenantEvent, currentTenant } = useFlohmarkt();
+  const [addressRaw, setAddressRaw] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [publicNote, setPublicNote] = useState("");
+  const [addressPublic, setAddressPublic] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Mock geocoding - returns random coordinates near center
   const mockGeocode = () => {
@@ -21,29 +23,43 @@ export function SpotForm() {
     };
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentTenantEvent || !currentTenant) {
+      alert("Kein Event ausgewählt.");
+      return;
+    }
+
+    setSubmitting(true);
     const coords = mockGeocode();
 
-    addSpot({
-      address,
-      description,
+    await addSpot({
+      tenant_id: currentTenant.id,
+      event_id: currentTenantEvent.id,
+      address_raw: addressRaw,
+      address_public: addressPublic,
+      public_note: publicNote,
       lat: coords.lat,
       lng: coords.lng,
-      name,
-      contact,
-      consent,
+      geo_precision: 'exact',
+      contact_name: contactName,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     });
 
+    setSubmitting(false);
     alert("Spot erfolgreich angelegt!");
     setCurrentTab("list");
 
     // Reset form
-    setAddress("");
-    setName("");
-    setContact("");
-    setDescription("");
-    setConsent(false);
+    setAddressRaw("");
+    setContactName("");
+    setContactEmail("");
+    setContactPhone("");
+    setPublicNote("");
+    setAddressPublic(false);
   };
 
   return (
@@ -58,8 +74,8 @@ export function SpotForm() {
             </label>
             <input
               type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={addressRaw}
+              onChange={(e) => setAddressRaw(e.target.value)}
               placeholder="Straße, Hausnummer, Stadt"
               required
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
@@ -69,13 +85,13 @@ export function SpotForm() {
           <div className="flex items-start gap-2.5 mb-5">
             <input
               type="checkbox"
-              id="consent"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
+              id="addressPublic"
+              checked={addressPublic}
+              onChange={(e) => setAddressPublic(e.target.checked)}
               required
               className="w-5 h-5 mt-0.5 shrink-0"
             />
-            <label htmlFor="consent" className="text-sm text-gray-700 leading-snug">
+            <label htmlFor="addressPublic" className="text-sm text-gray-700 leading-snug">
               Ich bin damit einverstanden, dass meine Adresse öffentlich auf der
               Karte angezeigt wird.
             </label>
@@ -87,8 +103,8 @@ export function SpotForm() {
             </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
               placeholder="Name"
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />
@@ -96,19 +112,32 @@ export function SpotForm() {
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Kontakt (Email/Telefon) (Optional)
+              E-Mail (Optional)
             </label>
             <input
-              type="text"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              placeholder="Email oder Telefonnummer"
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              placeholder="E-Mail-Adresse"
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
+              Telefon (Optional)
+            </label>
+            <input
+              type="tel"
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              placeholder="Telefonnummer"
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />
           </div>
 
           <div className="text-xs text-gray-600 -mt-2.5 mb-5 bg-gray-50 p-2.5 rounded leading-snug">
-            Hinweis: Name und E-Mail-Adresse werden nicht öffentlich angezeigt.
+            Hinweis: Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
             Daten dienen lediglich der Kontaktaufnahme seitens der
             Veranstalter:innen.
           </div>
@@ -118,8 +147,8 @@ export function SpotForm() {
               Was verkaufst du?
             </label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={publicNote}
+              onChange={(e) => setPublicNote(e.target.value)}
               rows={3}
               placeholder="z.B. Kindersachen, Bücher..."
               required
@@ -129,9 +158,10 @@ export function SpotForm() {
 
           <button
             type="submit"
-            className="w-full bg-[#003366] text-white p-3.5 border-none rounded-md text-lg font-bold cursor-pointer hover:bg-[#002244]"
+            disabled={submitting}
+            className="w-full bg-[#003366] text-white p-3.5 border-none rounded-md text-lg font-bold cursor-pointer hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Absenden
+            {submitting ? "Wird gespeichert..." : "Absenden"}
           </button>
         </form>
       </div>

@@ -11,7 +11,7 @@ export function ListView() {
     setCurrentTab("delete");
   };
 
-  const handleSpotClick = (lat: number, lng: number) => {
+  const handleSpotClick = () => {
     // Switch to map view - map will center on this spot
     setCurrentTab("map");
   };
@@ -29,7 +29,7 @@ export function ListView() {
               key={spot.id}
               spot={spot}
               onDelete={handleDelete}
-              onClick={() => handleSpotClick(spot.lat, spot.lng)}
+              onClick={handleSpotClick}
             />
           ))
         )}

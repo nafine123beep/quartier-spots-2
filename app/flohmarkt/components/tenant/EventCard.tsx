@@ -34,6 +34,9 @@ export function EventCard({ event }: EventCardProps) {
     archived: "Archiviert",
   };
 
+  // Fallback to event ID if slug is not available (for events created before slug migration)
+  const eventIdentifier = event.slug || event.id;
+
   return (
     <div className="bg-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
       <div className="flex justify-between items-start">
@@ -57,7 +60,7 @@ export function EventCard({ event }: EventCardProps) {
           </div>
         </div>
         <Link
-          href={`/flohmarkt/organizations/${currentTenant?.slug}/events/${event.id}`}
+          href={`/flohmarkt/organizations/${currentTenant?.slug}/events/${eventIdentifier}`}
           className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] ml-4 no-underline"
         >
           Verwalten

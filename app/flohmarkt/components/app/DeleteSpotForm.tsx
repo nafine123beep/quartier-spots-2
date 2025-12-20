@@ -6,28 +6,28 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 export function DeleteSpotForm() {
   const { deleteSpotByVerification, setCurrentTab, deletePreFill, setDeletePreFill } =
     useFlohmarkt();
-  const [address, setAddress] = useState("");
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
+  const [addressRaw, setAddressRaw] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
 
   useEffect(() => {
     if (deletePreFill) {
-      setAddress(deletePreFill);
+      setAddressRaw(deletePreFill);
       setDeletePreFill("");
     }
   }, [deletePreFill, setDeletePreFill]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const success = deleteSpotByVerification(address, name, contact);
+    const success = await deleteSpotByVerification(addressRaw, contactName, contactEmail);
 
     if (success) {
       alert("Spot erfolgreich gelöscht.");
       setCurrentTab("list");
-      setAddress("");
-      setName("");
-      setContact("");
+      setAddressRaw("");
+      setContactName("");
+      setContactEmail("");
     } else {
       alert("Fehler: Es wurde kein Spot mit diesen exakten Daten gefunden.");
     }
@@ -49,8 +49,8 @@ export function DeleteSpotForm() {
             </label>
             <input
               type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={addressRaw}
+              onChange={(e) => setAddressRaw(e.target.value)}
               required
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
@@ -62,20 +62,20 @@ export function DeleteSpotForm() {
             </label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Kontakt (wie beim Eintrag)
+              E-Mail (wie beim Eintrag)
             </label>
             <input
-              type="text"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
           </div>

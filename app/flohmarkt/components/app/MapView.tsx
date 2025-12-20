@@ -15,8 +15,8 @@ export function MapView() {
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
 
-  const handleDelete = useCallback((address: string) => {
-    setDeletePreFill(address);
+  const handleDelete = useCallback((addressRaw: string) => {
+    setDeletePreFill(addressRaw);
     setCurrentTab("delete");
   }, [setDeletePreFill, setCurrentTab]);
 
@@ -70,12 +70,14 @@ export function MapView() {
 
       // Add new markers
       spots.forEach((spot) => {
+        if (spot.lat == null || spot.lng == null) return;
+
         const popupContent = `
           <div>
-            <b>${spot.address}</b><br/>
-            ${spot.description}<br/>
+            <b>${spot.address_raw || "-"}</b><br/>
+            ${spot.public_note || "-"}<br/>
             <button
-              onclick="window.dispatchEvent(new CustomEvent('deleteSpot', { detail: '${spot.address}' }))"
+              onclick="window.dispatchEvent(new CustomEvent('deleteSpot', { detail: '${spot.address_raw || ""}' }))"
               style="margin-top: 8px; color: #dc3545; border: 1px solid #dc3545; background: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
             >
               🗑️ Spot löschen
@@ -105,7 +107,7 @@ export function MapView() {
   }, [handleDelete]);
 
   const handleSpotClick = useCallback((spot: Spot) => {
-    if (mapRef.current) {
+    if (mapRef.current && spot.lat != null && spot.lng != null) {
       mapRef.current.setView([spot.lat, spot.lng], 16);
 
       // Find and open the marker's popup

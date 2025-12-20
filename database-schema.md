@@ -136,6 +136,13 @@
     "column_default": "now()"
   },
   {
+    "table_name": "events",
+    "column_name": "slug",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
     "table_name": "geocoding_requests",
     "column_name": "id",
     "data_type": "uuid",
@@ -484,11 +491,18 @@
     "data_type": "text",
     "is_nullable": "YES",
     "column_default": null
+  },
+  {
+    "table_name": "tenants",
+    "column_name": "join_password",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
   }
 ]
 
 ## Foreign Key Beziehungen
-[Hier Query 2 Ergebnis einfügen][
+[
   {
     "table_name": "memberships",
     "column_name": "tenant_id",

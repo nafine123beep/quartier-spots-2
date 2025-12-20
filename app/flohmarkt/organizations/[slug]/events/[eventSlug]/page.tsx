@@ -8,9 +8,10 @@ import { EventDetail } from "../../../../components/dashboard/EventDetail";
 export default function EventDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const eventId = params.eventId as string;
+  const eventSlug = params.eventSlug as string;
   const {
     findTenantBySlug,
+    findEventBySlugOrId,
     selectTenant,
     currentTenant,
     tenantEvents,
@@ -29,15 +30,19 @@ export default function EventDetailPage() {
     }
   }, [slug, currentTenant?.slug, findTenantBySlug, selectTenant]);
 
-  // Auto-select event based on URL param
+  // Auto-select event based on URL slug or ID (fallback for events without slugs)
   useEffect(() => {
-    if (eventId && tenantEvents.length > 0 && currentTenantEvent?.id !== eventId) {
-      const event = tenantEvents.find((e) => e.id === eventId);
-      if (event) {
-        setCurrentTenantEvent(event);
+    if (eventSlug && tenantEvents.length > 0) {
+      // Check if current event matches either by slug or ID
+      const isCurrentEvent = currentTenantEvent?.slug === eventSlug || currentTenantEvent?.id === eventSlug;
+      if (!isCurrentEvent) {
+        const event = findEventBySlugOrId(eventSlug);
+        if (event) {
+          setCurrentTenantEvent(event);
+        }
       }
     }
-  }, [eventId, tenantEvents, currentTenantEvent?.id, setCurrentTenantEvent]);
+  }, [eventSlug, tenantEvents, currentTenantEvent?.slug, currentTenantEvent?.id, findEventBySlugOrId, setCurrentTenantEvent]);
 
   if (loading || !currentTenant || !currentTenantEvent) {
     return (

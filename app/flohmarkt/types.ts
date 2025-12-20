@@ -1,12 +1,25 @@
 export interface Spot {
   id: string;
-  address: string;
-  description: string;
-  lat: number;
-  lng: number;
-  name: string;
-  contact: string;
-  consent: boolean;
+  tenant_id: string;
+  event_id: string;
+  title?: string;
+  public_note?: string;
+  internal_note?: string;
+  street?: string;
+  house_number?: string;
+  zip?: string;
+  city?: string;
+  address_raw?: string;
+  address_public: boolean;
+  lat?: number;
+  lng?: number;
+  geo_precision: 'exact' | 'street' | 'city';
+  contact_name?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FlohmarktEvent {
@@ -47,6 +60,7 @@ export interface TenantEvent {
   id: string;
   tenant_id: string;
   title: string;
+  slug: string;
   description?: string;
   starts_at?: string;
   ends_at?: string;

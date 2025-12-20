@@ -4,39 +4,6 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import { createClient } from "@/lib/supabase/client";
 import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent } from "./types";
 
-// Initial demo data
-const INITIAL_SPOTS: Spot[] = [
-  {
-    id: "1",
-    description: "Spielzeug & Bücher",
-    address: "Rüsternweg 50, Nürnberg",
-    lat: 49.417652,
-    lng: 11.055152,
-    name: "Max Mustermann",
-    contact: "max@test.de",
-    consent: true,
-  },
-  {
-    id: "2",
-    description: "Vintage Kleidung",
-    address: "Heisterstraße 60, Nürnberg",
-    lat: 49.423576,
-    lng: 11.062553,
-    name: "Anna Schmidt",
-    contact: "0170-1234567",
-    consent: true,
-  },
-  {
-    id: "3",
-    description: "Omas Geschirr",
-    address: "Mustergasse 12, Nürnberg",
-    lat: 49.42,
-    lng: 11.06,
-    name: "",
-    contact: "",
-    consent: true,
-  },
-];
 
 interface FlohmarktContextType {
   // State
@@ -61,7 +28,7 @@ interface FlohmarktContextType {
   setCurrentTab: (tab: AppTabType) => void;
   addSpot: (spot: Omit<Spot, "id">) => void;
   deleteSpot: (id: string) => void;
-  deleteSpotByVerification: (address: string, name: string, contact: string) => boolean;
+  deleteSpotByVerification: (addressRaw: string, contactName: string, contactEmail: string) => Promise<boolean>;
   createEvent: (title: string, date: string, startTime: string, endTime: string) => void;
   logout: () => void;
   setDeletePreFill: (address: string) => void;
@@ -87,12 +54,14 @@ interface FlohmarktContextType {
 
   // Tenant lookup
   findTenantBySlug: (slug: string) => Tenant | undefined;
+  findEventBySlug: (slug: string) => TenantEvent | undefined;
+  findEventBySlugOrId: (slugOrId: string) => TenantEvent | undefined;
 }
 
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
 
 export function FlohmarktProvider({ children }: { children: ReactNode }) {
-  const [spots, setSpots] = useState<Spot[]>(INITIAL_SPOTS);
+  const [spots, setSpots] = useState<Spot[]>([]);
   const [currentEvent, setCurrentEvent] = useState<FlohmarktEvent | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>("frontpage");
   const [currentTab, setCurrentTab] = useState<AppTabType>("list");
@@ -391,6 +360,26 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setMembers(loadedMembers);
   }, [currentTenant]);
 
+  // Load spots for current event
+  const loadSpots = useCallback(async () => {
+    if (!currentTenantEvent) return;
+
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("spots")
+      .select("*")
+      .eq("event_id", currentTenantEvent.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading spots:", error);
+      return;
+    }
+
+    setSpots(data ?? []);
+  }, [currentTenantEvent]);
+
   // Load events and members when tenant changes
   useEffect(() => {
     if (currentTenant) {
@@ -398,6 +387,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       loadMembers();
     }
   }, [currentTenant, loadTenantEvents, loadMembers]);
+
+  // Load spots when event changes
+  useEffect(() => {
+    if (currentTenantEvent) {
+      loadSpots();
+    }
+  }, [currentTenantEvent, loadSpots]);
 
   const createTenantEvent = useCallback(async (
     title: string,
@@ -408,12 +404,14 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     if (!currentTenant || !user) return { success: false, error: "No tenant selected" };
 
     const supabase = createClient();
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
     const { error } = await supabase
       .from("events")
       .insert({
         tenant_id: currentTenant.id,
         title,
+        slug,
         description,
         starts_at: startsAt || null,
         ends_at: endsAt || null,
@@ -525,33 +523,93 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     return tenants.find((t) => t.slug === slug);
   }, [tenants]);
 
-  const addSpot = useCallback((spotData: Omit<Spot, "id">) => {
-    const newSpot: Spot = {
-      ...spotData,
-      id: Date.now().toString(),
-    };
-    setSpots((prev) => [...prev, newSpot]);
-  }, []);
+  const findEventBySlug = useCallback((slug: string): TenantEvent | undefined => {
+    return tenantEvents.find((e) => e.slug === slug);
+  }, [tenantEvents]);
 
-  const deleteSpot = useCallback((id: string) => {
-    setSpots((prev) => prev.filter((spot) => spot.id !== id));
-  }, []);
+  const findEventBySlugOrId = useCallback((slugOrId: string): TenantEvent | undefined => {
+    // Try to find by slug first, then by ID
+    return tenantEvents.find((e) => e.slug === slugOrId || e.id === slugOrId);
+  }, [tenantEvents]);
+
+  const addSpot = useCallback(async (spotData: Omit<Spot, "id">) => {
+    if (!currentTenantEvent || !currentTenant) return;
+
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("spots")
+      .insert({
+        tenant_id: currentTenant.id,
+        event_id: currentTenantEvent.id,
+        title: spotData.title,
+        public_note: spotData.public_note,
+        internal_note: spotData.internal_note,
+        street: spotData.street,
+        house_number: spotData.house_number,
+        zip: spotData.zip,
+        city: spotData.city,
+        address_raw: spotData.address_raw,
+        address_public: spotData.address_public,
+        lat: spotData.lat,
+        lng: spotData.lng,
+        geo_precision: spotData.geo_precision || 'exact',
+        contact_name: spotData.contact_name,
+        contact_email: spotData.contact_email,
+        contact_phone: spotData.contact_phone,
+      });
+
+    if (error) {
+      console.error("Error adding spot:", error);
+      return;
+    }
+
+    await loadSpots();
+  }, [currentTenantEvent, currentTenant, loadSpots]);
+
+  const deleteSpot = useCallback(async (id: string) => {
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("spots")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error deleting spot:", error);
+      return;
+    }
+
+    await loadSpots();
+  }, [loadSpots]);
 
   const deleteSpotByVerification = useCallback(
-    (address: string, name: string, contact: string): boolean => {
-      const index = spots.findIndex(
+    async (addressRaw: string, contactName: string, contactEmail: string): Promise<boolean> => {
+      const spot = spots.find(
         (s) =>
-          s.address.trim() === address.trim() &&
-          s.name.trim() === name.trim() &&
-          s.contact.trim() === contact.trim()
+          (s.address_raw?.trim() || '') === addressRaw.trim() &&
+          (s.contact_name?.trim() || '') === contactName.trim() &&
+          (s.contact_email?.trim() || '') === contactEmail.trim()
       );
-      if (index > -1) {
-        setSpots((prev) => prev.filter((_, i) => i !== index));
+
+      if (spot) {
+        const supabase = createClient();
+        const { error } = await supabase
+          .from("spots")
+          .delete()
+          .eq("id", spot.id);
+
+        if (error) {
+          console.error("Error deleting spot:", error);
+          return false;
+        }
+
+        await loadSpots();
         return true;
       }
       return false;
     },
-    [spots]
+    [spots, loadSpots]
   );
 
   const createEvent = useCallback(
@@ -587,7 +645,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const getAllEmails = useCallback(() => {
-    return [...new Set(spots.map((s) => s.contact).filter((c) => c && c.includes("@")))];
+    return [...new Set(spots.map((s) => s.contact_email).filter((c): c is string => !!c && c.includes("@")))];
   }, [spots]);
 
   return (
@@ -630,6 +688,8 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         updateUserProfile,
         updateTenant,
         findTenantBySlug,
+        findEventBySlug,
+        findEventBySlugOrId,
       }}
     >
       {children}

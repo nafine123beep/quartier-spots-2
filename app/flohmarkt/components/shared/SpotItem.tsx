@@ -7,7 +7,7 @@ interface SpotItemProps {
   isCompact?: boolean;
   showDeleteButton?: boolean;
   isHighlighted?: boolean;
-  onDelete?: (address: string) => void;
+  onDelete?: (addressRaw: string) => void;
   onClick?: () => void;
 }
 
@@ -21,7 +21,7 @@ export function SpotItem({
 }: SpotItemProps) {
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onDelete?.(spot.address);
+    onDelete?.(spot.address_raw || "");
   };
 
   return (
@@ -52,9 +52,9 @@ export function SpotItem({
       )}
 
       <h3 className="m-0 mb-1 text-[#003366] text-lg font-semibold pr-10">
-        {spot.address}
+        {spot.address_raw || "-"}
       </h3>
-      <p className="m-0 text-gray-600">{spot.description}</p>
+      <p className="m-0 text-gray-600">{spot.public_note || "-"}</p>
     </div>
   );
 }

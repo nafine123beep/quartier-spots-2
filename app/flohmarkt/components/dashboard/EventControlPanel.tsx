@@ -7,7 +7,7 @@ export function EventControlPanel() {
 
   if (!currentTenantEvent || !currentTenant) return null;
 
-  const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.id}`;
+  const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`;
 
   const copyLink = () => {
     if (navigator.clipboard) {
@@ -26,13 +26,13 @@ export function EventControlPanel() {
 
   return (
     <div className="bg-white border border-gray-200 border-l-4 border-l-green-500 p-5 rounded-lg">
-      <h3 className="mt-0 text-green-600">
+      <h3 className="mt-0 text-green-700 font-bold">
         Öffentlicher Link
       </h3>
-      <p>Teile diesen Link mit Teilnehmern:</p>
+      <p className="text-gray-900">Teile diesen Link mit Teilnehmern:</p>
 
       <div className="flex items-center gap-2.5 mt-2.5">
-        <div className="flex-grow bg-gray-100 p-2.5 border border-gray-300 rounded font-mono break-all text-sm">
+        <div className="flex-grow bg-gray-100 p-2.5 border border-gray-300 rounded font-mono break-all text-sm text-gray-900">
           {publicLink}
         </div>
         <button
