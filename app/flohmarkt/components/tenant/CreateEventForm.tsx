@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { geocodeAddress } from "../../lib/geocoding";
 
 interface CreateEventFormProps {
   onSuccess: () => void;
@@ -13,6 +14,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const [description, setDescription] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
+  const [mapCenterAddress, setMapCenterAddress] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +23,24 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
     setError(null);
     setLoading(true);
 
-    const result = await createTenantEvent(title, description, startsAt, endsAt);
+    // Geocode the map center address
+    const geocodeResult = await geocodeAddress(mapCenterAddress);
+
+    if (!geocodeResult) {
+      setError("Adresse konnte nicht gefunden werden. Bitte überprüfe die Eingabe.");
+      setLoading(false);
+      return;
+    }
+
+    const result = await createTenantEvent(
+      title,
+      description,
+      startsAt,
+      endsAt,
+      mapCenterAddress,
+      geocodeResult.lat,
+      geocodeResult.lng
+    );
 
     if (!result.success) {
       setError(result.error ?? "Ein Fehler ist aufgetreten");
@@ -101,6 +120,24 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
             />
           </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block mb-1 font-bold text-gray-700 text-sm">
+            Karten-Zentrum (Adresse oder Stadtteil) *
+          </label>
+          <input
+            type="text"
+            value={mapCenterAddress}
+            onChange={(e) => setMapCenterAddress(e.target.value)}
+            placeholder="z.B. Werderau, Regensburg oder Genaue Straße 123"
+            required
+            disabled={loading}
+            className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+          />
+          <p className="mt-1 text-xs text-gray-600">
+            Diese Adresse bestimmt den Mittelpunkt der Karte für Teilnehmer
+          </p>
         </div>
 
         <button

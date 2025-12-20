@@ -3,11 +3,12 @@
 import { useFlohmarkt } from "../../FlohmarktContext";
 
 export function EventControlPanel() {
-  const { currentTenantEvent, currentTenant, setCurrentView, setCurrentTab } = useFlohmarkt();
+  const { currentTenantEvent, currentTenant } = useFlohmarkt();
 
   if (!currentTenantEvent || !currentTenant) return null;
 
-  const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`;
+  const eventIdentifier = currentTenantEvent.slug || currentTenantEvent.id;
+  const publicLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/flohmarkt/${currentTenant.slug}/${eventIdentifier}`;
 
   const copyLink = () => {
     if (navigator.clipboard) {
@@ -19,9 +20,8 @@ export function EventControlPanel() {
     }
   };
 
-  const goToApp = () => {
-    setCurrentView("app");
-    setCurrentTab("map");
+  const goToPublicView = () => {
+    window.open(publicLink, '_blank');
   };
 
   return (
@@ -46,10 +46,10 @@ export function EventControlPanel() {
 
       <div className="mt-4">
         <button
-          onClick={goToApp}
+          onClick={goToPublicView}
           className="inline-block bg-[#FFCC00] text-[#003366] px-5 py-2.5 rounded-md font-bold cursor-pointer hover:bg-[#e6b800]"
         >
-          Zur Teilnehmer-Ansicht (Demo)
+          Zur Teilnehmer-Ansicht
         </button>
       </div>
     </div>

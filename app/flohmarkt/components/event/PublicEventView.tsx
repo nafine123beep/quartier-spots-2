@@ -1,0 +1,100 @@
+"use client";
+
+import { useFlohmarkt } from "../../FlohmarktContext";
+import { AppTabType } from "../../types";
+import { ListView } from "./ListView";
+import { MapView } from "./MapView";
+import { SpotForm } from "./SpotForm";
+import { DeleteSpotForm } from "./DeleteSpotForm";
+
+export function PublicEventView() {
+  const { currentTab, setCurrentTab, currentTenantEvent } = useFlohmarkt();
+
+  if (!currentTenantEvent) {
+    return null;
+  }
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const renderContent = () => {
+    switch (currentTab) {
+      case "list":
+        return <ListView />;
+      case "map":
+        return <MapView />;
+      case "form":
+        return <SpotForm />;
+      case "delete":
+        return <DeleteSpotForm />;
+      default:
+        return <ListView />;
+    }
+  };
+
+  const tabButtons: { id: AppTabType; label: string; icon: string }[] = [
+    { id: "list", label: "Liste", icon: "📋" },
+    { id: "map", label: "Karte", icon: "🗺️" },
+    { id: "form", label: "Spot anmelden", icon: "➕" },
+    { id: "delete", label: "Spot löschen", icon: "🗑️" },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+      {/* Header */}
+      <div className="bg-[#003366] text-white p-4 shadow-lg">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold m-0 mb-2">{currentTenantEvent.title}</h1>
+          {currentTenantEvent.description && (
+            <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
+          )}
+          <div className="text-sm opacity-80">
+            {currentTenantEvent.starts_at && (
+              <span className="mr-4">
+                Start: {formatDate(currentTenantEvent.starts_at)}
+              </span>
+            )}
+            {currentTenantEvent.ends_at && (
+              <span>Ende: {formatDate(currentTenantEvent.ends_at)}</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto flex overflow-x-auto">
+          {tabButtons.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setCurrentTab(tab.id)}
+              className={`
+                flex-1 min-w-[120px] px-4 py-3 font-medium text-sm
+                transition-all duration-200 border-b-2
+                ${
+                  currentTab === tab.id
+                    ? "border-[#003366] text-[#003366] bg-blue-50"
+                    : "border-transparent text-gray-600 hover:text-[#003366] hover:bg-gray-50"
+                }
+              `}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-hidden">{renderContent()}</div>
+    </div>
+  );
+}

@@ -143,6 +143,27 @@
     "column_default": null
   },
   {
+    "table_name": "events",
+    "column_name": "map_center_lat",
+    "data_type": "double precision",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "events",
+    "column_name": "map_center_lng",
+    "data_type": "double precision",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "events",
+    "column_name": "map_center_address",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
     "table_name": "geocoding_requests",
     "column_name": "id",
     "data_type": "uuid",
@@ -502,7 +523,7 @@
 ]
 
 ## Foreign Key Beziehungen
-[
+[[
   {
     "table_name": "memberships",
     "column_name": "tenant_id",

@@ -24,13 +24,13 @@ export function EventCard({ event }: EventCardProps) {
 
   const statusColors = {
     draft: "bg-gray-100 text-gray-600",
-    active: "bg-green-100 text-green-700",
+    published: "bg-green-100 text-green-700",
     archived: "bg-yellow-100 text-yellow-700",
   };
 
   const statusLabels = {
     draft: "Entwurf",
-    active: "Aktiv",
+    published: "Veröffentlicht",
     archived: "Archiviert",
   };
 

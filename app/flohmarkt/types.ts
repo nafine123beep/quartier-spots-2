@@ -64,9 +64,13 @@ export interface TenantEvent {
   description?: string;
   starts_at?: string;
   ends_at?: string;
-  status: 'draft' | 'active' | 'archived';
+  status: 'draft' | 'published' | 'archived';
+  map_center_lat?: number;
+  map_center_lng?: number;
+  map_center_address?: string;
   created_by?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export type ViewType = 'frontpage' | 'tenantDashboard' | 'eventOverview' | 'eventDetail' | 'settings' | 'app';

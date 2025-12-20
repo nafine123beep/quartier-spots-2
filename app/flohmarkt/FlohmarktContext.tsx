@@ -37,12 +37,13 @@ interface FlohmarktContextType {
   // Tenant actions
   loadTenants: () => Promise<void>;
   selectTenant: (tenant: Tenant) => Promise<void>;
+  setCurrentTenant: (tenant: Tenant) => void;
   createTenant: (name: string, joinPassword: string) => Promise<{ success: boolean; error?: string }>;
   joinTenant: (tenantId: string, password: string) => Promise<{ success: boolean; error?: string }>;
   searchTenants: (query: string) => Promise<Tenant[]>;
   loadTenantEvents: () => Promise<void>;
   loadMembers: () => Promise<void>;
-  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string) => Promise<{ success: boolean; error?: string }>;
+  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number) => Promise<{ success: boolean; error?: string }>;
   removeMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
   updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
@@ -56,6 +57,12 @@ interface FlohmarktContextType {
   findTenantBySlug: (slug: string) => Tenant | undefined;
   findEventBySlug: (slug: string) => TenantEvent | undefined;
   findEventBySlugOrId: (slugOrId: string) => TenantEvent | undefined;
+
+  // Event management
+  updateEvent: (eventId: string, data: Partial<TenantEvent>) => Promise<{ success: boolean; error?: string }>;
+  publishEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
+  archiveEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
+  deleteEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
@@ -399,7 +406,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     title: string,
     description: string,
     startsAt: string,
-    endsAt: string
+    endsAt: string,
+    mapCenterAddress: string,
+    mapCenterLat: number,
+    mapCenterLng: number
   ) => {
     if (!currentTenant || !user) return { success: false, error: "No tenant selected" };
 
@@ -415,6 +425,9 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         description,
         starts_at: startsAt || null,
         ends_at: endsAt || null,
+        map_center_address: mapCenterAddress,
+        map_center_lat: mapCenterLat,
+        map_center_lng: mapCenterLng,
         status: "draft",
         created_by: user.id,
       });
@@ -531,6 +544,96 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     // Try to find by slug first, then by ID
     return tenantEvents.find((e) => e.slug === slugOrId || e.id === slugOrId);
   }, [tenantEvents]);
+
+  const updateEvent = useCallback(async (eventId: string, data: Partial<TenantEvent>) => {
+    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+
+    const supabase = createClient();
+
+    // If title is being updated, regenerate slug
+    const updateData: Record<string, unknown> = { ...data };
+    if (data.title) {
+      updateData.slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    }
+
+    const { error } = await supabase
+      .from("events")
+      .update(updateData)
+      .eq("id", eventId);
+
+    if (error) return { success: false, error: error.message };
+
+    // Update local state
+    if (currentTenantEvent?.id === eventId) {
+      setCurrentTenantEvent({ ...currentTenantEvent, ...data });
+    }
+    await loadTenantEvents();
+
+    return { success: true };
+  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+
+  const publishEvent = useCallback(async (eventId: string) => {
+    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("events")
+      .update({ status: 'published' })
+      .eq("id", eventId);
+
+    if (error) return { success: false, error: error.message };
+
+    // Update local state
+    if (currentTenantEvent?.id === eventId) {
+      setCurrentTenantEvent({ ...currentTenantEvent, status: 'published' });
+    }
+    await loadTenantEvents();
+
+    return { success: true };
+  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+
+  const archiveEvent = useCallback(async (eventId: string) => {
+    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("events")
+      .update({ status: 'archived' })
+      .eq("id", eventId);
+
+    if (error) return { success: false, error: error.message };
+
+    // Update local state
+    if (currentTenantEvent?.id === eventId) {
+      setCurrentTenantEvent({ ...currentTenantEvent, status: 'archived' });
+    }
+    await loadTenantEvents();
+
+    return { success: true };
+  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+
+  const deleteEvent = useCallback(async (eventId: string) => {
+    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+
+    const supabase = createClient();
+
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", eventId);
+
+    if (error) return { success: false, error: error.message };
+
+    // Clear current event if it was deleted
+    if (currentTenantEvent?.id === eventId) {
+      setCurrentTenantEvent(null);
+    }
+    await loadTenantEvents();
+
+    return { success: true };
+  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
 
   const addSpot = useCallback(async (spotData: Omit<Spot, "id">) => {
     if (!currentTenantEvent || !currentTenant) return;
@@ -676,6 +779,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         getAllEmails,
         loadTenants,
         selectTenant,
+        setCurrentTenant,
         createTenant,
         joinTenant,
         searchTenants,
@@ -690,6 +794,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         findTenantBySlug,
         findEventBySlug,
         findEventBySlugOrId,
+        updateEvent,
+        publishEvent,
+        archiveEvent,
+        deleteEvent,
       }}
     >
       {children}

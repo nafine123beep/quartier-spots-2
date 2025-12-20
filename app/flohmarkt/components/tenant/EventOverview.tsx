@@ -17,6 +17,10 @@ export function EventOverview() {
     return null;
   }
 
+  // Separate active events (draft + published) from archived events
+  const activeEvents = tenantEvents.filter(e => e.status === 'draft' || e.status === 'published');
+  const archivedEvents = tenantEvents.filter(e => e.status === 'archived');
+
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
       {/* Header */}
@@ -66,7 +70,7 @@ export function EventOverview() {
                 : "border-transparent text-gray-600 hover:text-gray-800"
             }`}
           >
-            Events ({tenantEvents.length})
+            Aktive Events ({activeEvents.length})
           </button>
           <button
             onClick={() => setActiveTab("members")}
@@ -95,8 +99,9 @@ export function EventOverview() {
       <div className="p-5 overflow-y-auto w-full max-w-[1000px] mx-auto flex-grow">
         {activeTab === "events" && (
           <>
-            {tenantEvents.length === 0 ? (
-              <div className="bg-white p-8 rounded-lg shadow-md text-center">
+            {/* Active Events Section */}
+            {activeEvents.length === 0 ? (
+              <div className="bg-white p-8 rounded-lg shadow-md text-center mb-6">
                 <h3 className="text-[#003366] mt-0">Noch keine Events</h3>
                 <p className="text-gray-600 mb-4">
                   Erstelle dein erstes Event, um Spots zu sammeln.
@@ -109,10 +114,25 @@ export function EventOverview() {
                 </button>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {tenantEvents.map((event) => (
+              <div className="grid gap-4 mb-6">
+                {activeEvents.map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
+              </div>
+            )}
+
+            {/* Archived Events Section */}
+            {archivedEvents.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+                  <span>📦</span>
+                  <span>Archivierte Events ({archivedEvents.length})</span>
+                </h2>
+                <div className="grid gap-4">
+                  {archivedEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
               </div>
             )}
           </>
