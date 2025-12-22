@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress } from "../../lib/geocoding";
+import { normalizeAddress } from "../../lib/addressNormalization";
 
 const FORM_STORAGE_KEY = "spotFormData";
 
@@ -74,8 +75,17 @@ export function SpotForm() {
 
     setSubmitting(true);
 
-    // Build address query from individual fields
-    const addressParts = [street, houseNumber, zip, city].filter(Boolean);
+    // Normalize address fields before processing
+    const normalized = normalizeAddress(street, houseNumber, zip, city);
+    console.log("Normalized address:", normalized);
+
+    // Build address query from normalized fields
+    const addressParts = [
+      normalized.street,
+      normalized.houseNumber,
+      normalized.zip,
+      normalized.city
+    ].filter(Boolean);
     const addressQuery = addressParts.join(" ");
 
     if (!addressQuery.trim()) {
@@ -111,11 +121,11 @@ export function SpotForm() {
       address_raw: addressQuery,
       address_public: addressPublic,
       public_note: publicNote,
-      // Use user input first, fallback to geocoded values if empty
-      street: street || geocodeResult.street,
-      house_number: houseNumber || geocodeResult.houseNumber,
-      zip: zip || geocodeResult.zip,
-      city: city || geocodeResult.city,
+      // Use normalized user input first, fallback to geocoded values if empty
+      street: normalized.street || geocodeResult.street,
+      house_number: normalized.houseNumber || geocodeResult.houseNumber,
+      zip: normalized.zip || geocodeResult.zip,
+      city: normalized.city || geocodeResult.city,
       lat: geocodeResult.lat,
       lng: geocodeResult.lng,
       geo_precision: 'exact',

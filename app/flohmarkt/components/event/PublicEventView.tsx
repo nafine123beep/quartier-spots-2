@@ -8,7 +8,7 @@ import { SpotForm } from "./SpotForm";
 import { DeleteSpotForm } from "./DeleteSpotForm";
 
 export function PublicEventView() {
-  const { currentTab, setCurrentTab, currentTenantEvent } = useFlohmarkt();
+  const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, isAdmin } = useFlohmarkt();
 
   if (!currentTenantEvent) {
     return null;
@@ -47,23 +47,46 @@ export function PublicEventView() {
     { id: "delete", label: "Spot löschen", icon: "🗑️" },
   ];
 
+  const handleBackToAdmin = () => {
+    if (!currentTenant) return;
+    // Navigate to event management page
+    window.location.href = `/flohmarkt/organizations/${currentTenant.slug}/events/${currentTenantEvent.slug || currentTenantEvent.id}`;
+  };
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
       {/* Header */}
       <div className="bg-[#003366] text-white p-4 shadow-lg">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold m-0 mb-2">{currentTenantEvent.title}</h1>
-          {currentTenantEvent.description && (
-            <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
-          )}
-          <div className="text-sm opacity-80">
-            {currentTenantEvent.starts_at && (
-              <span className="mr-4">
-                Start: {formatDate(currentTenantEvent.starts_at)}
-              </span>
-            )}
-            {currentTenantEvent.ends_at && (
-              <span>Ende: {formatDate(currentTenantEvent.ends_at)}</span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold m-0 mb-2">{currentTenantEvent.title}</h1>
+              {currentTenantEvent.description && (
+                <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
+              )}
+              <div className="text-sm opacity-80">
+                {currentTenantEvent.starts_at && (
+                  <span className="mr-4">
+                    Start: {formatDate(currentTenantEvent.starts_at)}
+                  </span>
+                )}
+                {currentTenantEvent.ends_at && (
+                  <span>Ende: {formatDate(currentTenantEvent.ends_at)}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Admin Button - Only visible for authorized users */}
+            {isAdmin && currentTenant && (
+              <button
+                onClick={handleBackToAdmin}
+                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap backdrop-blur-sm border border-white/30"
+                title="Zurück zur Event-Verwaltung"
+              >
+                <span>⚙️</span>
+                <span className="hidden sm:inline">Event verwalten</span>
+                <span className="sm:hidden">Verwalten</span>
+              </button>
             )}
           </div>
         </div>
