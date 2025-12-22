@@ -22,31 +22,52 @@ export function MapView() {
 
   // Initialize map
   useEffect(() => {
-    if (typeof window === "undefined" || !mapContainerRef.current || mapRef.current) {
+    if (typeof window === "undefined" || !mapContainerRef.current) {
+      return;
+    }
+
+    // Skip if map already exists
+    if (mapRef.current) {
+      return;
+    }
+
+    // Check if container already has Leaflet attached (prevent double initialization)
+    const container = mapContainerRef.current;
+    if ((container as any)._leaflet_id) {
+      console.warn("Map container already has Leaflet initialized, skipping");
       return;
     }
 
     const initMap = async () => {
-      const L = (await import("leaflet")).default;
+      try {
+        const L = (await import("leaflet")).default;
 
-      // Fix marker icons
-      delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
+        // Ensure container still exists and isn't initialized
+        if (!mapContainerRef.current || (mapContainerRef.current as any)._leaflet_id) {
+          return;
+        }
 
-      // Use event's map center if available, otherwise use default coordinates
-      const defaultLat = currentTenantEvent?.map_center_lat ?? 49.42;
-      const defaultLng = currentTenantEvent?.map_center_lng ?? 11.06;
-      const map = L.map(mapContainerRef.current!).setView([defaultLat, defaultLng], 14);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
+        // Fix marker icons
+        delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+          iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+          shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        });
 
-      mapRef.current = map;
-      setIsMapReady(true);
+        // Use event's map center if available, otherwise use default coordinates
+        const defaultLat = currentTenantEvent?.map_center_lat ?? 49.42;
+        const defaultLng = currentTenantEvent?.map_center_lng ?? 11.06;
+        const map = L.map(mapContainerRef.current).setView([defaultLat, defaultLng], 14);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(map);
+
+        mapRef.current = map;
+        setIsMapReady(true);
+      } catch (error) {
+        console.error("Error initializing map:", error);
+      }
     };
 
     initMap();
@@ -55,6 +76,7 @@ export function MapView() {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        setIsMapReady(false);
       }
     };
   }, [currentTenantEvent?.map_center_lat, currentTenantEvent?.map_center_lng]);

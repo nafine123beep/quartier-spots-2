@@ -8,7 +8,7 @@ import { SpotForm } from "./SpotForm";
 import { DeleteSpotForm } from "./DeleteSpotForm";
 
 export function PublicEventView() {
-  const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, isAdmin } = useFlohmarkt();
+  const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, user } = useFlohmarkt();
 
   if (!currentTenantEvent) {
     return null;
@@ -76,8 +76,8 @@ export function PublicEventView() {
               </div>
             </div>
 
-            {/* Admin Button - Only visible for authorized users */}
-            {isAdmin && currentTenant && (
+            {/* Management Button - Only visible for authenticated tenant members */}
+            {user && currentTenant && (
               <button
                 onClick={handleBackToAdmin}
                 className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap backdrop-blur-sm border border-white/30"

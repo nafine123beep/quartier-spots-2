@@ -677,6 +677,12 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   }, [currentTenantEvent, currentTenant, loadSpots]);
 
   const deleteSpot = useCallback(async (id: string) => {
+    // Only authorized tenant members can delete spots from admin dashboard
+    if (!currentTenant || !user) {
+      console.error("Not authorized to delete spot");
+      return;
+    }
+
     const supabase = createClient();
 
     const { error } = await supabase
@@ -690,7 +696,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     }
 
     await loadSpots();
-  }, [loadSpots]);
+  }, [currentTenant, user, loadSpots]);
 
   const deleteSpotByVerification = useCallback(
     async (addressRaw: string, contactName: string, contactEmail: string): Promise<boolean> => {
