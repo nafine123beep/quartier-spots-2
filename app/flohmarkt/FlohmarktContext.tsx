@@ -549,7 +549,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   }, [tenantEvents]);
 
   const updateEvent = useCallback(async (eventId: string, data: Partial<TenantEvent>) => {
-    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+    if (!currentTenant || !user) return { success: false, error: "Not authorized" };
 
     const supabase = createClient();
 
@@ -573,10 +573,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     await loadTenantEvents();
 
     return { success: true };
-  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+  }, [currentTenant, user, currentTenantEvent, loadTenantEvents]);
 
   const publishEvent = useCallback(async (eventId: string) => {
-    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+    if (!currentTenant || !user) return { success: false, error: "Not authorized" };
 
     const supabase = createClient();
 
@@ -594,10 +594,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     await loadTenantEvents();
 
     return { success: true };
-  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+  }, [currentTenant, user, currentTenantEvent, loadTenantEvents]);
 
   const archiveEvent = useCallback(async (eventId: string) => {
-    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+    if (!currentTenant || !user) return { success: false, error: "Not authorized" };
 
     const supabase = createClient();
 
@@ -615,10 +615,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     await loadTenantEvents();
 
     return { success: true };
-  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+  }, [currentTenant, user, currentTenantEvent, loadTenantEvents]);
 
   const deleteEvent = useCallback(async (eventId: string) => {
-    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+    if (!currentTenant || !user) return { success: false, error: "Not authorized" };
 
     const supabase = createClient();
 
@@ -636,7 +636,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     await loadTenantEvents();
 
     return { success: true };
-  }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
+  }, [currentTenant, user, currentTenantEvent, loadTenantEvents]);
 
   const addSpot = useCallback(async (spotData: Omit<Spot, "id">): Promise<string | null> => {
     if (!currentTenantEvent || !currentTenant) return null;
