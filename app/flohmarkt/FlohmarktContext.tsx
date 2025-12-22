@@ -14,6 +14,7 @@ interface FlohmarktContextType {
   isAuthenticated: boolean;
   user: User | null;
   deletePreFill: string;
+  highlightedSpotId: string | null;
 
   // Tenant state
   tenants: Tenant[];
@@ -26,12 +27,13 @@ interface FlohmarktContextType {
   // Actions
   setCurrentView: (view: ViewType) => void;
   setCurrentTab: (tab: AppTabType) => void;
-  addSpot: (spot: Omit<Spot, "id">) => void;
+  addSpot: (spot: Omit<Spot, "id">) => Promise<string | null>;
   deleteSpot: (id: string) => void;
   deleteSpotByVerification: (addressRaw: string, contactName: string, contactEmail: string) => Promise<boolean>;
   createEvent: (title: string, date: string, startTime: string, endTime: string) => void;
   logout: () => void;
   setDeletePreFill: (address: string) => void;
+  setHighlightedSpotId: (id: string | null) => void;
   getAllEmails: () => string[];
 
   // Tenant actions
@@ -75,6 +77,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [deletePreFill, setDeletePreFill] = useState("");
+  const [highlightedSpotId, setHighlightedSpotId] = useState<string | null>(null);
 
   // Tenant state
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -635,12 +638,12 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     return { success: true };
   }, [currentTenant, isAdmin, currentTenantEvent, loadTenantEvents]);
 
-  const addSpot = useCallback(async (spotData: Omit<Spot, "id">) => {
-    if (!currentTenantEvent || !currentTenant) return;
+  const addSpot = useCallback(async (spotData: Omit<Spot, "id">): Promise<string | null> => {
+    if (!currentTenantEvent || !currentTenant) return null;
 
     const supabase = createClient();
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("spots")
       .insert({
         tenant_id: currentTenant.id,
@@ -660,14 +663,17 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         contact_name: spotData.contact_name,
         contact_email: spotData.contact_email,
         contact_phone: spotData.contact_phone,
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error("Error adding spot:", error);
-      return;
+      return null;
     }
 
     await loadSpots();
+    return data?.id || null;
   }, [currentTenantEvent, currentTenant, loadSpots]);
 
   const deleteSpot = useCallback(async (id: string) => {
@@ -745,6 +751,11 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setTenantEvents([]);
     setMembers([]);
     setCurrentView("frontpage");
+
+    // Redirect to flohmarkt home page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/flohmarkt';
+    }
   }, []);
 
   const getAllEmails = useCallback(() => {
@@ -761,6 +772,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         isAuthenticated,
         user,
         deletePreFill,
+        highlightedSpotId,
         tenants,
         currentTenant,
         tenantEvents,
@@ -776,6 +788,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         createEvent,
         logout,
         setDeletePreFill,
+        setHighlightedSpotId,
         getAllEmails,
         loadTenants,
         selectTenant,

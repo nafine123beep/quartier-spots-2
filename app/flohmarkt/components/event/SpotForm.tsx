@@ -1,18 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress } from "../../lib/geocoding";
 
+const FORM_STORAGE_KEY = "spotFormData";
+
 export function SpotForm() {
-  const { addSpot, setCurrentTab, currentTenantEvent, currentTenant } = useFlohmarkt();
-  const [addressRaw, setAddressRaw] = useState("");
+  const { addSpot, setCurrentTab, setHighlightedSpotId, currentTenantEvent, currentTenant } = useFlohmarkt();
+  // Address fields
+  const [street, setStreet] = useState("");
+  const [houseNumber, setHouseNumber] = useState("");
+  const [zip, setZip] = useState("");
+  const [city, setCity] = useState("");
+  // Contact fields
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [publicNote, setPublicNote] = useState("");
   const [addressPublic, setAddressPublic] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Load saved form data on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedData = localStorage.getItem(FORM_STORAGE_KEY);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          if (parsed.eventId === currentTenantEvent?.id) {
+            setStreet(parsed.street || "");
+            setHouseNumber(parsed.houseNumber || "");
+            setZip(parsed.zip || "");
+            setCity(parsed.city || "");
+            setContactName(parsed.contactName || "");
+            setContactEmail(parsed.contactEmail || "");
+            setContactPhone(parsed.contactPhone || "");
+            setPublicNote(parsed.publicNote || "");
+            setAddressPublic(parsed.addressPublic || false);
+          }
+        } catch (error) {
+          console.error("Error loading saved form data:", error);
+        }
+      }
+    }
+  }, [currentTenantEvent?.id]);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentTenantEvent) {
+      const formData = {
+        eventId: currentTenantEvent.id,
+        street,
+        houseNumber,
+        zip,
+        city,
+        contactName,
+        contactEmail,
+        contactPhone,
+        publicNote,
+        addressPublic,
+      };
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+    }
+  }, [street, houseNumber, zip, city, contactName, contactEmail, contactPhone, publicNote, addressPublic, currentTenantEvent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,21 +74,48 @@ export function SpotForm() {
 
     setSubmitting(true);
 
-    // Geocode the address
-    const geocodeResult = await geocodeAddress(addressRaw);
+    // Build address query from individual fields
+    const addressParts = [street, houseNumber, zip, city].filter(Boolean);
+    const addressQuery = addressParts.join(" ");
 
-    if (!geocodeResult) {
-      alert("Adresse konnte nicht gefunden werden. Bitte überprüfe die Eingabe und versuche es erneut.");
+    if (!addressQuery.trim()) {
+      alert("Bitte gib mindestens Straße und Stadt ein.");
       setSubmitting(false);
       return;
     }
 
-    await addSpot({
+    console.log("Submitting spot with address:", addressQuery);
+
+    // Geocode the address
+    const geocodeResult = await geocodeAddress(addressQuery);
+
+    if (!geocodeResult) {
+      alert(
+        `Adresse konnte nicht gefunden werden.\n\n` +
+        `Eingegebene Adresse: ${addressQuery}\n\n` +
+        `Bitte überprüfe:\n` +
+        `- Ist die Straße korrekt geschrieben?\n` +
+        `- Ist die Stadt korrekt?\n` +
+        `- Liegt die Adresse in Deutschland?\n\n` +
+        `Tipp: Versuche es ohne Hausnummer oder PLZ, nur mit Straße und Stadt.`
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    console.log("Geocoding successful:", geocodeResult);
+
+    const newSpotId = await addSpot({
       tenant_id: currentTenant.id,
       event_id: currentTenantEvent.id,
-      address_raw: addressRaw,
+      address_raw: addressQuery,
       address_public: addressPublic,
       public_note: publicNote,
+      // Use user input first, fallback to geocoded values if empty
+      street: street || geocodeResult.street,
+      house_number: houseNumber || geocodeResult.houseNumber,
+      zip: zip || geocodeResult.zip,
+      city: city || geocodeResult.city,
       lat: geocodeResult.lat,
       lng: geocodeResult.lng,
       geo_precision: 'exact',
@@ -49,16 +127,31 @@ export function SpotForm() {
     });
 
     setSubmitting(false);
-    alert("Spot erfolgreich angelegt!");
-    setCurrentTab("list");
 
-    // Reset form
-    setAddressRaw("");
-    setContactName("");
-    setContactEmail("");
-    setContactPhone("");
-    setPublicNote("");
-    setAddressPublic(false);
+    if (newSpotId) {
+      setHighlightedSpotId(newSpotId);
+
+      // Clear saved form data from localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(FORM_STORAGE_KEY);
+      }
+
+      // Reset form
+      setStreet("");
+      setHouseNumber("");
+      setZip("");
+      setCity("");
+      setContactName("");
+      setContactEmail("");
+      setContactPhone("");
+      setPublicNote("");
+      setAddressPublic(false);
+
+      alert("Spot erfolgreich angelegt!");
+      setCurrentTab("list");
+    } else {
+      alert("Fehler beim Anlegen des Spots.");
+    }
   };
 
   return (
@@ -69,13 +162,54 @@ export function SpotForm() {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Adresse
+              Straße *
             </label>
             <input
               type="text"
-              value={addressRaw}
-              onChange={(e) => setAddressRaw(e.target.value)}
-              placeholder="Straße, Hausnummer, Stadt"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              placeholder="z.B. Hauptstraße"
+              required
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block mb-1 font-bold text-gray-700 text-sm">
+                Hausnummer
+              </label>
+              <input
+                type="text"
+                value={houseNumber}
+                onChange={(e) => setHouseNumber(e.target.value)}
+                placeholder="z.B. 42"
+                className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+            <div>
+              <label className="block mb-1 font-bold text-gray-700 text-sm">
+                PLZ
+              </label>
+              <input
+                type="text"
+                value={zip}
+                onChange={(e) => setZip(e.target.value)}
+                placeholder="z.B. 93051"
+                className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
+              Stadt *
+            </label>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="z.B. Regensburg"
               required
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
             />

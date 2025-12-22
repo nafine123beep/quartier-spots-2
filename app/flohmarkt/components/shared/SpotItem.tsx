@@ -28,11 +28,15 @@ export function SpotItem({
     <div
       onClick={onClick}
       className={`
-        relative bg-white rounded-lg shadow-sm cursor-pointer
-        transition-transform active:scale-[0.99]
-        border-l-4 border-l-[#003366]
+        relative rounded-lg shadow-sm cursor-pointer
+        transition-all active:scale-[0.99]
+        border-l-4
         ${isCompact ? "p-2.5 text-sm" : "p-5 mb-4"}
-        ${isHighlighted ? "animate-pulse border-2 border-[#FFCC00]" : ""}
+        ${
+          isHighlighted
+            ? "bg-yellow-50 border-l-[#FFCC00] shadow-lg ring-2 ring-[#FFCC00] ring-opacity-50"
+            : "bg-white border-l-[#003366]"
+        }
       `}
     >
       {showDeleteButton && !isCompact && onDelete && (
@@ -52,7 +56,9 @@ export function SpotItem({
       )}
 
       <h3 className="m-0 mb-1 text-[#003366] text-lg font-semibold pr-10">
-        {spot.address_raw || "-"}
+        {spot.street && spot.house_number
+          ? `${spot.street} ${spot.house_number}`
+          : spot.address_raw || "-"}
       </h3>
       <p className="m-0 text-gray-600">{spot.public_note || "-"}</p>
     </div>

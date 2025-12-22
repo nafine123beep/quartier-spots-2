@@ -50,21 +50,41 @@ export default function PublicEventPage() {
         };
 
         // Then find the event by slug or ID for this tenant
-        // Allow admins to preview draft events, but only show published events to public
-        let query = supabase
+        // Check if eventSlug is a UUID (for backward compatibility with old links)
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventSlug);
+
+        // Build OR condition - only check ID if eventSlug is a valid UUID
+        let orCondition: string;
+        if (isUUID) {
+          // eventSlug is a UUID, check both slug and id
+          if (!user || !isAdmin) {
+            orCondition = `and(slug.eq.${eventSlug},status.eq.published),and(id.eq.${eventSlug},status.eq.published)`;
+          } else {
+            orCondition = `slug.eq.${eventSlug},id.eq.${eventSlug}`;
+          }
+        } else {
+          // eventSlug is just a slug, only check slug field
+          if (!user || !isAdmin) {
+            orCondition = `and(slug.eq.${eventSlug},status.eq.published)`;
+          } else {
+            orCondition = `slug.eq.${eventSlug}`;
+          }
+        }
+
+        const eventQuery = supabase
           .from("events")
           .select("*")
           .eq("tenant_id", tenant.id)
-          .or(`slug.eq.${eventSlug},id.eq.${eventSlug}`);
+          .or(orCondition);
 
-        // If user is not authenticated or not an admin, only show published events
-        if (!user || !isAdmin) {
-          query = query.eq("status", "published");
-        }
-
-        const { data: eventData, error: eventError } = await query.single();
+        // Execute query
+        const { data: eventData, error: eventError } = await eventQuery.single();
 
         if (eventError || !eventData) {
+          console.error("Event query error:", eventError);
+          console.log("Searching for event slug/id:", eventSlug);
+          console.log("In tenant:", tenant.slug, tenant.id);
+          console.log("Is admin:", isAdmin, "User:", user?.email);
           setError("Event nicht gefunden oder nicht veröffentlicht.");
           setLoading(false);
           return;
@@ -80,6 +100,9 @@ export default function PublicEventPage() {
           starts_at: eventData.starts_at,
           ends_at: eventData.ends_at,
           status: eventData.status,
+          map_center_lat: eventData.map_center_lat,
+          map_center_lng: eventData.map_center_lng,
+          map_center_address: eventData.map_center_address,
           created_by: eventData.created_by,
           created_at: eventData.created_at,
         };
