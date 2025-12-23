@@ -49,22 +49,39 @@ export default function PublicEventPage() {
           created_at: tenantData.created_at,
         };
 
+        // Check if user is a member of this tenant
+        let isMember = false;
+        if (user) {
+          const { data: membershipData } = await supabase
+            .from("memberships")
+            .select("user_id")
+            .eq("tenant_id", tenant.id)
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .single();
+
+          isMember = !!membershipData;
+        }
+
+        console.log("User:", user?.email, "Is member of tenant:", isMember);
+
         // Then find the event by slug or ID for this tenant
         // Check if eventSlug is a UUID (for backward compatibility with old links)
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventSlug);
 
         // Build OR condition - only check ID if eventSlug is a valid UUID
+        // Allow draft access if user is a member of the tenant
         let orCondition: string;
         if (isUUID) {
           // eventSlug is a UUID, check both slug and id
-          if (!user || !isAdmin) {
+          if (!user || !isMember) {
             orCondition = `and(slug.eq.${eventSlug},status.eq.published),and(id.eq.${eventSlug},status.eq.published)`;
           } else {
             orCondition = `slug.eq.${eventSlug},id.eq.${eventSlug}`;
           }
         } else {
           // eventSlug is just a slug, only check slug field
-          if (!user || !isAdmin) {
+          if (!user || !isMember) {
             orCondition = `and(slug.eq.${eventSlug},status.eq.published)`;
           } else {
             orCondition = `slug.eq.${eventSlug}`;
@@ -84,13 +101,13 @@ export default function PublicEventPage() {
           console.error("Event query error:", eventError);
           console.log("Searching for event slug/id:", eventSlug);
           console.log("In tenant:", tenant.slug, tenant.id);
-          console.log("Is admin:", isAdmin, "User:", user?.email);
+          console.log("Is member:", isMember, "User:", user?.email);
 
           // Provide more helpful error message
           if (!user) {
             setError("Event nicht gefunden oder nicht veröffentlicht. Bitte melde dich an, falls dies ein Entwurf ist.");
-          } else if (!isAdmin) {
-            setError("Event nicht gefunden oder nicht veröffentlicht. Nur Organisatoren können Entwürfe sehen.");
+          } else if (!isMember) {
+            setError("Event nicht gefunden oder nicht veröffentlicht. Nur Mitglieder der Organisation können Entwürfe sehen.");
           } else {
             setError("Event nicht gefunden.");
           }
