@@ -69,40 +69,32 @@ export function FrontPage() {
           </header>
 
           <div className="flex flex-col gap-4 w-full">
-            {/* Navigation Group */}
-            <div className="flex gap-2.5">
-              <Link
-                href="/flohmarkt/demo?tab=map"
-                className="flex-1 text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline"
-              >
-                🗺️ Karte (Demo)
-              </Link>
-              <Link
-                href="/flohmarkt/demo?tab=list"
-                className="flex-1 text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline"
-              >
-                📋 Liste (Demo)
-              </Link>
-            </div>
-
-            {/* Support Button */}
-            <a
-              href="mailto:info@werderau.de"
-              className="text-lg font-bold p-4 border-2 border-[#003366] rounded-lg bg-transparent text-[#003366] cursor-pointer hover:bg-[#003366] hover:text-white transition-colors mt-2 text-center no-underline"
+            {/* Demo Button - Combined */}
+            <Link
+              href="/flohmarkt/demo"
+              className="text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline"
             >
-              ✉️ Support kontaktieren
-            </a>
+              🗺️ Demo ansehen
+            </Link>
+
+            {/* Login/Registration - Primary CTA */}
+            <Link
+              href="/auth/login"
+              className="text-lg font-bold p-4 rounded-lg bg-[#003366] text-white cursor-pointer hover:bg-[#004488] transition-colors text-center no-underline shadow-md"
+            >
+              Anmelden / Registrieren
+            </Link>
           </div>
         </main>
 
         {/* Footer */}
         <footer className="mt-5 flex gap-5 text-sm">
-          <Link
-            href="/auth/login"
+          <a
+            href="mailto:nadine.katschmarek@meratio.de"
             className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
           >
-            Veranstalter-Login
-          </Link>
+            Kontakt & Support
+          </a>
         </footer>
       </div>
     </div>

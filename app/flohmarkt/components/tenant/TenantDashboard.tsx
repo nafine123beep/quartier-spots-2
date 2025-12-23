@@ -33,12 +33,21 @@ export function TenantDashboard() {
             )}
           </div>
         </div>
-        <button
-          onClick={logout}
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/flohmarkt/settings/profile"
+            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline text-lg"
+            title="Profil bearbeiten"
+          >
+            ⚙️
+          </Link>
+          <button
+            onClick={logout}
+            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Content */}

@@ -69,30 +69,42 @@ export default function PublicEventPage() {
         // Check if eventSlug is a UUID (for backward compatibility with old links)
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventSlug);
 
-        // Build OR condition - only check ID if eventSlug is a valid UUID
-        // Allow draft access if user is a member of the tenant
-        let orCondition: string;
-        if (isUUID) {
-          // eventSlug is a UUID, check both slug and id
-          if (!user || !isMember) {
-            orCondition = `and(slug.eq.${eventSlug},status.eq.published),and(id.eq.${eventSlug},status.eq.published)`;
+        // Build query based on user's membership status
+        let eventQuery;
+
+        if (user && isMember) {
+          // Members can see all events (including drafts)
+          if (isUUID) {
+            eventQuery = supabase
+              .from("events")
+              .select("*")
+              .eq("tenant_id", tenant.id)
+              .or(`slug.eq.${eventSlug},id.eq.${eventSlug}`);
           } else {
-            orCondition = `slug.eq.${eventSlug},id.eq.${eventSlug}`;
+            eventQuery = supabase
+              .from("events")
+              .select("*")
+              .eq("tenant_id", tenant.id)
+              .eq("slug", eventSlug);
           }
         } else {
-          // eventSlug is just a slug, only check slug field
-          if (!user || !isMember) {
-            orCondition = `and(slug.eq.${eventSlug},status.eq.published)`;
+          // Non-members can only see published events
+          if (isUUID) {
+            eventQuery = supabase
+              .from("events")
+              .select("*")
+              .eq("tenant_id", tenant.id)
+              .eq("status", "published")
+              .or(`slug.eq.${eventSlug},id.eq.${eventSlug}`);
           } else {
-            orCondition = `slug.eq.${eventSlug}`;
+            eventQuery = supabase
+              .from("events")
+              .select("*")
+              .eq("tenant_id", tenant.id)
+              .eq("status", "published")
+              .eq("slug", eventSlug);
           }
         }
-
-        const eventQuery = supabase
-          .from("events")
-          .select("*")
-          .eq("tenant_id", tenant.id)
-          .or(orCondition);
 
         // Execute query
         const { data: eventData, error: eventError } = await eventQuery.single();
