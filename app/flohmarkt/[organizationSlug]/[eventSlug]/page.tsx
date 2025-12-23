@@ -85,7 +85,15 @@ export default function PublicEventPage() {
           console.log("Searching for event slug/id:", eventSlug);
           console.log("In tenant:", tenant.slug, tenant.id);
           console.log("Is admin:", isAdmin, "User:", user?.email);
-          setError("Event nicht gefunden oder nicht veröffentlicht.");
+
+          // Provide more helpful error message
+          if (!user) {
+            setError("Event nicht gefunden oder nicht veröffentlicht. Bitte melde dich an, falls dies ein Entwurf ist.");
+          } else if (!isAdmin) {
+            setError("Event nicht gefunden oder nicht veröffentlicht. Nur Organisatoren können Entwürfe sehen.");
+          } else {
+            setError("Event nicht gefunden.");
+          }
           setLoading(false);
           return;
         }

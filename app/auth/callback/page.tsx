@@ -15,7 +15,7 @@ export default function AuthCallbackPage() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         setStatus("Erfolgreich eingeloggt! Weiterleitung...");
-        window.location.replace("/flohmarkt");
+        window.location.replace("/flohmarkt/organizations");
       }
     });
 
@@ -30,7 +30,7 @@ export default function AuthCallbackPage() {
 
       if (session) {
         setStatus("Erfolgreich eingeloggt! Weiterleitung...");
-        window.location.replace("/flohmarkt");
+        window.location.replace("/flohmarkt/organizations");
       }
     });
 

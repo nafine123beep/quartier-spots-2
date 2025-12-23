@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { createClient } from "@/lib/supabase/client";
 
 export function ProfileSettings() {
   const { user, updateUserProfile } = useFlohmarkt();
@@ -12,6 +13,12 @@ export function ProfileSettings() {
   const [profileEmail, setProfileEmail] = useState(user?.email || "");
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Password change state
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Sync state when user changes
   useEffect(() => {
@@ -46,7 +53,61 @@ export function ProfileSettings() {
     setProfileMessage(null);
   };
 
+  const handlePasswordChange = async () => {
+    setSavingPassword(true);
+    setPasswordMessage(null);
+
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'Passwörter stimmen nicht überein.' });
+      setSavingPassword(false);
+      return;
+    }
+
+    // Validate password length
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'Passwort muss mindestens 6 Zeichen lang sein.' });
+      setSavingPassword(false);
+      return;
+    }
+
+    const supabase = createClient();
+
+    console.log("Attempting to update password...");
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    console.log("Password update response:", { data, error });
+
+    if (error) {
+      console.error("Password update error:", error);
+      setPasswordMessage({ type: 'error', text: error.message });
+    } else {
+      // Check if email confirmation is required
+      if (data?.user?.identities && data.user.identities.length === 0) {
+        setPasswordMessage({
+          type: 'success',
+          text: 'Bestätigungs-E-Mail wurde gesendet. Bitte prüfe dein Postfach und klicke auf den Link, um das Passwort zu aktivieren.'
+        });
+      } else {
+        setPasswordMessage({ type: 'success', text: 'Passwort wurde erfolgreich gesetzt und ist sofort aktiv!' });
+      }
+      setNewPassword("");
+      setConfirmPassword("");
+    }
+
+    setSavingPassword(false);
+  };
+
+  const handlePasswordReset = () => {
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordMessage(null);
+  };
+
   const hasChanges = user && (profileName !== user.name || profileEmail !== user.email);
+  const passwordValid = newPassword.length >= 6 && newPassword === confirmPassword;
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
@@ -118,6 +179,62 @@ export function ProfileSettings() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Password Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+          <h3 className="text-[#003366] mt-0 mb-4 font-bold">Passwort setzen/ändern</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            Setze ein Passwort, um dich zusätzlich zum Magic Link mit E-Mail und Passwort anmelden zu können.
+          </p>
+
+          {passwordMessage && (
+            <div className={`p-3 rounded-md mb-4 ${
+              passwordMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {passwordMessage.text}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-gray-700 text-sm font-semibold block mb-1">Neues Passwort</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mindestens 6 Zeichen"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003366] text-gray-900 font-medium"
+              />
+            </div>
+            <div>
+              <label className="text-gray-700 text-sm font-semibold block mb-1">Passwort bestätigen</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Passwort wiederholen"
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003366] text-gray-900 font-medium"
+              />
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={handlePasswordChange}
+                disabled={savingPassword || !newPassword || !passwordValid}
+                className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingPassword ? 'Speichern...' : 'Passwort speichern'}
+              </button>
+              <button
+                onClick={handlePasswordReset}
+                disabled={savingPassword || (!newPassword && !confirmPassword)}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Zurücksetzen
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

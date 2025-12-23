@@ -55,12 +55,38 @@ export function PublicEventView() {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+      {/* Draft Banner - Only shown when event is in draft status */}
+      {currentTenantEvent.status === 'draft' && (
+        <div className="bg-yellow-500 text-gray-900 px-4 py-3 shadow-md border-b-2 border-yellow-600">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1 text-center sm:text-left">
+              <p className="font-bold text-sm sm:text-base m-0">
+                VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht
+              </p>
+              <p className="text-xs sm:text-sm m-0 mt-1">
+                Nur Organisatoren können diese Seite sehen. Veröffentliche das Event, damit Teilnehmer es sehen können.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-[#003366] text-white p-4 shadow-lg">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold m-0 mb-2">{currentTenantEvent.title}</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold m-0">{currentTenantEvent.title}</h1>
+                {/* Draft Badge in Header */}
+                {currentTenantEvent.status === 'draft' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-500 text-gray-900 border-2 border-yellow-600">
+                    <span className="mr-1">📝</span>
+                    ENTWURF
+                  </span>
+                )}
+              </div>
               {currentTenantEvent.description && (
                 <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
               )}
