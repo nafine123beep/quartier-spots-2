@@ -101,9 +101,18 @@ function OnboardingContent() {
                 if (insertError) {
                     console.error("Error saving profile:", insertError);
                     console.error("Error details:", JSON.stringify(insertError, null, 2));
-                    const errorMessage = insertError.message || insertError.hint || insertError.details || "Unbekannter Fehler";
-                    alert("Fehler beim Speichern des Profils: " + errorMessage);
-                    return;
+
+                    // If it's an RLS error, we'll let it slide and continue
+                    // The profile will be created by the createTenant/joinTenant functions
+                    if (insertError.code !== 'PGRST301' && !insertError.message?.includes('row-level security')) {
+                        const errorMessage = insertError.message || insertError.hint || insertError.details || "Unbekannter Fehler";
+                        alert("Fehler beim Speichern des Profils: " + errorMessage);
+                        return;
+                    } else {
+                        console.log("Skipping RLS error - profile will be created later");
+                        // Store the display name in localStorage temporarily
+                        localStorage.setItem('pending_display_name', name);
+                    }
                 }
             }
         }

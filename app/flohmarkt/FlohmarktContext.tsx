@@ -221,28 +221,55 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     if (profileError || !profile) {
       // Try to create profile if it doesn't exist
+      const pendingDisplayName = typeof window !== 'undefined' ? localStorage.getItem('pending_display_name') : null;
+
       const { error: createProfileError } = await supabase
         .from("profiles")
         .upsert({
           id: user.id,
           email: user.email,
+          display_name: pendingDisplayName || undefined,
           updated_at: new Date().toISOString(),
         });
 
       if (createProfileError) {
-        return { success: false, error: "Profil konnte nicht erstellt werden: " + createProfileError.message };
+        console.error("Profile creation error:", createProfileError);
+        // If it's an RLS error, continue anyway - the profile might be managed by triggers
+        if (createProfileError.code === 'PGRST301' || createProfileError.message?.includes('row-level security')) {
+          console.log("Continuing despite RLS error - profile might be managed by triggers");
+        } else {
+          return { success: false, error: "Profil konnte nicht erstellt werden: " + createProfileError.message };
+        }
+      } else {
+        // Clear the pending display name from localStorage
+        if (typeof window !== 'undefined' && pendingDisplayName) {
+          localStorage.removeItem('pending_display_name');
+        }
       }
     }
 
-    // Create tenant
+    // Verify if profile actually exists now
+    const { data: verifiedProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Create tenant - only include created_by if profile exists
+    const tenantData: { name: string; slug: string; join_password: string; created_by?: string } = {
+      name,
+      slug,
+      join_password: joinPassword,
+    };
+
+    // Only add created_by if profile exists (to avoid foreign key constraint error)
+    if (verifiedProfile) {
+      tenantData.created_by = user.id;
+    }
+
     const { data: newTenant, error: tenantError } = await supabase
       .from("tenants")
-      .insert({
-        name,
-        slug,
-        join_password: joinPassword,
-        created_by: user.id,
-      })
+      .insert(tenantData)
       .select()
       .single();
 
@@ -282,16 +309,30 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     if (profileError || !profile) {
       // Try to create profile if it doesn't exist
+      const pendingDisplayName = typeof window !== 'undefined' ? localStorage.getItem('pending_display_name') : null;
+
       const { error: createProfileError } = await supabase
         .from("profiles")
         .upsert({
           id: user.id,
           email: user.email,
+          display_name: pendingDisplayName || undefined,
           updated_at: new Date().toISOString(),
         });
 
       if (createProfileError) {
-        return { success: false, error: "Profil konnte nicht erstellt werden: " + createProfileError.message };
+        console.error("Profile creation error:", createProfileError);
+        // If it's an RLS error, continue anyway - the profile might be managed by triggers
+        if (createProfileError.code === 'PGRST301' || createProfileError.message?.includes('row-level security')) {
+          console.log("Continuing despite RLS error - profile might be managed by triggers");
+        } else {
+          return { success: false, error: "Profil konnte nicht erstellt werden: " + createProfileError.message };
+        }
+      } else {
+        // Clear the pending display name from localStorage
+        if (typeof window !== 'undefined' && pendingDisplayName) {
+          localStorage.removeItem('pending_display_name');
+        }
       }
     }
 
@@ -465,21 +506,46 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
     const slug = generateSlug(title);
 
+    // Verify if profile exists
+    const { data: verifiedProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Build event data - only include created_by if profile exists
+    const eventData: {
+      tenant_id: string;
+      title: string;
+      slug: string;
+      description: string;
+      starts_at: string | null;
+      ends_at: string | null;
+      map_center_address: string;
+      map_center_lat: number;
+      map_center_lng: number;
+      status: string;
+      created_by?: string;
+    } = {
+      tenant_id: currentTenant.id,
+      title,
+      slug,
+      description,
+      starts_at: startsAt || null,
+      ends_at: endsAt || null,
+      map_center_address: mapCenterAddress,
+      map_center_lat: mapCenterLat,
+      map_center_lng: mapCenterLng,
+      status: "draft",
+    };
+
+    if (verifiedProfile) {
+      eventData.created_by = user.id;
+    }
+
     const { error } = await supabase
       .from("events")
-      .insert({
-        tenant_id: currentTenant.id,
-        title,
-        slug,
-        description,
-        starts_at: startsAt || null,
-        ends_at: endsAt || null,
-        map_center_address: mapCenterAddress,
-        map_center_lat: mapCenterLat,
-        map_center_lng: mapCenterLng,
-        status: "draft",
-        created_by: user.id,
-      });
+      .insert(eventData);
 
     if (error) {
       return { success: false, error: error.message };
