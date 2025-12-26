@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppHeader } from "../components/app/AppHeader";
 import { TabNavigation } from "../components/app/TabNavigation";
@@ -370,7 +370,7 @@ function DemoMapView({ spots }: { spots: Spot[] }) {
   );
 }
 
-export default function DemoPage() {
+function DemoPageContent() {
   const searchParams = useSearchParams();
   const [currentTab, setCurrentTab] = useState<AppTabType>("map");
 
@@ -430,5 +430,17 @@ export default function DemoPage() {
         {currentTab === "map" && <DemoMapView spots={DEMO_SPOTS} />}
       </div>
     </div>
+  );
+}
+
+export default function DemoPage() {
+  return (
+    <Suspense fallback={
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
+        <p>Laden...</p>
+      </div>
+    }>
+      <DemoPageContent />
+    </Suspense>
   );
 }
