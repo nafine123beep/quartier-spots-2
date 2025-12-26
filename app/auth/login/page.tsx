@@ -84,17 +84,11 @@ export default function LoginPage() {
         .eq("id", data.user.id)
         .maybeSingle();
 
-      const { data: memberships } = await supabase
-        .from("memberships")
-        .select("id")
-        .eq("user_id", data.user.id)
-        .limit(1);
-
-      // If user has no profile display_name or no memberships, redirect to onboarding
-      if (!profile?.display_name || !memberships || memberships.length === 0) {
+      // Only redirect to onboarding if user has no display_name (first-time user)
+      if (!profile?.display_name) {
         router.replace("/onboarding");
       } else {
-        // Redirect to organizations page on success
+        // Existing user - redirect to organizations page (even if they have no memberships yet)
         router.replace("/flohmarkt/organizations");
       }
     } else {
