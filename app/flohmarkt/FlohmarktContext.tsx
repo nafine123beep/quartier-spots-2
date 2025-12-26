@@ -519,8 +519,8 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       title: string;
       slug: string;
       description: string;
-      starts_at: string | null;
-      ends_at: string | null;
+      starts_at?: string;
+      ends_at?: string;
       map_center_address: string;
       map_center_lat: number;
       map_center_lng: number;
@@ -531,13 +531,15 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       title,
       slug,
       description,
-      starts_at: startsAt || null,
-      ends_at: endsAt || null,
       map_center_address: mapCenterAddress,
       map_center_lat: mapCenterLat,
       map_center_lng: mapCenterLng,
       status: "draft",
     };
+
+    // Only add dates if they exist
+    if (startsAt) eventData.starts_at = startsAt;
+    if (endsAt) eventData.ends_at = endsAt;
 
     if (verifiedProfile) {
       eventData.created_by = user.id;
