@@ -58,9 +58,9 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
       const result = await updateEvent(event.id, {
         title,
         description,
-        starts_at: startsAt || null,
-        ends_at: endsAt || null,
-        map_center_address: mapCenterAddress || null,
+        starts_at: startsAt || undefined,
+        ends_at: endsAt || undefined,
+        map_center_address: mapCenterAddress || undefined,
         map_center_lat: mapCenterLat,
         map_center_lng: mapCenterLng,
       });
