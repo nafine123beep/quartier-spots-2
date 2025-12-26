@@ -2,23 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
-
-// Helper function to generate URL-safe slug
-const generateSlug = (name: string): string => {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
-};
+import { generateSlug } from "../../utils/slug";
 
 export function OrganizationSettings() {
-  const { currentTenant, isAdmin, updateTenant } = useFlohmarkt();
+  const router = useRouter();
+  const { currentTenant, isAdmin, updateTenant, deleteTenant } = useFlohmarkt();
 
   // Organization edit state
   const [orgName, setOrgName] = useState(currentTenant?.name || "");
+  const [password, setPassword] = useState("");
   const [savingOrg, setSavingOrg] = useState(false);
   const [orgMessage, setOrgMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   // Sync state when tenant changes
   useEffect(() => {
@@ -28,13 +29,19 @@ export function OrganizationSettings() {
   }, [currentTenant]);
 
   const handleSaveOrg = async () => {
+    if (!password) {
+      setOrgMessage({ type: 'error', text: 'Bitte gib das Organisations-Passwort ein.' });
+      return;
+    }
+
     setSavingOrg(true);
     setOrgMessage(null);
 
-    const result = await updateTenant(orgName);
+    const result = await updateTenant(orgName, password);
 
     if (result.success) {
       setOrgMessage({ type: 'success', text: 'Organisation wurde aktualisiert.' });
+      setPassword("");
     } else {
       setOrgMessage({ type: 'error', text: result.error || 'Fehler beim Speichern.' });
     }
@@ -44,7 +51,27 @@ export function OrganizationSettings() {
 
   const handleReset = () => {
     setOrgName(currentTenant?.name || "");
+    setPassword("");
     setOrgMessage(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletePassword) {
+      setOrgMessage({ type: 'error', text: 'Bitte gib das Organisations-Passwort ein.' });
+      return;
+    }
+
+    setDeleting(true);
+    setOrgMessage(null);
+
+    const result = await deleteTenant(deletePassword);
+
+    if (result.success) {
+      router.push("/flohmarkt/organizations");
+    } else {
+      setOrgMessage({ type: 'error', text: result.error || 'Fehler beim Löschen.' });
+      setDeleting(false);
+    }
   };
 
   const hasChanges = currentTenant && orgName !== currentTenant.name;
@@ -120,7 +147,8 @@ export function OrganizationSettings() {
 
       {/* Content */}
       <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        {/* Edit Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
           <h3 className="text-[#003366] mt-0 mb-4 font-bold">{currentTenant.name}</h3>
 
           {orgMessage && (
@@ -163,6 +191,21 @@ export function OrganizationSettings() {
               </p>
             </div>
 
+            {hasChanges && (
+              <div>
+                <label className="text-gray-700 text-sm font-semibold block mb-1">
+                  Organisations-Passwort zur Bestätigung
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Passwort eingeben"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003366] text-gray-900"
+                />
+              </div>
+            )}
+
             <div className="flex gap-2 mt-6">
               <button
                 onClick={handleSaveOrg}
@@ -180,6 +223,72 @@ export function OrganizationSettings() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Delete Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md border-2 border-red-200">
+          <h3 className="text-red-600 mt-0 mb-4 font-bold">Gefahrenzone</h3>
+
+          {!showDeleteConfirm ? (
+            <div>
+              <p className="text-gray-600 mb-4">
+                Das Löschen der Organisation entfernt alle Events, Spots und Mitgliedschaften unwiderruflich.
+              </p>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="bg-white border-2 border-red-600 text-red-600 px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-red-50"
+              >
+                Organisation löschen...
+              </button>
+            </div>
+          ) : (
+            <div>
+              <p className="text-red-600 font-semibold mb-4">
+                Bist du sicher? Diese Aktion kann nicht rückgängig gemacht werden!
+              </p>
+              <p className="text-gray-600 mb-4">
+                Folgende Daten werden gelöscht:
+              </p>
+              <ul className="list-disc list-inside text-gray-600 mb-4 text-sm">
+                <li>Die Organisation &quot;{currentTenant.name}&quot;</li>
+                <li>Alle Events und deren Spots</li>
+                <li>Alle Mitgliedschaften</li>
+              </ul>
+
+              <div className="mb-4">
+                <label className="text-gray-700 text-sm font-semibold block mb-1">
+                  Organisations-Passwort zur Bestätigung
+                </label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Passwort eingeben"
+                  className="w-full p-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting || !deletePassword}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleting ? 'Wird gelöscht...' : 'Endgültig löschen'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeletePassword("");
+                  }}
+                  disabled={deleting}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

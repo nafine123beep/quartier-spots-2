@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { generateSlug } from "../../utils/slug";
 
 interface CreateTenantFormProps {
   onBack: () => void;
@@ -31,7 +32,7 @@ export function CreateTenantForm({ onBack }: CreateTenantFormProps) {
     onBack();
   };
 
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+  const slug = generateSlug(name);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-[500px] mx-auto">

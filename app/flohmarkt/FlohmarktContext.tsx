@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent } from "./types";
+import { generateSlug } from "./utils/slug";
 
 
 interface FlohmarktContextType {
@@ -53,7 +54,8 @@ interface FlohmarktContextType {
 
   // Profile & Tenant update actions
   updateUserProfile: (name: string, email?: string) => Promise<{ success: boolean; error?: string; emailChanged?: boolean }>;
-  updateTenant: (name: string) => Promise<{ success: boolean; error?: string }>;
+  updateTenant: (name: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  deleteTenant: (password: string) => Promise<{ success: boolean; error?: string }>;
 
   // Tenant lookup
   findTenantBySlug: (slug: string) => Tenant | undefined;
@@ -208,7 +210,29 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     if (!user) return { success: false, error: "Not authenticated" };
 
     const supabase = createClient();
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const slug = generateSlug(name);
+
+    // Ensure user profile exists before creating membership
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      // Try to create profile if it doesn't exist
+      const { error: createProfileError } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          email: user.email,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (createProfileError) {
+        return { success: false, error: "Profil konnte nicht erstellt werden: " + createProfileError.message };
+      }
+    }
 
     // Create tenant
     const { data: newTenant, error: tenantError } = await supabase
@@ -248,6 +272,28 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     if (!user) return { success: false, error: "Not authenticated" };
 
     const supabase = createClient();
+
+    // Ensure user profile exists before creating membership
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      // Try to create profile if it doesn't exist
+      const { error: createProfileError } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          email: user.email,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (createProfileError) {
+        return { success: false, error: "Profil konnte nicht erstellt werden: " + createProfileError.message };
+      }
+    }
 
     // Check password
     const { data: tenant, error: tenantError } = await supabase
@@ -417,7 +463,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     if (!currentTenant || !user) return { success: false, error: "No tenant selected" };
 
     const supabase = createClient();
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const slug = generateSlug(title);
 
     const { error } = await supabase
       .from("events")
@@ -515,11 +561,16 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     return { success: true, emailChanged };
   }, [user]);
 
-  const updateTenant = useCallback(async (name: string) => {
+  const updateTenant = useCallback(async (name: string, password: string) => {
     if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
 
+    // Verify password
+    if (password !== currentTenant.join_password) {
+      return { success: false, error: "Falsches Passwort" };
+    }
+
     const supabase = createClient();
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+    const slug = generateSlug(name);
 
     const { error } = await supabase
       .from("tenants")
@@ -530,6 +581,49 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     // Update local state
     setCurrentTenant({ ...currentTenant, name, slug });
+    await loadTenants();
+
+    return { success: true };
+  }, [currentTenant, isAdmin, loadTenants]);
+
+  const deleteTenant = useCallback(async (password: string) => {
+    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
+
+    // Verify password
+    if (password !== currentTenant.join_password) {
+      return { success: false, error: "Falsches Passwort" };
+    }
+
+    const supabase = createClient();
+
+    // Delete all memberships first
+    const { error: membershipError } = await supabase
+      .from("memberships")
+      .delete()
+      .eq("tenant_id", currentTenant.id);
+
+    if (membershipError) return { success: false, error: membershipError.message };
+
+    // Delete all events (and their spots will be cascade deleted)
+    const { error: eventsError } = await supabase
+      .from("events")
+      .delete()
+      .eq("tenant_id", currentTenant.id);
+
+    if (eventsError) return { success: false, error: eventsError.message };
+
+    // Delete the tenant
+    const { error: tenantError } = await supabase
+      .from("tenants")
+      .delete()
+      .eq("id", currentTenant.id);
+
+    if (tenantError) return { success: false, error: tenantError.message };
+
+    // Clear local state
+    setCurrentTenant(null);
+    setTenantEvents([]);
+    setMembers([]);
     await loadTenants();
 
     return { success: true };
@@ -556,7 +650,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     // If title is being updated, regenerate slug
     const updateData: Record<string, unknown> = { ...data };
     if (data.title) {
-      updateData.slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+      updateData.slug = generateSlug(data.title);
     }
 
     const { error } = await supabase
@@ -729,10 +823,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
   const createEvent = useCallback(
     (title: string, date: string, startTime: string, endTime: string) => {
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)+/g, "");
+      const slug = generateSlug(title);
       const publicLink = `${window.location.origin}${window.location.pathname}#event/${slug}`;
 
       setCurrentEvent({
@@ -810,6 +901,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         setCurrentTenantEvent,
         updateUserProfile,
         updateTenant,
+        deleteTenant,
         findTenantBySlug,
         findEventBySlug,
         findEventBySlugOrId,

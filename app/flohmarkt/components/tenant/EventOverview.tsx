@@ -17,9 +17,24 @@ export function EventOverview() {
     return null;
   }
 
-  // Separate active events (draft + published) from archived events
-  const activeEvents = tenantEvents.filter(e => e.status === 'draft' || e.status === 'published');
-  const archivedEvents = tenantEvents.filter(e => e.status === 'archived');
+  // Sort events by date and time (most recent first), events without dates go to the end
+  const sortByDateTime = (a: typeof tenantEvents[0], b: typeof tenantEvents[0]) => {
+    // Events without dates go to the end
+    if (!a.starts_at && !b.starts_at) return 0;
+    if (!a.starts_at) return 1;
+    if (!b.starts_at) return -1;
+
+    const dateA = new Date(a.starts_at).getTime();
+    const dateB = new Date(b.starts_at).getTime();
+    return dateB - dateA; // Most recent first
+  };
+
+  const activeEvents = tenantEvents
+    .filter(e => e.status === 'draft' || e.status === 'published')
+    .sort(sortByDateTime);
+  const archivedEvents = tenantEvents
+    .filter(e => e.status === 'archived')
+    .sort(sortByDateTime);
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">

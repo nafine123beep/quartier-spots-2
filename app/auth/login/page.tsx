@@ -75,9 +75,28 @@ export default function LoginPage() {
         return;
       }
 
-      console.log("Password login successful, redirecting...");
-      // Redirect to organizations page on success
-      router.replace("/flohmarkt/organizations");
+      console.log("Password login successful, checking user status...");
+
+      // Check if user needs onboarding
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      const { data: memberships } = await supabase
+        .from("memberships")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .limit(1);
+
+      // If user has no profile display_name or no memberships, redirect to onboarding
+      if (!profile?.display_name || !memberships || memberships.length === 0) {
+        router.replace("/onboarding");
+      } else {
+        // Redirect to organizations page on success
+        router.replace("/flohmarkt/organizations");
+      }
     } else {
       // Magic link login
       const { error } = await supabase.auth.signInWithOtp({
@@ -152,7 +171,7 @@ export default function LoginPage() {
           >
             ←
           </Link>
-          <span>Startseite</span>
+          <span className="text-gray-900">Startseite</span>
         </div>
 
         <div className="max-w-[400px] w-full mx-auto p-5">
@@ -189,7 +208,7 @@ export default function LoginPage() {
           >
             ←
           </Link>
-          <span>Startseite</span>
+          <span className="text-gray-900">Startseite</span>
         </div>
 
         <div className="max-w-[400px] w-full mx-auto p-5">
@@ -225,12 +244,12 @@ export default function LoginPage() {
           >
             ←
           </Link>
-          <span>Startseite</span>
+          <span className="text-gray-900">Startseite</span>
         </div>
 
         <div className="max-w-[400px] w-full mx-auto p-5">
           <h2 className="mt-0 text-[#003366]">Passwort zurücksetzen</h2>
-          <p className="text-gray-600 mb-5">
+          <p className="text-gray-700 mb-5">
             Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen deines Passworts.
           </p>
 
@@ -322,7 +341,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="text-gray-600 mb-5">
+        <p className="text-gray-700 mb-5">
           {loginMode === "magic"
             ? "Gib deine E-Mail-Adresse ein und wir senden dir einen Login-Link."
             : "Melde dich mit deiner E-Mail und deinem Passwort an."}
@@ -404,7 +423,7 @@ export default function LoginPage() {
         </form>
 
         {/* Divider */}
-        <div className="text-center my-5 text-gray-500 text-sm relative">
+        <div className="text-center my-5 text-gray-600 text-sm relative">
           <span className="bg-gray-100 px-2 relative z-10">ODER</span>
           <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-300 -z-0" />
         </div>
@@ -418,7 +437,7 @@ export default function LoginPage() {
           Weiter mit Google
         </button>
 
-        <div className="mt-5 text-center text-sm text-gray-600">
+        <div className="mt-5 text-center text-sm text-gray-700">
           Noch kein Account? Der Magic Link erstellt automatisch einen Account.
         </div>
       </div>

@@ -9,13 +9,39 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const supabase = createClient();
 
+    async function handleAuthCallback(session: any) {
+      if (!session) return;
+
+      // Check if this is a new user or existing user
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      const { data: memberships } = await supabase
+        .from("memberships")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .limit(1);
+
+      // If user has no profile display_name or no memberships, redirect to onboarding
+      if (!profile?.display_name || !memberships || memberships.length === 0) {
+        setStatus("Erfolgreich eingeloggt! Weiterleitung zum Onboarding...");
+        window.location.replace("/onboarding");
+      } else {
+        // Existing user with profile and memberships - go to dashboard
+        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
+        window.location.replace("/flohmarkt/organizations");
+      }
+    }
+
     // Listen for auth state changes - Supabase automatically handles the token from URL
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
-        window.location.replace("/flohmarkt/organizations");
+        handleAuthCallback(session);
       }
     });
 
@@ -29,8 +55,7 @@ export default function AuthCallbackPage() {
       }
 
       if (session) {
-        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
-        window.location.replace("/flohmarkt/organizations");
+        handleAuthCallback(session);
       }
     });
 
