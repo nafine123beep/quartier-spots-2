@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useFlohmarkt } from "../../FlohmarktContext";
-import { PublicEventView } from "../../components/event/PublicEventView";
-import { loadEventData } from "../../lib/loadEventData";
+import { useFlohmarkt } from "../../../FlohmarktContext";
+import { RegistrationConfirmationPage } from "../../../components/event/RegistrationConfirmationPage";
+import { loadEventData } from "../../../lib/loadEventData";
 
-export default function PublicEventPage() {
+export default function RegisterPage() {
   const params = useParams();
   const organizationSlug = params.organizationSlug as string;
   const eventSlug = params.eventSlug as string;
@@ -76,5 +76,5 @@ export default function PublicEventPage() {
     );
   }
 
-  return <PublicEventView />;
+  return <RegistrationConfirmationPage />;
 }

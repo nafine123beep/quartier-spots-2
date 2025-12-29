@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { AppTabType } from "../../types";
 import { ListView } from "./ListView";
@@ -9,6 +11,15 @@ import { DeleteSpotForm } from "./DeleteSpotForm";
 
 export function PublicEventView() {
   const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, user } = useFlohmarkt();
+  const searchParams = useSearchParams();
+
+  // Check for tab query parameter and auto-select tab
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'form' || tabParam === 'list' || tabParam === 'map' || tabParam === 'delete') {
+      setCurrentTab(tabParam as AppTabType);
+    }
+  }, [searchParams, setCurrentTab]);
 
   if (!currentTenantEvent) {
     return null;
