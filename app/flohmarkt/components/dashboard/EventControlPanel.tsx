@@ -100,7 +100,7 @@ export function EventControlPanel() {
           onClick={goToPublicView}
           className="w-full bg-[#FFCC00] text-[#003366] px-4 py-2 rounded-md font-medium cursor-pointer hover:bg-[#e6b800] text-sm"
         >
-          Zur Teilnehmer-Ansicht
+          Zur Besucher-Ansicht
         </button>
       </div>
     </div>
