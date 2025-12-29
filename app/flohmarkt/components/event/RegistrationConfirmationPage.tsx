@@ -102,26 +102,14 @@ export function RegistrationConfirmationPage() {
             )}
 
             {/* Location */}
-            {(currentTenantEvent.map_center_address || (currentTenantEvent.map_center_lat && currentTenantEvent.map_center_lng)) && (
+            {currentTenantEvent.map_center_address && (
               <div>
                 <h2 className="text-lg font-bold text-[#003366] mb-2">Wo</h2>
                 <div className="text-gray-700">
-                  {currentTenantEvent.map_center_address && (
-                    <p className="flex items-center gap-2 m-0 mb-3">
-                      <span>📍</span>
-                      <span>{currentTenantEvent.map_center_address}</span>
-                    </p>
-                  )}
-                  {currentTenantEvent.map_center_lat && currentTenantEvent.map_center_lng && (
-                    <div className="bg-gray-100 rounded-lg p-4 border border-gray-200">
-                      <p className="text-sm text-gray-600 m-0">
-                        <strong>Koordinaten:</strong> {currentTenantEvent.map_center_lat.toFixed(4)}, {currentTenantEvent.map_center_lng.toFixed(4)}
-                      </p>
-                      <p className="text-xs text-gray-500 m-0 mt-1">
-                        Die genaue Karte mit allen Spots siehst du nach der Anmeldung.
-                      </p>
-                    </div>
-                  )}
+                  <p className="flex items-center gap-2 m-0">
+                    <span>📍</span>
+                    <span>{currentTenantEvent.map_center_address}</span>
+                  </p>
                 </div>
               </div>
             )}
