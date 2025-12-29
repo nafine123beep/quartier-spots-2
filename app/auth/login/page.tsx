@@ -302,7 +302,7 @@ export default function LoginPage() {
         >
           ←
         </Link>
-        <span>Startseite</span>
+        <span className="text-gray-900">Startseite</span>
       </div>
 
       {/* Form Container */}
