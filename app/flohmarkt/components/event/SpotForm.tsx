@@ -21,6 +21,7 @@ export function SpotForm() {
   const [publicNote, setPublicNote] = useState("");
   const [addressPublic, setAddressPublic] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Load saved form data on mount
   useEffect(() => {
@@ -157,11 +158,22 @@ export function SpotForm() {
       setPublicNote("");
       setAddressPublic(false);
 
-      alert("Spot erfolgreich angelegt!");
-      setCurrentTab("list");
+      // Show success modal
+      setShowSuccessModal(true);
+
+      // Auto-redirect after 3 seconds
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        setCurrentTab("list");
+      }, 3000);
     } else {
       alert("Fehler beim Anlegen des Spots.");
     }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    setCurrentTab("list");
   };
 
   return (
@@ -308,6 +320,43 @@ export function SpotForm() {
           </button>
         </form>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 animate-bounce-in">
+            <div className="text-center">
+              {/* Success Icon */}
+              <div className="mb-4">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-5xl">✓</span>
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <h2 className="text-2xl font-bold text-green-600 mb-2">
+                Spot erfolgreich angelegt!
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Dein Spot wurde erfolgreich gespeichert und ist jetzt auf der Karte sichtbar.
+              </p>
+
+              {/* Action Button */}
+              <button
+                onClick={handleCloseSuccessModal}
+                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
+              >
+                Zur Spot-Liste
+              </button>
+
+              {/* Auto-close info */}
+              <p className="text-xs text-gray-400 mt-3">
+                Wird automatisch weitergeleitet...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
