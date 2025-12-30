@@ -323,34 +323,36 @@ export function SpotForm() {
 
       {/* Success Modal */}
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4 animate-bounce-in">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
             <div className="text-center">
               {/* Success Icon */}
-              <div className="mb-4">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-5xl">✓</span>
+              <div className="mb-6">
+                <div className="w-24 h-24 bg-[#003366] rounded-full flex items-center justify-center mx-auto shadow-lg">
+                  <svg className="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                  </svg>
                 </div>
               </div>
 
               {/* Success Message */}
-              <h2 className="text-2xl font-bold text-green-600 mb-2">
+              <h2 className="text-3xl font-bold text-[#003366] mb-3">
                 Spot erfolgreich angelegt!
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 mb-8 text-lg">
                 Dein Spot wurde erfolgreich gespeichert und ist jetzt auf der Karte sichtbar.
               </p>
 
               {/* Action Button */}
               <button
                 onClick={handleCloseSuccessModal}
-                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
+                className="w-full bg-[#003366] text-white px-6 py-4 rounded-lg text-lg font-bold hover:bg-[#002244] transition-colors shadow-md"
               >
                 Zur Spot-Liste
               </button>
 
               {/* Auto-close info */}
-              <p className="text-xs text-gray-400 mt-3">
+              <p className="text-sm text-gray-400 mt-4">
                 Wird automatisch weitergeleitet...
               </p>
             </div>
