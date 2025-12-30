@@ -30,7 +30,7 @@ interface FlohmarktContextType {
   setCurrentTab: (tab: AppTabType) => void;
   addSpot: (spot: Omit<Spot, "id">) => Promise<string | null>;
   deleteSpot: (id: string) => void;
-  deleteSpotByVerification: (addressRaw: string, contactName: string, contactEmail: string) => Promise<boolean>;
+  deleteSpotByVerification: (addressRaw: string, contactName: string, contactEmail: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
   createEvent: (title: string, date: string, startTime: string, endTime: string) => void;
   logout: () => void;
   setDeletePreFill: (address: string) => void;
@@ -1045,7 +1045,12 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   );
 
   const deleteSpotByVerification = useCallback(
-    async (addressRaw: string, contactName: string, contactEmail: string): Promise<boolean> => {
+    async (
+      addressRaw: string,
+      contactName: string,
+      contactEmail: string,
+      reason?: string
+    ): Promise<{ success: boolean; error?: string }> => {
       const spot = spots.find(
         (s) =>
           (s.address_raw?.trim() || '') === addressRaw.trim() &&
@@ -1054,7 +1059,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       );
 
       if (!spot) {
-        return false;
+        return {
+          success: false,
+          error: "Es wurde kein Spot mit diesen exakten Daten gefunden."
+        };
       }
 
       // Create a deletion request instead of immediate deletion
@@ -1063,10 +1071,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         contactName,
         contactEmail,
         addressRaw,
-        undefined // no reason provided
+        reason
       );
 
-      return result.success;
+      return result;
     },
     [spots, requestSpotDeletion]
   );
