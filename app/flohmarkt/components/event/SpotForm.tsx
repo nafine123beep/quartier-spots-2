@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
-import { geocodeAddress } from "../../lib/geocoding";
+import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
 import { normalizeAddress } from "../../lib/addressNormalization";
+import { AddressPinSelector } from "../shared/AddressPinSelector";
 
 const FORM_STORAGE_KEY = "spotFormData";
 
@@ -22,6 +23,11 @@ export function SpotForm() {
   const [addressPublic, setAddressPublic] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // Pin selector state
+  const [showPinSelector, setShowPinSelector] = useState(false);
+  const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
+  const [finalLat, setFinalLat] = useState<number | null>(null);
+  const [finalLng, setFinalLng] = useState<number | null>(null);
 
   // Load saved form data on mount
   useEffect(() => {
@@ -98,9 +104,9 @@ export function SpotForm() {
     console.log("Submitting spot with address:", addressQuery);
 
     // Geocode the address
-    const geocodeResult = await geocodeAddress(addressQuery);
+    const result = await geocodeAddress(addressQuery);
 
-    if (!geocodeResult) {
+    if (!result) {
       alert(
         `Adresse konnte nicht gefunden werden.\n\n` +
         `Eingegebene Adresse: ${addressQuery}\n\n` +
@@ -114,7 +120,35 @@ export function SpotForm() {
       return;
     }
 
-    console.log("Geocoding successful:", geocodeResult);
+    console.log("Geocoding successful:", result);
+
+    // Store geocode result and show pin selector
+    setGeocodeResult(result);
+    setFinalLat(result.lat);
+    setFinalLng(result.lng);
+    setSubmitting(false);
+    setShowPinSelector(true);
+  };
+
+  const handlePinConfirm = async (lat: number, lng: number) => {
+    if (!currentTenantEvent || !currentTenant || !geocodeResult) {
+      return;
+    }
+
+    setShowPinSelector(false);
+    setSubmitting(true);
+
+    // Normalize address fields
+    const normalized = normalizeAddress(street, houseNumber, zip, city);
+
+    // Build address query
+    const addressParts = [
+      normalized.street,
+      normalized.houseNumber,
+      normalized.zip,
+      normalized.city
+    ].filter(Boolean);
+    const addressQuery = addressParts.join(" ");
 
     const newSpotId = await addSpot({
       tenant_id: currentTenant.id,
@@ -127,8 +161,8 @@ export function SpotForm() {
       house_number: normalized.houseNumber || geocodeResult.houseNumber,
       zip: normalized.zip || geocodeResult.zip,
       city: normalized.city || geocodeResult.city,
-      lat: geocodeResult.lat,
-      lng: geocodeResult.lng,
+      lat: lat, // Use confirmed coordinates
+      lng: lng, // Use confirmed coordinates
       geo_precision: 'exact',
       contact_name: contactName,
       contact_email: contactEmail,
@@ -157,6 +191,9 @@ export function SpotForm() {
       setContactPhone("");
       setPublicNote("");
       setAddressPublic(false);
+      setGeocodeResult(null);
+      setFinalLat(null);
+      setFinalLng(null);
 
       // Show success modal
       setShowSuccessModal(true);
@@ -169,6 +206,13 @@ export function SpotForm() {
     } else {
       alert("Fehler beim Anlegen des Spots.");
     }
+  };
+
+  const handlePinCancel = () => {
+    setShowPinSelector(false);
+    setGeocodeResult(null);
+    setFinalLat(null);
+    setFinalLng(null);
   };
 
   const handleCloseSuccessModal = () => {
@@ -320,6 +364,17 @@ export function SpotForm() {
           </button>
         </form>
       </div>
+
+      {/* Pin Selector Modal */}
+      {showPinSelector && finalLat !== null && finalLng !== null && (
+        <AddressPinSelector
+          initialLat={finalLat}
+          initialLng={finalLng}
+          address={`${street} ${houseNumber}, ${zip} ${city}`.trim()}
+          onConfirm={handlePinConfirm}
+          onCancel={handlePinCancel}
+        />
+      )}
 
       {/* Success Modal */}
       {showSuccessModal && (

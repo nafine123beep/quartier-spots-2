@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
-import { geocodeAddress } from "../../lib/geocoding";
+import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
+import { AddressPinSelector } from "../shared/AddressPinSelector";
 
 export function SpotForm() {
   const { addSpot, setCurrentTab, currentTenantEvent, currentTenant } = useFlohmarkt();
@@ -13,6 +14,11 @@ export function SpotForm() {
   const [publicNote, setPublicNote] = useState("");
   const [addressPublic, setAddressPublic] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Pin selector state
+  const [showPinSelector, setShowPinSelector] = useState(false);
+  const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
+  const [finalLat, setFinalLat] = useState<number | null>(null);
+  const [finalLng, setFinalLng] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,13 +30,29 @@ export function SpotForm() {
     setSubmitting(true);
 
     // Geocode the address
-    const geocodeResult = await geocodeAddress(addressRaw);
+    const result = await geocodeAddress(addressRaw);
 
-    if (!geocodeResult) {
+    if (!result) {
       alert("Adresse konnte nicht gefunden werden. Bitte überprüfe die Eingabe und versuche es erneut.");
       setSubmitting(false);
       return;
     }
+
+    // Store geocode result and show pin selector
+    setGeocodeResult(result);
+    setFinalLat(result.lat);
+    setFinalLng(result.lng);
+    setSubmitting(false);
+    setShowPinSelector(true);
+  };
+
+  const handlePinConfirm = async (lat: number, lng: number) => {
+    if (!currentTenantEvent || !currentTenant) {
+      return;
+    }
+
+    setShowPinSelector(false);
+    setSubmitting(true);
 
     await addSpot({
       tenant_id: currentTenant.id,
@@ -38,8 +60,8 @@ export function SpotForm() {
       address_raw: addressRaw,
       address_public: addressPublic,
       public_note: publicNote,
-      lat: geocodeResult.lat,
-      lng: geocodeResult.lng,
+      lat: lat, // Use confirmed coordinates
+      lng: lng, // Use confirmed coordinates
       geo_precision: 'exact',
       contact_name: contactName,
       contact_email: contactEmail,
@@ -59,6 +81,16 @@ export function SpotForm() {
     setContactPhone("");
     setPublicNote("");
     setAddressPublic(false);
+    setGeocodeResult(null);
+    setFinalLat(null);
+    setFinalLng(null);
+  };
+
+  const handlePinCancel = () => {
+    setShowPinSelector(false);
+    setGeocodeResult(null);
+    setFinalLat(null);
+    setFinalLng(null);
   };
 
   return (
@@ -164,6 +196,17 @@ export function SpotForm() {
           </button>
         </form>
       </div>
+
+      {/* Pin Selector Modal */}
+      {showPinSelector && finalLat !== null && finalLng !== null && (
+        <AddressPinSelector
+          initialLat={finalLat}
+          initialLng={finalLng}
+          address={addressRaw}
+          onConfirm={handlePinConfirm}
+          onCancel={handlePinCancel}
+        />
+      )}
     </div>
   );
 }
