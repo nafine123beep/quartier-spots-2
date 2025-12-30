@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent } from "./types";
+import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent, SpotDeletionRequest } from "./types";
 import { generateSlug } from "./utils/slug";
 
 
@@ -67,6 +67,22 @@ interface FlohmarktContextType {
   publishEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
   archiveEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
   deleteEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
+
+  // Deletion request state
+  deletionRequests: SpotDeletionRequest[];
+  pendingDeletionCount: number;
+
+  // Deletion request actions
+  requestSpotDeletion: (
+    spotId: string,
+    requesterName: string,
+    requesterEmail: string,
+    requesterAddress: string,
+    reason?: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  loadDeletionRequests: () => Promise<void>;
+  approveDeletionRequest: (requestId: string) => Promise<{ success: boolean; error?: string }>;
+  rejectDeletionRequest: (requestId: string, reviewerNote: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
@@ -89,6 +105,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentTenantEvent, setCurrentTenantEvent] = useState<TenantEvent | null>(null);
+
+  // Deletion request state
+  const [deletionRequests, setDeletionRequests] = useState<SpotDeletionRequest[]>([]);
+  const [pendingDeletionCount, setPendingDeletionCount] = useState(0);
 
   // Check Supabase session on mount and listen for auth changes
   useEffect(() => {
@@ -860,6 +880,170 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     await loadSpots();
   }, [currentTenant, user, loadSpots]);
 
+  // Load deletion requests for current event
+  const loadDeletionRequests = useCallback(async () => {
+    if (!currentTenantEvent) return;
+
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("spot_deletion_requests")
+      .select("*")
+      .eq("event_id", currentTenantEvent.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading deletion requests:", error);
+      return;
+    }
+
+    setDeletionRequests(data ?? []);
+    setPendingDeletionCount(data?.filter(r => r.status === 'pending').length ?? 0);
+  }, [currentTenantEvent]);
+
+  // Request spot deletion (creates a pending request)
+  const requestSpotDeletion = useCallback(
+    async (
+      spotId: string,
+      requesterName: string,
+      requesterEmail: string,
+      requesterAddress: string,
+      reason?: string
+    ): Promise<{ success: boolean; error?: string }> => {
+      const supabase = createClient();
+
+      // Find the spot to get tenant and event info
+      const spot = spots.find(s => s.id === spotId);
+      if (!spot) {
+        return { success: false, error: "Spot nicht gefunden" };
+      }
+
+      // Check if there's already a pending request for this spot
+      const { data: existingRequests, error: checkError } = await supabase
+        .from("spot_deletion_requests")
+        .select("id")
+        .eq("spot_id", spotId)
+        .eq("status", "pending");
+
+      if (checkError) {
+        return { success: false, error: checkError.message };
+      }
+
+      if (existingRequests && existingRequests.length > 0) {
+        return { success: false, error: "Für diesen Spot existiert bereits eine Löschanfrage" };
+      }
+
+      const { error } = await supabase
+        .from("spot_deletion_requests")
+        .insert({
+          spot_id: spotId,
+          tenant_id: spot.tenant_id,
+          event_id: spot.event_id,
+          status: "pending",
+          requester_reason: reason,
+          requester_name: requesterName,
+          requester_email: requesterEmail,
+          requester_address: requesterAddress,
+        });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Reload deletion requests to update count
+      await loadDeletionRequests();
+
+      // TODO: Send email notification to organizers (Phase 5)
+
+      return { success: true };
+    },
+    [spots, loadDeletionRequests]
+  );
+
+  // Approve deletion request and delete the spot
+  const approveDeletionRequest = useCallback(
+    async (requestId: string): Promise<{ success: boolean; error?: string }> => {
+      if (!user) return { success: false, error: "Not authenticated" };
+
+      const supabase = createClient();
+
+      // Get the request to find the spot
+      const { data: request, error: fetchError } = await supabase
+        .from("spot_deletion_requests")
+        .select("*")
+        .eq("id", requestId)
+        .single();
+
+      if (fetchError || !request) {
+        return { success: false, error: "Anfrage nicht gefunden" };
+      }
+
+      // Delete the spot
+      const { error: deleteError } = await supabase
+        .from("spots")
+        .delete()
+        .eq("id", request.spot_id);
+
+      if (deleteError) {
+        return { success: false, error: deleteError.message };
+      }
+
+      // Update the request status
+      const { error: updateError } = await supabase
+        .from("spot_deletion_requests")
+        .update({
+          status: "approved",
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", requestId);
+
+      if (updateError) {
+        return { success: false, error: updateError.message };
+      }
+
+      // Reload data
+      await loadSpots();
+      await loadDeletionRequests();
+
+      // TODO: Send email notification to requester (Phase 5)
+
+      return { success: true };
+    },
+    [user, loadSpots, loadDeletionRequests]
+  );
+
+  // Reject deletion request
+  const rejectDeletionRequest = useCallback(
+    async (requestId: string, reviewerNote: string): Promise<{ success: boolean; error?: string }> => {
+      if (!user) return { success: false, error: "Not authenticated" };
+
+      const supabase = createClient();
+
+      const { error } = await supabase
+        .from("spot_deletion_requests")
+        .update({
+          status: "rejected",
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
+          reviewer_note: reviewerNote,
+        })
+        .eq("id", requestId);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Reload deletion requests
+      await loadDeletionRequests();
+
+      // TODO: Send email notification to requester (Phase 5)
+
+      return { success: true };
+    },
+    [user, loadDeletionRequests]
+  );
+
   const deleteSpotByVerification = useCallback(
     async (addressRaw: string, contactName: string, contactEmail: string): Promise<boolean> => {
       const spot = spots.find(
@@ -869,24 +1053,22 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
           (s.contact_email?.trim() || '') === contactEmail.trim()
       );
 
-      if (spot) {
-        const supabase = createClient();
-        const { error } = await supabase
-          .from("spots")
-          .delete()
-          .eq("id", spot.id);
-
-        if (error) {
-          console.error("Error deleting spot:", error);
-          return false;
-        }
-
-        await loadSpots();
-        return true;
+      if (!spot) {
+        return false;
       }
-      return false;
+
+      // Create a deletion request instead of immediate deletion
+      const result = await requestSpotDeletion(
+        spot.id,
+        contactName,
+        contactEmail,
+        addressRaw,
+        undefined // no reason provided
+      );
+
+      return result.success;
     },
-    [spots, loadSpots]
+    [spots, requestSpotDeletion]
   );
 
   const createEvent = useCallback(
@@ -926,6 +1108,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   const getAllEmails = useCallback(() => {
     return [...new Set(spots.map((s) => s.contact_email).filter((c): c is string => !!c && c.includes("@")))];
   }, [spots]);
+
+  // Load deletion requests when event changes
+  useEffect(() => {
+    if (currentTenantEvent) {
+      loadDeletionRequests();
+    }
+  }, [currentTenantEvent, loadDeletionRequests]);
 
   return (
     <FlohmarktContext.Provider
@@ -977,6 +1166,12 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         publishEvent,
         archiveEvent,
         deleteEvent,
+        deletionRequests,
+        pendingDeletionCount,
+        requestSpotDeletion,
+        loadDeletionRequests,
+        approveDeletionRequest,
+        rejectDeletionRequest,
       }}
     >
       {children}

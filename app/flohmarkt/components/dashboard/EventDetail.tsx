@@ -7,6 +7,7 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 import { EventControlPanel } from "./EventControlPanel";
 import { AdminSpotTable } from "./AdminSpotTable";
 import { EventEditForm } from "./EventEditForm";
+import { PendingDeletionRequests } from "./PendingDeletionRequests";
 
 export function EventDetail() {
   const router = useRouter();
@@ -197,6 +198,7 @@ export function EventDetail() {
 
         {/* Existing components */}
         <div className="flex flex-col gap-5">
+          <PendingDeletionRequests />
           <EventControlPanel />
           <AdminSpotTable />
         </div>

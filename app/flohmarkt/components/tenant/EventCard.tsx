@@ -9,7 +9,12 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const { currentTenant } = useFlohmarkt();
+  const { currentTenant, deletionRequests } = useFlohmarkt();
+
+  // Count pending deletion requests for this event
+  const pendingCount = deletionRequests.filter(
+    r => r.event_id === event.id && r.status === 'pending'
+  ).length;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Kein Datum";
@@ -61,9 +66,14 @@ export function EventCard({ event }: EventCardProps) {
         </div>
         <Link
           href={`/flohmarkt/organizations/${currentTenant?.slug}/events/${eventIdentifier}`}
-          className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] ml-4 no-underline"
+          className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] ml-4 no-underline relative"
         >
           Verwalten
+          {pendingCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+              {pendingCount}
+            </span>
+          )}
         </Link>
       </div>
     </div>

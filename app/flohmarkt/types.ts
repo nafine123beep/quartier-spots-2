@@ -73,5 +73,22 @@ export interface TenantEvent {
   updated_at?: string;
 }
 
+export interface SpotDeletionRequest {
+  id: string;
+  spot_id: string;
+  tenant_id: string;
+  event_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requester_reason?: string;
+  requester_name?: string;
+  requester_email?: string;
+  requester_address?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  reviewer_note?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type ViewType = 'frontpage' | 'tenantDashboard' | 'eventOverview' | 'eventDetail' | 'settings' | 'app';
 export type AppTabType = 'list' | 'map' | 'form' | 'delete';
