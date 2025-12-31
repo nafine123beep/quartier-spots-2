@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { normalizeAddress } from "../../lib/addressNormalization";
 
 export function DeleteSpotForm() {
   const { deleteSpotByVerification, setCurrentTab, deletePreFill, setDeletePreFill } =
@@ -37,10 +38,9 @@ export function DeleteSpotForm() {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Reconstruct address_raw from split fields (matching registration format)
-    const addressParts = [street, houseNumber].filter(Boolean).join(" ");
-    const locationParts = [zip, city].filter(Boolean).join(" ");
-    const addressRaw = [addressParts, locationParts].filter(Boolean).join(", ");
+    // Normalize and reconstruct address_raw (matching registration format)
+    const normalized = normalizeAddress(street, houseNumber, zip, city);
+    const addressRaw = [normalized.street, normalized.houseNumber, normalized.zip, normalized.city].filter(Boolean).join(" ");
 
     const result = await deleteSpotByVerification(addressRaw, contactName, contactEmail, reason);
 
