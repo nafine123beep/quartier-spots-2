@@ -1051,17 +1051,43 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       contactEmail: string,
       reason?: string
     ): Promise<{ success: boolean; error?: string }> => {
-      const spot = spots.find(
-        (s) =>
-          (s.address_raw?.trim() || '') === addressRaw.trim() &&
-          (s.contact_name?.trim() || '') === contactName.trim() &&
-          (s.contact_email?.trim() || '') === contactEmail.trim()
-      );
+      // Helper function for case-insensitive comparison
+      const normalize = (str: string | undefined | null): string => {
+        return (str || '').trim().toLowerCase();
+      };
+
+      // Normalize input
+      const inputAddress = normalize(addressRaw);
+      const inputName = normalize(contactName);
+      const inputEmail = normalize(contactEmail);
+
+      // Find spot that matches at least 2 out of 3 fields
+      const spot = spots.find((s) => {
+        const spotAddress = normalize(s.address_raw);
+        const spotName = normalize(s.contact_name);
+        const spotEmail = normalize(s.contact_email);
+
+        // Check how many fields match
+        let matchCount = 0;
+
+        if (inputAddress && spotAddress && inputAddress === spotAddress) {
+          matchCount++;
+        }
+        if (inputName && spotName && inputName === spotName) {
+          matchCount++;
+        }
+        if (inputEmail && spotEmail && inputEmail === spotEmail) {
+          matchCount++;
+        }
+
+        // Require at least 2 out of 3 fields to match
+        return matchCount >= 2;
+      });
 
       if (!spot) {
         return {
           success: false,
-          error: "Es wurde kein Spot mit diesen exakten Daten gefunden."
+          error: "Es wurden keine übereinstimmenden Daten gefunden. Bitte stelle sicher, dass mindestens 2 der 3 Felder (Adresse, Name, E-Mail) korrekt sind."
         };
       }
 

@@ -6,7 +6,10 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 export function DeleteSpotForm() {
   const { deleteSpotByVerification, setCurrentTab, deletePreFill, setDeletePreFill } =
     useFlohmarkt();
-  const [addressRaw, setAddressRaw] = useState("");
+  const [street, setStreet] = useState("");
+  const [houseNumber, setHouseNumber] = useState("");
+  const [zip, setZip] = useState("");
+  const [city, setCity] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [reason, setReason] = useState("");
@@ -15,7 +18,17 @@ export function DeleteSpotForm() {
 
   useEffect(() => {
     if (deletePreFill) {
-      setAddressRaw(deletePreFill);
+      // Pre-fill assumes format: "Street HouseNumber, ZIP City"
+      // Try to parse it, otherwise just put it in street field
+      const match = deletePreFill.match(/^(.+?)\s+(\d+\w*),?\s*(\d{5})?\s*(.*)$/);
+      if (match) {
+        setStreet(match[1] || "");
+        setHouseNumber(match[2] || "");
+        setZip(match[3] || "");
+        setCity(match[4] || "");
+      } else {
+        setStreet(deletePreFill);
+      }
       setDeletePreFill("");
     }
   }, [deletePreFill, setDeletePreFill]);
@@ -24,13 +37,21 @@ export function DeleteSpotForm() {
     e.preventDefault();
     setIsProcessing(true);
 
+    // Reconstruct address_raw from split fields (matching registration format)
+    const addressParts = [street, houseNumber].filter(Boolean).join(" ");
+    const locationParts = [zip, city].filter(Boolean).join(" ");
+    const addressRaw = [addressParts, locationParts].filter(Boolean).join(", ");
+
     const result = await deleteSpotByVerification(addressRaw, contactName, contactEmail, reason);
 
     setIsProcessing(false);
 
     if (result.success) {
       // Clear form
-      setAddressRaw("");
+      setStreet("");
+      setHouseNumber("");
+      setZip("");
+      setCity("");
       setContactName("");
       setContactEmail("");
       setReason("");
@@ -63,14 +84,19 @@ export function DeleteSpotForm() {
         </p>
 
         <form onSubmit={handleSubmit}>
+          <p className="text-sm text-gray-500 mb-4 italic">
+            Wenn keine Informationen hinterlegt wurden, lasse das Feld leer.
+          </p>
+
+          {/* Address fields - matching registration form structure */}
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Adresse (exakt wie beim Eintrag)
+              Straße *
             </label>
             <input
               type="text"
-              value={addressRaw}
-              onChange={(e) => setAddressRaw(e.target.value)}
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
               required
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
             />
@@ -78,7 +104,44 @@ export function DeleteSpotForm() {
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Dein Name (wie beim Eintrag)
+              Hausnummer
+            </label>
+            <input
+              type="text"
+              value={houseNumber}
+              onChange={(e) => setHouseNumber(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
+              PLZ
+            </label>
+            <input
+              type="text"
+              value={zip}
+              onChange={(e) => setZip(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
+              Stadt *
+            </label>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              required
+              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block mb-1 font-bold text-gray-700 text-sm">
+              Dein Name
             </label>
             <input
               type="text"
@@ -90,7 +153,7 @@ export function DeleteSpotForm() {
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              E-Mail (wie beim Eintrag)
+              E-Mail
             </label>
             <input
               type="email"
