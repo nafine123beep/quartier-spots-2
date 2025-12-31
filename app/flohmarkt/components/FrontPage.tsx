@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Map as LeafletMap } from "leaflet";
+import { SupportFormModal } from "./shared/SupportFormModal";
 
 export function FrontPage() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
   // Initialize background map
   useEffect(() => {
@@ -89,13 +91,19 @@ export function FrontPage() {
 
         {/* Footer */}
         <footer className="mt-5 flex gap-5 text-sm">
-          <a
-            href="mailto:nadine.katschmarek@meratio.de"
-            className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
+          <button
+            onClick={() => setIsSupportModalOpen(true)}
+            className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid bg-transparent border-t-0 border-l-0 border-r-0"
           >
             Kontakt & Support
-          </a>
+          </button>
         </footer>
+
+        {/* Support Form Modal */}
+        <SupportFormModal
+          isOpen={isSupportModalOpen}
+          onClose={() => setIsSupportModalOpen(false)}
+        />
       </div>
     </div>
   );
