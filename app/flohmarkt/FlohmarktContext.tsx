@@ -1061,6 +1061,21 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       const inputName = normalize(contactName);
       const inputEmail = normalize(contactEmail);
 
+      // DEBUG: Log what we're comparing
+      console.log("=== DELETE VERIFICATION DEBUG ===");
+      console.log("Input address:", inputAddress);
+      console.log("Input name:", inputName);
+      console.log("Input email:", inputEmail);
+      console.log("Available spots:", spots.length);
+      spots.forEach((s, i) => {
+        console.log(`Spot ${i}:`, {
+          address_raw: s.address_raw,
+          normalized_address: normalize(s.address_raw),
+          contact_name: s.contact_name,
+          contact_email: s.contact_email
+        });
+      });
+
       // Find spot that matches at least 2 out of 3 fields
       const spot = spots.find((s) => {
         const spotAddress = normalize(s.address_raw);
@@ -1072,13 +1087,18 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
         if (inputAddress && spotAddress && inputAddress === spotAddress) {
           matchCount++;
+          console.log("Address MATCH");
         }
         if (inputName && spotName && inputName === spotName) {
           matchCount++;
+          console.log("Name MATCH");
         }
         if (inputEmail && spotEmail && inputEmail === spotEmail) {
           matchCount++;
+          console.log("Email MATCH");
         }
+
+        console.log(`Spot ${s.id} matchCount:`, matchCount);
 
         // Require at least 2 out of 3 fields to match
         return matchCount >= 2;
