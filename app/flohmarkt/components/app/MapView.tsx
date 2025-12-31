@@ -6,7 +6,7 @@ import { MapDrawer } from "../shared/MapDrawer";
 import { SpotItem } from "../shared/SpotItem";
 import { ContactFormModal } from "../shared/ContactFormModal";
 import { Spot } from "../../types";
-import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
+import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
 export function MapView() {
   const { spots, setCurrentTab, setDeletePreFill, currentTenant, currentTenantEvent } = useFlohmarkt();
@@ -16,6 +16,7 @@ export function MapView() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
+  const boundaryCircleRef = useRef<LeafletCircle | null>(null);
 
   const handleDelete = useCallback((addressRaw: string) => {
     setDeletePreFill(addressRaw);
@@ -39,10 +40,31 @@ export function MapView() {
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      const map = L.map(mapContainerRef.current!).setView([49.42, 11.06], 14);
+      // Use event's map center if available, otherwise use default coordinates
+      const defaultLat = currentTenantEvent?.map_center_lat ?? 49.42;
+      const defaultLng = currentTenantEvent?.map_center_lng ?? 11.06;
+      const map = L.map(mapContainerRef.current!).setView([defaultLat, defaultLng], 14);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
+
+      // Add boundary circle if event has boundary restriction
+      if (currentTenantEvent?.boundary_radius_meters &&
+          currentTenantEvent.map_center_lat &&
+          currentTenantEvent.map_center_lng) {
+        const boundaryCircle = L.circle(
+          [currentTenantEvent.map_center_lat, currentTenantEvent.map_center_lng],
+          {
+            radius: currentTenantEvent.boundary_radius_meters,
+            color: '#003366',
+            weight: 2,
+            fillColor: '#003366',
+            fillOpacity: 0.05,
+            dashArray: '10, 5',
+          }
+        ).addTo(map);
+        boundaryCircleRef.current = boundaryCircle;
+      }
 
       mapRef.current = map;
       setIsMapReady(true);
@@ -54,9 +76,11 @@ export function MapView() {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        boundaryCircleRef.current = null;
       }
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTenantEvent?.map_center_lat, currentTenantEvent?.map_center_lng, currentTenantEvent?.boundary_radius_meters]);
 
   // Update markers when spots change
   useEffect(() => {

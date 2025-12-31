@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Map as LeafletMap, Marker as LeafletMarker, DragEndEvent } from "leaflet";
+import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle, DragEndEvent } from "leaflet";
+import { calculateDistanceMeters, isWithinBoundary, formatDistance } from "../../lib/geoUtils";
 
 interface AddressPinSelectorProps {
   initialLat: number;
@@ -9,6 +10,9 @@ interface AddressPinSelectorProps {
   address: string;
   onConfirm: (lat: number, lng: number) => void;
   onCancel: () => void;
+  // Boundary visualization props
+  boundaryCenter?: { lat: number; lng: number };
+  boundaryRadiusMeters?: number;
 }
 
 export function AddressPinSelector({
@@ -17,13 +21,41 @@ export function AddressPinSelector({
   address,
   onConfirm,
   onCancel,
+  boundaryCenter,
+  boundaryRadiusMeters,
 }: AddressPinSelectorProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markerRef = useRef<LeafletMarker | null>(null);
+  const boundaryCircleRef = useRef<LeafletCircle | null>(null);
   const [currentLat, setCurrentLat] = useState(initialLat);
   const [currentLng, setCurrentLng] = useState(initialLng);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isOutOfBounds, setIsOutOfBounds] = useState(false);
+  const [distanceToCenter, setDistanceToCenter] = useState<number | null>(null);
+
+  // Check if position is within boundary
+  const checkBoundary = (lat: number, lng: number) => {
+    if (boundaryCenter && boundaryRadiusMeters) {
+      const distance = calculateDistanceMeters(
+        boundaryCenter.lat,
+        boundaryCenter.lng,
+        lat,
+        lng
+      );
+      setDistanceToCenter(distance);
+      const isInside = isWithinBoundary(
+        lat,
+        lng,
+        boundaryCenter.lat,
+        boundaryCenter.lng,
+        boundaryRadiusMeters
+      );
+      setIsOutOfBounds(!isInside);
+      return isInside;
+    }
+    return true;
+  };
 
   // Initialize map
   useEffect(() => {
@@ -68,6 +100,23 @@ export function AddressPinSelector({
           maxZoom: 19,
         }).addTo(map);
 
+        // Add boundary circle if defined
+        if (boundaryCenter && boundaryRadiusMeters) {
+          const boundaryCircle = L.circle([boundaryCenter.lat, boundaryCenter.lng], {
+            radius: boundaryRadiusMeters,
+            color: '#003366',
+            weight: 2,
+            fillColor: '#003366',
+            fillOpacity: 0.1,
+            dashArray: '5, 5',
+          }).addTo(map);
+
+          boundaryCircleRef.current = boundaryCircle;
+
+          // Fit map to show the entire boundary with some padding
+          map.fitBounds(boundaryCircle.getBounds(), { padding: [30, 30] });
+        }
+
         // Create draggable marker
         const marker = L.marker([initialLat, initialLng], {
           draggable: true,
@@ -80,11 +129,17 @@ export function AddressPinSelector({
           </div>
         `).openPopup();
 
+        // Check initial position against boundary
+        checkBoundary(initialLat, initialLng);
+
         // Update coordinates on drag
         marker.on("dragend", (event: DragEndEvent) => {
           const position = event.target.getLatLng();
           setCurrentLat(position.lat);
           setCurrentLng(position.lng);
+
+          // Check if within boundary
+          checkBoundary(position.lat, position.lng);
 
           // Update popup with new coordinates
           marker.setPopupContent(`
@@ -127,10 +182,12 @@ export function AddressPinSelector({
         mapRef.current.remove();
         mapRef.current = null;
         markerRef.current = null;
+        boundaryCircleRef.current = null;
         setIsMapReady(false);
       }
     };
-  }, [initialLat, initialLng]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLat, initialLng, boundaryCenter?.lat, boundaryCenter?.lng, boundaryRadiusMeters]);
 
   const handleConfirm = () => {
     onConfirm(currentLat, currentLng);
@@ -195,6 +252,18 @@ export function AddressPinSelector({
                 </svg>
               </button>
             )}
+
+            {/* Out of bounds warning */}
+            {isMapReady && isOutOfBounds && boundaryRadiusMeters && (
+              <div className="absolute bottom-4 left-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg z-[1000]">
+                <strong>Achtung:</strong> Der Spot liegt außerhalb des erlaubten Bereichs.
+                {distanceToCenter !== null && (
+                  <span className="block text-sm mt-1">
+                    Entfernung zum Zentrum: {formatDistance(distanceToCenter)} (Erlaubt: {formatDistance(boundaryRadiusMeters)})
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Instructions and Actions */}
@@ -215,7 +284,12 @@ export function AddressPinSelector({
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-6 py-3 bg-[#003366] text-white rounded-lg font-bold hover:bg-[#002244] transition-colors"
+                disabled={isOutOfBounds}
+                className={`px-6 py-3 rounded-lg font-bold transition-colors ${
+                  isOutOfBounds
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#003366] text-white hover:bg-[#002244]"
+                }`}
               >
                 Position bestätigen
               </button>

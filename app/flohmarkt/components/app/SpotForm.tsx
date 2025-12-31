@@ -205,6 +205,12 @@ export function SpotForm() {
           address={addressRaw}
           onConfirm={handlePinConfirm}
           onCancel={handlePinCancel}
+          boundaryCenter={
+            currentTenantEvent?.map_center_lat && currentTenantEvent?.map_center_lng
+              ? { lat: currentTenantEvent.map_center_lat, lng: currentTenantEvent.map_center_lng }
+              : undefined
+          }
+          boundaryRadiusMeters={currentTenantEvent?.boundary_radius_meters ?? undefined}
         />
       )}
     </div>

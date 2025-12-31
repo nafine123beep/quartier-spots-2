@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { TenantEvent } from "../../types";
 import { geocodeAddress } from "../../lib/geocoding";
+import { BOUNDARY_RADIUS_PRESETS } from "../../lib/geoUtils";
 
 interface EventEditFormProps {
   event: TenantEvent;
@@ -22,6 +23,13 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
     event.ends_at ? new Date(event.ends_at).toISOString().slice(0, 16) : ""
   );
   const [mapCenterAddress, setMapCenterAddress] = useState(event.map_center_address || "");
+  const [enableBoundary, setEnableBoundary] = useState(!!event.boundary_radius_meters);
+  const [boundaryRadius, setBoundaryRadius] = useState<number | null>(event.boundary_radius_meters ?? null);
+  const [customRadius, setCustomRadius] = useState(
+    event.boundary_radius_meters && !BOUNDARY_RADIUS_PRESETS.some(p => p.value === event.boundary_radius_meters)
+      ? String(event.boundary_radius_meters)
+      : ""
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +63,9 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
         return;
       }
 
+      // Determine the final boundary radius
+      const finalBoundaryRadius = enableBoundary ? boundaryRadius : null;
+
       const result = await updateEvent(event.id, {
         title,
         description,
@@ -63,6 +74,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
         map_center_address: mapCenterAddress || undefined,
         map_center_lat: mapCenterLat,
         map_center_lng: mapCenterLng,
+        boundary_radius_meters: finalBoundaryRadius,
       });
 
       if (result.success) {
@@ -138,7 +150,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
           </div>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="block mb-2 font-bold text-gray-700 text-sm">
             Karten-Zentrum (Adresse oder Stadtteil) <span className="text-red-500">*</span>
           </label>
@@ -153,6 +165,85 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
           <p className="mt-1 text-xs text-gray-600">
             Diese Adresse bestimmt den Mittelpunkt der Karte für Teilnehmer
           </p>
+        </div>
+
+        {/* Boundary Radius Section */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-start gap-2.5 mb-3">
+            <input
+              type="checkbox"
+              id="enableBoundary"
+              checked={enableBoundary}
+              onChange={(e) => {
+                setEnableBoundary(e.target.checked);
+                if (!e.target.checked) {
+                  setBoundaryRadius(null);
+                  setCustomRadius("");
+                }
+              }}
+              disabled={submitting}
+              className="w-5 h-5 mt-0.5"
+            />
+            <label htmlFor="enableBoundary" className="font-bold text-gray-700 text-sm">
+              Geografisches Gebiet einschränken
+            </label>
+          </div>
+
+          {enableBoundary && (
+            <>
+              <p className="text-xs text-gray-600 mb-3">
+                Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {BOUNDARY_RADIUS_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() => {
+                      setBoundaryRadius(preset.value);
+                      setCustomRadius("");
+                    }}
+                    disabled={submitting}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      boundaryRadius === preset.value
+                        ? "bg-[#003366] text-white"
+                        : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                    } disabled:opacity-50`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="block mb-1 text-xs text-gray-600">
+                  Oder eigenen Radius eingeben (in Metern):
+                </label>
+                <input
+                  type="number"
+                  value={customRadius}
+                  onChange={(e) => {
+                    setCustomRadius(e.target.value);
+                    const value = parseInt(e.target.value);
+                    if (value >= 100) {
+                      setBoundaryRadius(value);
+                    } else {
+                      setBoundaryRadius(null);
+                    }
+                  }}
+                  placeholder="z.B. 750"
+                  min="100"
+                  max="50000"
+                  disabled={submitting}
+                  className="w-32 p-2 border border-gray-300 rounded-md text-sm disabled:bg-gray-100"
+                />
+              </div>
+              {enableBoundary && !boundaryRadius && (
+                <p className="mt-2 text-xs text-orange-600">
+                  Bitte wähle einen Radius aus oder gib einen eigenen Wert ein (min. 100m).
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         <div className="flex gap-3">

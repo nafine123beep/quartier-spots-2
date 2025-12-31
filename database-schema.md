@@ -523,7 +523,7 @@
 ]
 
 ## Foreign Key Beziehungen
-[[
+[
   {
     "table_name": "memberships",
     "column_name": "tenant_id",

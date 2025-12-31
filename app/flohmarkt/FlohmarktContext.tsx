@@ -46,7 +46,7 @@ interface FlohmarktContextType {
   searchTenants: (query: string) => Promise<Tenant[]>;
   loadTenantEvents: () => Promise<void>;
   loadMembers: () => Promise<void>;
-  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number) => Promise<{ success: boolean; error?: string }>;
+  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null) => Promise<{ success: boolean; error?: string }>;
   removeMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
   updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
@@ -519,7 +519,8 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     endsAt: string,
     mapCenterAddress: string,
     mapCenterLat: number,
-    mapCenterLng: number
+    mapCenterLng: number,
+    boundaryRadiusMeters?: number | null
   ) => {
     if (!currentTenant || !user) return { success: false, error: "No tenant selected" };
 
@@ -544,6 +545,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       map_center_address: string;
       map_center_lat: number;
       map_center_lng: number;
+      boundary_radius_meters?: number | null;
       status: string;
       created_by?: string;
     } = {
@@ -554,6 +556,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       map_center_address: mapCenterAddress,
       map_center_lat: mapCenterLat,
       map_center_lng: mapCenterLng,
+      boundary_radius_meters: boundaryRadiusMeters ?? null,
       status: "draft",
     };
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress } from "../../lib/geocoding";
+import { BOUNDARY_RADIUS_PRESETS } from "../../lib/geoUtils";
 
 interface CreateEventFormProps {
   onSuccess: () => void;
@@ -15,6 +16,9 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [mapCenterAddress, setMapCenterAddress] = useState("");
+  const [enableBoundary, setEnableBoundary] = useState(false);
+  const [boundaryRadius, setBoundaryRadius] = useState<number | null>(null);
+  const [customRadius, setCustomRadius] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,6 +36,9 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       return;
     }
 
+    // Determine the final boundary radius
+    const finalBoundaryRadius = enableBoundary ? boundaryRadius : null;
+
     const result = await createTenantEvent(
       title,
       description,
@@ -39,7 +46,8 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       endsAt,
       mapCenterAddress,
       geocodeResult.lat,
-      geocodeResult.lng
+      geocodeResult.lng,
+      finalBoundaryRadius
     );
 
     if (!result.success) {
@@ -138,6 +146,85 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           <p className="mt-1 text-xs text-gray-600">
             Diese Adresse bestimmt den Mittelpunkt der Karte für Teilnehmer
           </p>
+        </div>
+
+        {/* Boundary Radius Section */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-start gap-2.5 mb-3">
+            <input
+              type="checkbox"
+              id="enableBoundary"
+              checked={enableBoundary}
+              onChange={(e) => {
+                setEnableBoundary(e.target.checked);
+                if (!e.target.checked) {
+                  setBoundaryRadius(null);
+                  setCustomRadius("");
+                }
+              }}
+              disabled={loading}
+              className="w-5 h-5 mt-0.5"
+            />
+            <label htmlFor="enableBoundary" className="font-bold text-gray-700 text-sm">
+              Geografisches Gebiet einschränken
+            </label>
+          </div>
+
+          {enableBoundary && (
+            <>
+              <p className="text-xs text-gray-600 mb-3">
+                Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {BOUNDARY_RADIUS_PRESETS.map((preset) => (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() => {
+                      setBoundaryRadius(preset.value);
+                      setCustomRadius("");
+                    }}
+                    disabled={loading}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      boundaryRadius === preset.value
+                        ? "bg-[#003366] text-white"
+                        : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                    } disabled:opacity-50`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <div>
+                <label className="block mb-1 text-xs text-gray-600">
+                  Oder eigenen Radius eingeben (in Metern):
+                </label>
+                <input
+                  type="number"
+                  value={customRadius}
+                  onChange={(e) => {
+                    setCustomRadius(e.target.value);
+                    const value = parseInt(e.target.value);
+                    if (value >= 100) {
+                      setBoundaryRadius(value);
+                    } else {
+                      setBoundaryRadius(null);
+                    }
+                  }}
+                  placeholder="z.B. 750"
+                  min="100"
+                  max="50000"
+                  disabled={loading}
+                  className="w-32 p-2 border border-gray-300 rounded-md text-sm disabled:bg-gray-100"
+                />
+              </div>
+              {enableBoundary && !boundaryRadius && (
+                <p className="mt-2 text-xs text-orange-600">
+                  Bitte wähle einen Radius aus oder gib einen eigenen Wert ein (min. 100m).
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         <button
