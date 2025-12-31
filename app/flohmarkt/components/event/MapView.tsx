@@ -4,12 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { MapDrawer } from "../shared/MapDrawer";
 import { SpotItem } from "../shared/SpotItem";
+import { ContactFormModal } from "../shared/ContactFormModal";
 import { Spot } from "../../types";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 
 export function MapView() {
-  const { spots, setCurrentTab, setDeletePreFill, currentTenantEvent } = useFlohmarkt();
+  const { spots, setCurrentTab, setDeletePreFill, currentTenantEvent, currentTenant } = useFlohmarkt();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -211,19 +213,29 @@ export function MapView() {
       </MapDrawer>
 
       {/* Contact FAB */}
-      <a
-        href="mailto:info@werderau.de"
+      <button
+        onClick={() => setIsContactModalOpen(true)}
         className="
           absolute bottom-5 right-5 w-14 h-14
           bg-[#FFCC00] text-[#003366] rounded-full
           flex items-center justify-center text-3xl
-          shadow-lg z-[2500] no-underline
+          shadow-lg z-[2500] border-none cursor-pointer
           hover:scale-110 transition-transform
         "
         title="Veranstalter:in kontaktieren"
       >
         ✉️
-      </a>
+      </button>
+
+      {/* Contact Form Modal */}
+      <ContactFormModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        tenantId={currentTenant?.id || ""}
+        tenantName={currentTenant?.name || ""}
+        eventId={currentTenantEvent?.id}
+        eventTitle={currentTenantEvent?.title}
+      />
     </div>
   );
 }

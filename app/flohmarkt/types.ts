@@ -90,5 +90,22 @@ export interface SpotDeletionRequest {
   updated_at: string;
 }
 
+export interface ContactMessage {
+  id: string;
+  tenant_id: string;
+  event_id?: string;
+  sender_name: string;
+  sender_email: string;
+  subject: string;
+  message: string;
+  status: 'pending' | 'sent' | 'failed' | 'rate_limited' | 'spam_detected';
+  recipient_count: number;
+  created_at: string;
+}
+
+export interface NotificationPreferences {
+  contact_form_emails: boolean;
+}
+
 export type ViewType = 'frontpage' | 'tenantDashboard' | 'eventOverview' | 'eventDetail' | 'settings' | 'app';
 export type AppTabType = 'list' | 'map' | 'form' | 'delete';

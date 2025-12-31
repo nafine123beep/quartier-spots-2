@@ -20,12 +20,40 @@ export function ProfileSettings() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Notification preferences state
+  const [contactFormEmails, setContactFormEmails] = useState(true);
+  const [savingNotifications, setSavingNotifications] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [notificationLoaded, setNotificationLoaded] = useState(false);
+
   // Sync state when user changes
   useEffect(() => {
     if (user) {
       setProfileName(user.name);
       setProfileEmail(user.email);
     }
+  }, [user]);
+
+  // Load notification preferences
+  useEffect(() => {
+    const loadNotificationPreferences = async () => {
+      if (!user) return;
+
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('profiles')
+        .select('notification_preferences')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.notification_preferences) {
+        const prefs = data.notification_preferences as { contact_form_emails?: boolean };
+        setContactFormEmails(prefs.contact_form_emails !== false);
+      }
+      setNotificationLoaded(true);
+    };
+
+    loadNotificationPreferences();
   }, [user]);
 
   const handleSaveProfile = async () => {
@@ -104,6 +132,31 @@ export function ProfileSettings() {
     setNewPassword("");
     setConfirmPassword("");
     setPasswordMessage(null);
+  };
+
+  const handleSaveNotifications = async () => {
+    if (!user) return;
+
+    setSavingNotifications(true);
+    setNotificationMessage(null);
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        notification_preferences: {
+          contact_form_emails: contactFormEmails
+        }
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      setNotificationMessage({ type: 'error', text: 'Fehler beim Speichern der Einstellungen.' });
+    } else {
+      setNotificationMessage({ type: 'success', text: 'Benachrichtigungseinstellungen gespeichert.' });
+    }
+
+    setSavingNotifications(false);
   };
 
   const hasChanges = user && (profileName !== user.name || profileEmail !== user.email);
@@ -235,6 +288,53 @@ export function ProfileSettings() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Notification Preferences Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+          <h3 className="text-[#003366] mt-0 mb-4 font-bold">Benachrichtigungen</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            Verwalte, welche E-Mail-Benachrichtigungen du erhalten möchtest.
+          </p>
+
+          {notificationMessage && (
+            <div className={`p-3 rounded-md mb-4 ${
+              notificationMessage.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {notificationMessage.text}
+            </div>
+          )}
+
+          {notificationLoaded ? (
+            <div className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={contactFormEmails}
+                  onChange={(e) => setContactFormEmails(e.target.checked)}
+                  className="mt-1 w-5 h-5 rounded border-gray-300 text-[#003366] focus:ring-[#003366]"
+                />
+                <div>
+                  <span className="font-semibold text-gray-800">Kontaktformular E-Mails</span>
+                  <p className="text-gray-500 text-sm mt-0.5">
+                    Erhalte E-Mails, wenn jemand das Kontaktformular für deine Events nutzt.
+                  </p>
+                </div>
+              </label>
+
+              <div className="mt-6">
+                <button
+                  onClick={handleSaveNotifications}
+                  disabled={savingNotifications}
+                  className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold cursor-pointer hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingNotifications ? 'Speichern...' : 'Einstellungen speichern'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500">Laden...</p>
+          )}
         </div>
       </div>
     </div>
