@@ -55,7 +55,6 @@ export function PublicEventView() {
     { id: "list", label: "Liste", icon: "📋" },
     { id: "map", label: "Karte", icon: "🗺️" },
     { id: "form", label: "Spot anmelden", icon: "➕" },
-    { id: "delete", label: "Spot löschen", icon: "🗑️" },
   ];
 
   const handleBackToAdmin = () => {
