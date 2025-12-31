@@ -2,8 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { AccessMode } from "../../lib/loadEventData";
 
-export function RegistrationConfirmationPage() {
+interface RegistrationConfirmationPageProps {
+  accessMode?: AccessMode;
+}
+
+export function RegistrationConfirmationPage({ accessMode = 'public' }: RegistrationConfirmationPageProps) {
   const router = useRouter();
   const { currentTenantEvent, currentTenant } = useFlohmarkt();
 
@@ -31,15 +36,21 @@ export function RegistrationConfirmationPage() {
     <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col overflow-y-auto">
       {/* Draft Banner - Only shown when event is in draft status */}
       {currentTenantEvent.status === 'draft' && (
-        <div className="bg-yellow-500 text-gray-900 px-4 py-3 shadow-md border-b-2 border-yellow-600">
+        <div className={`${accessMode === 'preview' ? 'bg-purple-500 border-purple-600' : 'bg-yellow-500 border-yellow-600'} text-gray-900 px-4 py-3 shadow-md border-b-2`}>
           <div className="max-w-4xl mx-auto flex items-center justify-center gap-3">
-            <span className="text-2xl">⚠️</span>
+            <span className="text-2xl">{accessMode === 'preview' ? '👁️' : '⚠️'}</span>
             <div className="flex-1 text-center sm:text-left">
-              <p className="font-bold text-sm sm:text-base m-0">
-                VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht
+              <p className={`font-bold text-sm sm:text-base m-0 ${accessMode === 'preview' ? 'text-white' : ''}`}>
+                {accessMode === 'preview'
+                  ? 'VORSCHAU-LINK: Du siehst eine Vorabversion dieses Events'
+                  : 'VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht'
+                }
               </p>
-              <p className="text-xs sm:text-sm m-0 mt-1">
-                Nur Organisatoren können diese Seite sehen.
+              <p className={`text-xs sm:text-sm m-0 mt-1 ${accessMode === 'preview' ? 'text-purple-100' : ''}`}>
+                {accessMode === 'preview'
+                  ? 'Diese Ansicht ist nur über den Vorschau-Link zugänglich.'
+                  : 'Nur Organisatoren können diese Seite sehen.'
+                }
               </p>
             </div>
           </div>
@@ -57,9 +68,13 @@ export function RegistrationConfirmationPage() {
               </h1>
               {/* Draft Badge */}
               {currentTenantEvent.status === 'draft' && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-yellow-500 text-gray-900 border-2 border-yellow-600">
-                  <span className="mr-1">📝</span>
-                  ENTWURF
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                  accessMode === 'preview'
+                    ? 'bg-purple-500 text-white border-2 border-purple-600'
+                    : 'bg-yellow-500 text-gray-900 border-2 border-yellow-600'
+                }`}>
+                  <span className="mr-1">{accessMode === 'preview' ? '👁️' : '📝'}</span>
+                  {accessMode === 'preview' ? 'VORSCHAU' : 'ENTWURF'}
                 </span>
               )}
             </div>

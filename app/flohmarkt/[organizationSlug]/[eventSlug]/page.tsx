@@ -1,19 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { PublicEventView } from "../../components/event/PublicEventView";
-import { loadEventData } from "../../lib/loadEventData";
+import { loadEventData, AccessMode } from "../../lib/loadEventData";
 
 export default function PublicEventPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const organizationSlug = params.organizationSlug as string;
   const eventSlug = params.eventSlug as string;
+  const previewToken = searchParams.get('preview');
 
   const { setCurrentTenantEvent, setCurrentTenant, user } = useFlohmarkt();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessMode, setAccessMode] = useState<AccessMode>('public');
 
   // Load event and tenant data from Supabase (public access, no login required)
   useEffect(() => {
@@ -23,7 +26,7 @@ export default function PublicEventPage() {
       setLoading(true);
       setError(null);
 
-      const result = await loadEventData(organizationSlug, eventSlug, user);
+      const result = await loadEventData(organizationSlug, eventSlug, user, previewToken);
 
       if (result.error) {
         setError(result.error);
@@ -35,6 +38,7 @@ export default function PublicEventPage() {
         // Set the current tenant and event in context
         setCurrentTenant(result.tenant);
         setCurrentTenantEvent(result.event);
+        setAccessMode(result.accessMode || 'public');
         setLoading(false);
       } else {
         setError("Fehler beim Laden des Events.");
@@ -43,7 +47,7 @@ export default function PublicEventPage() {
     };
 
     loadData();
-  }, [organizationSlug, eventSlug, setCurrentTenantEvent, setCurrentTenant, user]);
+  }, [organizationSlug, eventSlug, setCurrentTenantEvent, setCurrentTenant, user, previewToken]);
 
   // Show loading state
   if (loading) {
@@ -76,5 +80,5 @@ export default function PublicEventPage() {
     );
   }
 
-  return <PublicEventView />;
+  return <PublicEventView accessMode={accessMode} />;
 }

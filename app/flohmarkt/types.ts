@@ -69,6 +69,7 @@ export interface TenantEvent {
   map_center_lng?: number;
   map_center_address?: string;
   boundary_radius_meters?: number | null;
+  preview_token?: string | null;
   created_by?: string;
   created_at: string;
   updated_at?: string;
