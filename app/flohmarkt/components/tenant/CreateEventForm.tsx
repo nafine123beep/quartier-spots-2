@@ -215,7 +215,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
                   min="100"
                   max="50000"
                   disabled={loading}
-                  className="w-32 p-2 border border-gray-300 rounded-md text-sm disabled:bg-gray-100"
+                  className="w-32 p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500 disabled:bg-gray-100"
                 />
               </div>
               {enableBoundary && !boundaryRadius && (
