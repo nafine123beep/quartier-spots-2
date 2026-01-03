@@ -313,14 +313,14 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
               className="w-5 h-5 mt-0.5"
             />
             <label htmlFor="enableCustomTerms" className="font-bold text-gray-700 text-sm">
-              Bezeichnung anpassen
+              Bezeichnung für &quot;Spots&quot; anpassen
             </label>
           </div>
 
           {enableCustomTerms && (
             <>
               <p className="text-xs text-gray-600 mb-3">
-                &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen oder &quot;Checkpoint&quot; für Radtouren, Rallyes etc.
+                Passe die Bezeichnung an dein Event an, wähle z.B. &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen, &quot;Checkpoint&quot; für Radtouren, Rallyes etc.
               </p>
               <select
                 value={selectedTermPreset}
