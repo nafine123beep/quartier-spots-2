@@ -56,6 +56,16 @@ export interface Member {
   created_at: string;
 }
 
+export interface EventImage {
+  id: string;
+  event_id: string;
+  storage_path: string;
+  filename: string;
+  position: number;
+  is_cover: boolean;
+  created_at: string;
+}
+
 export interface TenantEvent {
   id: string;
   tenant_id: string;
@@ -75,6 +85,7 @@ export interface TenantEvent {
   created_by?: string;
   created_at: string;
   updated_at?: string;
+  images?: EventImage[];
 }
 
 export interface SpotDeletionRequest {

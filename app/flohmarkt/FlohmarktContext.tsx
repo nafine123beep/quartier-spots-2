@@ -425,9 +425,21 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     const supabase = createClient();
 
+    // Load events with their images
     const { data, error } = await supabase
       .from("events")
-      .select("*")
+      .select(`
+        *,
+        images:event_images (
+          id,
+          event_id,
+          storage_path,
+          filename,
+          position,
+          is_cover,
+          created_at
+        )
+      `)
       .eq("tenant_id", currentTenant.id)
       .order("created_at", { ascending: false });
 
@@ -436,7 +448,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setTenantEvents(data ?? []);
+    // Sort images by position within each event
+    const eventsWithSortedImages = (data ?? []).map(event => ({
+      ...event,
+      images: event.images?.sort((a: { position: number }, b: { position: number }) => a.position - b.position) ?? []
+    }));
+
+    setTenantEvents(eventsWithSortedImages);
   }, [currentTenant]);
 
   const loadMembers = useCallback(async () => {

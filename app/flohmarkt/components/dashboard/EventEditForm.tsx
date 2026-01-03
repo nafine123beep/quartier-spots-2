@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
-import { TenantEvent } from "../../types";
+import { TenantEvent, EventImage } from "../../types";
 import { geocodeAddress } from "../../lib/geocoding";
 import { BOUNDARY_RADIUS_PRESETS } from "../../lib/geoUtils";
 import { SPOT_TERM_PRESETS } from "../../lib/spotTerms";
+import { EventImageUpload } from "../shared/EventImageUpload";
 
 interface EventEditFormProps {
   event: TenantEvent;
@@ -59,6 +60,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
   const [selectedTermPreset, setSelectedTermPreset] = useState(initialState.preset);
   const [spotTermSingular, setSpotTermSingular] = useState(initialState.singular);
   const [spotTermPlural, setSpotTermPlural] = useState(initialState.plural);
+  const [images, setImages] = useState<EventImage[]>(event.images ?? []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,6 +174,14 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
             className="w-full p-3 border border-gray-300 rounded-md text-gray-900 resize-y"
           />
         </div>
+
+        {/* Event Images */}
+        <EventImageUpload
+          eventId={event.id}
+          images={images}
+          onImagesChange={setImages}
+          disabled={submitting}
+        />
 
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>

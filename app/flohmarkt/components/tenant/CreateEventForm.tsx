@@ -127,6 +127,13 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           />
         </div>
 
+        {/* Event Photos Info */}
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-800">
+            <strong>Tipp:</strong> Fotos kannst du nach dem Erstellen des Events hinzufügen.
+          </p>
+        </div>
+
         <div className="flex gap-4">
           <div className="flex-1 mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
