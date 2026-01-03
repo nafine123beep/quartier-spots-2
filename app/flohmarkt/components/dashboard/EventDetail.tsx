@@ -8,6 +8,7 @@ import { EventControlPanel } from "./EventControlPanel";
 import { AdminSpotTable } from "./AdminSpotTable";
 import { EventEditForm } from "./EventEditForm";
 import { PendingDeletionRequests } from "./PendingDeletionRequests";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function EventDetail() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function EventDetail() {
     archiveEvent,
     deleteEvent,
   } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -58,7 +60,7 @@ export function EventDetail() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Event wirklich unwiderruflich löschen? Alle Spots werden ebenfalls gelöscht!")) return;
+    if (!confirm(`Event wirklich unwiderruflich löschen? ${terms.allSpotsDeleted}`)) return;
     if (!confirm("Bist du sicher? Diese Aktion kann nicht rückgängig gemacht werden!")) return;
 
     setIsProcessing(true);

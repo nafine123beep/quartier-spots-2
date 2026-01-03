@@ -1,9 +1,11 @@
 "use client";
 
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function AdminSpotTable() {
-  const { spots, deleteSpot, getAllEmails } = useFlohmarkt();
+  const { spots, deleteSpot, getAllEmails, currentTenantEvent } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
   const handleDelete = (id: string) => {
     if (confirm("Diesen Spot wirklich unwiderruflich löschen?")) {
@@ -24,17 +26,17 @@ export function AdminSpotTable() {
   return (
     <div className="bg-white rounded-lg p-5 shadow-md overflow-x-auto">
       <h3 className="mt-0 border-b border-gray-200 pb-2.5 text-[#003366] font-bold">
-        Verwaltung: Angemeldete Spots
+        {terms.managementRegisteredSpots}
       </h3>
 
       {spots.length === 0 ? (
-        <p className="text-gray-600 py-4">Noch keine Spots angemeldet.</p>
+        <p className="text-gray-600 py-4">{terms.noSpotsRegistered}</p>
       ) : (
         <table className="w-full border-collapse min-w-[600px]">
           <thead>
             <tr>
               <th className="text-left bg-gray-100 p-2.5 border-b-2 border-gray-300 text-[#003366] font-bold">
-                Adresse / Spot
+                {terms.addressSlashSpot}
               </th>
               <th className="text-left bg-gray-100 p-2.5 border-b-2 border-gray-300 text-[#003366] font-bold">
                 Beschreibung
@@ -93,7 +95,7 @@ export function AdminSpotTable() {
           onClick={emailAllSpots}
           className="inline-block bg-[#003366] text-white px-4 py-2.5 rounded-md font-bold cursor-pointer hover:bg-[#002244]"
         >
-          📧 Alle Spots kontaktieren
+          📧 {terms.contactAllSpots}
         </button>
       </div>
     </div>

@@ -46,7 +46,7 @@ interface FlohmarktContextType {
   searchTenants: (query: string) => Promise<Tenant[]>;
   loadTenantEvents: () => Promise<void>;
   loadMembers: () => Promise<void>;
-  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null) => Promise<{ success: boolean; error?: string }>;
+  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null, spotTermSingular?: string, spotTermPlural?: string) => Promise<{ success: boolean; error?: string }>;
   removeMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
   updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
@@ -520,7 +520,9 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     mapCenterAddress: string,
     mapCenterLat: number,
     mapCenterLng: number,
-    boundaryRadiusMeters?: number | null
+    boundaryRadiusMeters?: number | null,
+    spotTermSingular?: string,
+    spotTermPlural?: string
   ) => {
     if (!currentTenant || !user) return { success: false, error: "No tenant selected" };
 
@@ -546,6 +548,8 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       map_center_lat: number;
       map_center_lng: number;
       boundary_radius_meters?: number | null;
+      spot_term_singular?: string;
+      spot_term_plural?: string;
       status: string;
       created_by?: string;
     } = {
@@ -563,6 +567,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     // Only add dates if they exist
     if (startsAt) eventData.starts_at = startsAt;
     if (endsAt) eventData.ends_at = endsAt;
+
+    // Only add spot terms if they exist
+    if (spotTermSingular) eventData.spot_term_singular = spotTermSingular;
+    if (spotTermPlural) eventData.spot_term_plural = spotTermPlural;
 
     if (verifiedProfile) {
       eventData.created_by = user.id;

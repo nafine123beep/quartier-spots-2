@@ -4,9 +4,11 @@ import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function SpotForm() {
   const { addSpot, setCurrentTab, currentTenantEvent, currentTenant } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [addressRaw, setAddressRaw] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -71,7 +73,7 @@ export function SpotForm() {
     });
 
     setSubmitting(false);
-    alert("Spot erfolgreich angelegt!");
+    alert(terms.spotCreated);
     setCurrentTab("list");
 
     // Reset form
@@ -96,7 +98,7 @@ export function SpotForm() {
   return (
     <div className="h-full overflow-y-auto p-5">
       <div className="max-w-[600px] mx-auto bg-white p-5 rounded-lg">
-        <h3 className="mt-0 text-[#003366]">Deinen Spot eintragen</h3>
+        <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

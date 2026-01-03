@@ -9,11 +9,12 @@ interface ContactFormModalProps {
   tenantName: string;
   eventId?: string;
   eventTitle?: string;
+  spotQuestionLabel?: string;
 }
 
-const SUBJECT_OPTIONS = [
+const getSubjectOptions = (spotQuestionLabel: string) => [
   { value: "general", label: "Allgemeine Anfrage" },
-  { value: "spot_question", label: "Frage zu meinem Spot" },
+  { value: "spot_question", label: spotQuestionLabel },
   { value: "event_info", label: "Infos zur Veranstaltung" },
   { value: "problem", label: "Problem melden" },
   { value: "other", label: "Sonstiges" },
@@ -26,7 +27,9 @@ export function ContactFormModal({
   tenantName,
   eventId,
   eventTitle,
+  spotQuestionLabel = "Frage zu meinem Spot",
 }: ContactFormModalProps) {
+  const subjectOptions = getSubjectOptions(spotQuestionLabel);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("general");
@@ -229,7 +232,7 @@ export function ContactFormModal({
                   disabled={isSubmitting}
                   className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 bg-white disabled:bg-gray-100"
                 >
-                  {SUBJECT_OPTIONS.map((option) => (
+                  {subjectOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>

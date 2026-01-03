@@ -7,6 +7,7 @@ interface SpotItemProps {
   isCompact?: boolean;
   showDeleteButton?: boolean;
   isHighlighted?: boolean;
+  deleteButtonTitle?: string;
   onDelete?: (addressRaw: string) => void;
   onClick?: () => void;
 }
@@ -16,6 +17,7 @@ export function SpotItem({
   isCompact = false,
   showDeleteButton = true,
   isHighlighted = false,
+  deleteButtonTitle = "Eigenen Spot löschen",
   onDelete,
   onClick,
 }: SpotItemProps) {
@@ -42,7 +44,7 @@ export function SpotItem({
       {showDeleteButton && !isCompact && onDelete && (
         <button
           onClick={handleDelete}
-          title="Eigenen Spot löschen"
+          title={deleteButtonTitle}
           className="
             absolute top-4 right-4 w-8 h-8
             bg-red-50 border border-red-200 text-red-500

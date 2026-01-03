@@ -6,10 +6,12 @@ import { MapDrawer } from "../shared/MapDrawer";
 import { SpotItem } from "../shared/SpotItem";
 import { ContactFormModal } from "../shared/ContactFormModal";
 import { Spot } from "../../types";
+import { getSpotTerms } from "../../lib/spotTerms";
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
 export function MapView() {
   const { spots, setCurrentTab, setDeletePreFill, currentTenantEvent, currentTenant } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -127,7 +129,7 @@ export function MapView() {
               onclick="window.dispatchEvent(new CustomEvent('deleteSpot', { detail: '${spot.address_raw || ""}' }))"
               style="margin-top: 8px; color: #dc3545; border: 1px solid #dc3545; background: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
             >
-              🗑️ Spot löschen
+              🗑️ ${terms.deleteSpot}
             </button>
           </div>
         `;
@@ -219,7 +221,7 @@ export function MapView() {
       <MapDrawer
         isOpen={isDrawerOpen}
         onClose={toggleDrawer}
-        title="Spots in der Nähe"
+        title={terms.spotsNearby}
       >
         {spots.map((spot) => (
           <SpotItem
@@ -255,6 +257,7 @@ export function MapView() {
         tenantName={currentTenant?.name || ""}
         eventId={currentTenantEvent?.id}
         eventTitle={currentTenantEvent?.title}
+        spotQuestionLabel={terms.questionAboutSpot}
       />
     </div>
   );

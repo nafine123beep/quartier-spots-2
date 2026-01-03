@@ -19,6 +19,8 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const [enableBoundary, setEnableBoundary] = useState(false);
   const [boundaryRadius, setBoundaryRadius] = useState<number | null>(null);
   const [customRadius, setCustomRadius] = useState("");
+  const [spotTermSingular, setSpotTermSingular] = useState("");
+  const [spotTermPlural, setSpotTermPlural] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +49,9 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
       mapCenterAddress,
       geocodeResult.lat,
       geocodeResult.lng,
-      finalBoundaryRadius
+      finalBoundaryRadius,
+      spotTermSingular || undefined,
+      spotTermPlural || undefined
     );
 
     if (!result.success) {
@@ -225,6 +229,55 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
               )}
             </>
           )}
+        </div>
+
+        {/* Spot Terminology Section */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <label className="block mb-2 font-bold text-gray-700 text-sm">
+            Bezeichnung anpassen (optional)
+          </label>
+          <p className="text-xs text-gray-600 mb-3">
+            Passe die Bezeichnung an dein Event an, z.B. &quot;Stand&quot; für Flohmärkte oder &quot;Teilnehmer&quot; für andere Veranstaltungen.
+          </p>
+          <div className="flex gap-4 mb-3">
+            <div className="flex-1">
+              <label className="block mb-1 text-xs text-gray-600">
+                Singular
+              </label>
+              <input
+                type="text"
+                value={spotTermSingular}
+                onChange={(e) => setSpotTermSingular(e.target.value)}
+                placeholder="Spot"
+                disabled={loading}
+                className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block mb-1 text-xs text-gray-600">
+                Plural
+              </label>
+              <input
+                type="text"
+                value={spotTermPlural}
+                onChange={(e) => setSpotTermPlural(e.target.value)}
+                placeholder="Spots"
+                disabled={loading}
+                className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSpotTermSingular("Stand");
+              setSpotTermPlural("Stände");
+            }}
+            disabled={loading}
+            className="px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Stand/Stände
+          </button>
         </div>
 
         <button

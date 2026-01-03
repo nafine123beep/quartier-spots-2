@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { normalizeAddress } from "../../lib/addressNormalization";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function DeleteSpotForm() {
-  const { deleteSpotByVerification, setCurrentTab, deletePreFill, setDeletePreFill } =
+  const { deleteSpotByVerification, setCurrentTab, deletePreFill, setDeletePreFill, currentTenantEvent } =
     useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [street, setStreet] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
   const [zip, setZip] = useState("");
@@ -65,7 +67,7 @@ export function DeleteSpotForm() {
         setCurrentTab("list");
       }, 3000);
     } else {
-      alert(result.error || "Fehler: Es wurde kein Spot mit diesen exakten Daten gefunden.");
+      alert(result.error || terms.noSpotFound);
     }
   };
 
@@ -77,9 +79,9 @@ export function DeleteSpotForm() {
   return (
     <div className="h-full overflow-y-auto p-5">
       <div className="max-w-[600px] mx-auto bg-white p-5 rounded-lg border border-red-500">
-        <h3 className="mt-0 text-red-500">Spot löschen</h3>
+        <h3 className="mt-0 text-red-500">{terms.deleteSpot}</h3>
         <p className="text-gray-600">
-          Bitte gib deine Daten ein, um deinen Spot zu verifizieren und zu
+          Bitte gib deine Daten ein, um deinen {terms.singular} zu verifizieren und zu
           löschen.
         </p>
 
@@ -222,7 +224,7 @@ export function DeleteSpotForm() {
                 onClick={handleCloseSuccessModal}
                 className="w-full bg-[#003366] text-white px-6 py-4 rounded-lg text-lg font-bold hover:bg-[#002244] transition-colors shadow-md"
               >
-                Zur Spot-Liste
+                {terms.toSpotList}
               </button>
 
               {/* Auto-close info */}

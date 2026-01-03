@@ -2,9 +2,11 @@
 
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { SpotItem } from "../shared/SpotItem";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function ListView() {
-  const { spots, setCurrentTab, setDeletePreFill } = useFlohmarkt();
+  const { spots, setCurrentTab, setDeletePreFill, currentTenantEvent } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
   const handleDelete = (address: string) => {
     setDeletePreFill(address);
@@ -19,10 +21,10 @@ export function ListView() {
   return (
     <div className="h-full overflow-y-auto p-5">
       <div className="max-w-[800px] mx-auto pb-20">
-        <h2 className="text-[#003366] mt-0">Alle Spots</h2>
+        <h2 className="text-[#003366] mt-0">{terms.allSpots}</h2>
 
         {spots.length === 0 ? (
-          <p className="text-gray-600">Noch keine Spots eingetragen.</p>
+          <p className="text-gray-600">{terms.noSpotsYet}</p>
         ) : (
           spots.map((spot) => (
             <SpotItem
@@ -30,6 +32,7 @@ export function ListView() {
               spot={spot}
               onDelete={handleDelete}
               onClick={handleSpotClick}
+              deleteButtonTitle={terms.deleteOwnSpot}
             />
           ))
         )}

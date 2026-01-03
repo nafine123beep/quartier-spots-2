@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { AppTabType } from "../../types";
 import { AccessMode } from "../../lib/loadEventData";
+import { getSpotTerms } from "../../lib/spotTerms";
 import { ListView } from "./ListView";
 import { MapView } from "./MapView";
 import { SpotForm } from "./SpotForm";
@@ -16,6 +17,7 @@ interface PublicEventViewProps {
 
 export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps) {
   const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, user } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const searchParams = useSearchParams();
 
   // Check for tab query parameter and auto-select tab
@@ -59,7 +61,7 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
   const tabButtons: { id: AppTabType; label: string; icon: string }[] = [
     { id: "list", label: "Liste", icon: "📋" },
     { id: "map", label: "Karte", icon: "🗺️" },
-    { id: "form", label: "Spot anmelden", icon: "➕" },
+    { id: "form", label: terms.registerSpot, icon: "➕" },
   ];
 
   const handleBackToAdmin = () => {

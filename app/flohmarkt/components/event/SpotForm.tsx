@@ -5,11 +5,13 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
 import { normalizeAddress } from "../../lib/addressNormalization";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 const FORM_STORAGE_KEY = "spotFormData";
 
 export function SpotForm() {
   const { addSpot, setCurrentTab, setHighlightedSpotId, currentTenantEvent, currentTenant } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   // Address fields
   const [street, setStreet] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
@@ -223,7 +225,7 @@ export function SpotForm() {
   return (
     <div className="h-full overflow-y-auto p-5">
       <div className="max-w-[600px] mx-auto bg-white p-5 rounded-lg">
-        <h3 className="mt-0 text-[#003366]">Deinen Spot eintragen</h3>
+        <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -398,10 +400,10 @@ export function SpotForm() {
 
               {/* Success Message */}
               <h2 className="text-3xl font-bold text-[#003366] mb-3">
-                Spot erfolgreich angelegt!
+                {terms.spotCreated}
               </h2>
               <p className="text-gray-600 mb-8 text-lg">
-                Dein Spot wurde erfolgreich gespeichert und ist jetzt auf der Karte sichtbar.
+                Dein {terms.singular} wurde erfolgreich gespeichert und ist jetzt auf der Karte sichtbar.
               </p>
 
               {/* Action Button */}
@@ -409,7 +411,7 @@ export function SpotForm() {
                 onClick={handleCloseSuccessModal}
                 className="w-full bg-[#003366] text-white px-6 py-4 rounded-lg text-lg font-bold hover:bg-[#002244] transition-colors shadow-md"
               >
-                Zur Spot-Liste
+                {terms.toSpotList}
               </button>
 
               {/* Auto-close info */}

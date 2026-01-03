@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function EventControlPanel() {
   const { currentTenantEvent, currentTenant, setCurrentTenantEvent } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
 
   if (!currentTenantEvent || !currentTenant) return null;
@@ -161,10 +163,10 @@ export function EventControlPanel() {
       <div className="mb-5 p-4 bg-green-50 border-2 border-green-400 rounded-lg">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-2xl">✨</span>
-          <h4 className="m-0 text-green-800 font-bold">Spot-Anmeldung (Empfohlen)</h4>
+          <h4 className="m-0 text-green-800 font-bold">{terms.spotRegistrationRecommended}</h4>
         </div>
         <p className="text-sm text-gray-700 mb-3 mt-2">
-          Direkter Link zur Spot-Anmeldung. Ideal zum Teilen in Flyern, E-Mails oder Social Media.
+          Direkter Link zur {terms.singular}-Anmeldung. Ideal zum Teilen in Flyern, E-Mails oder Social Media.
         </p>
 
         <div className="flex items-center gap-2.5 mb-3">

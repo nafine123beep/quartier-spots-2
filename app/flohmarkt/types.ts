@@ -70,6 +70,8 @@ export interface TenantEvent {
   map_center_address?: string;
   boundary_radius_meters?: number | null;
   preview_token?: string | null;
+  spot_term_singular?: string;
+  spot_term_plural?: string;
   created_by?: string;
   created_at: string;
   updated_at?: string;
