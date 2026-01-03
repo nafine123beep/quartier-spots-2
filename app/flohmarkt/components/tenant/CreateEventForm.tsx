@@ -20,7 +20,8 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const [enableBoundary, setEnableBoundary] = useState(false);
   const [boundaryRadius, setBoundaryRadius] = useState<number | null>(null);
   const [customRadius, setCustomRadius] = useState("");
-  const [selectedTermPreset, setSelectedTermPreset] = useState("default");
+  const [enableCustomTerms, setEnableCustomTerms] = useState(false);
+  const [selectedTermPreset, setSelectedTermPreset] = useState("Stand");
   const [spotTermSingular, setSpotTermSingular] = useState("");
   const [spotTermPlural, setSpotTermPlural] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -47,14 +48,16 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
     let finalSingular: string | undefined;
     let finalPlural: string | undefined;
 
-    if (selectedTermPreset === "custom") {
-      finalSingular = spotTermSingular || undefined;
-      finalPlural = spotTermPlural || undefined;
-    } else if (selectedTermPreset !== "default") {
-      const preset = SPOT_TERM_PRESETS.find(p => p.singular === selectedTermPreset);
-      if (preset) {
-        finalSingular = preset.singular;
-        finalPlural = preset.plural;
+    if (enableCustomTerms) {
+      if (selectedTermPreset === "custom") {
+        finalSingular = spotTermSingular || undefined;
+        finalPlural = spotTermPlural || undefined;
+      } else {
+        const preset = SPOT_TERM_PRESETS.find(p => p.singular === selectedTermPreset);
+        if (preset) {
+          finalSingular = preset.singular;
+          finalPlural = preset.plural;
+        }
       }
     }
 
@@ -250,62 +253,83 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
 
         {/* Spot Terminology Section */}
         <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <label className="block mb-2 font-bold text-gray-700 text-sm">
-            Bezeichnung anpassen (optional)
-          </label>
-          <p className="text-xs text-gray-600 mb-3">
-            &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen oder &quot;Checkpoint&quot; für Radtouren, Rallyes etc.
-          </p>
-          <select
-            value={selectedTermPreset}
-            onChange={(e) => {
-              setSelectedTermPreset(e.target.value);
-              if (e.target.value !== "custom") {
-                setSpotTermSingular("");
-                setSpotTermPlural("");
-              }
-            }}
-            disabled={loading}
-            className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 bg-white disabled:bg-gray-100 mb-3"
-          >
-            <option value="default">Spot / Spots (Standard)</option>
-            {SPOT_TERM_PRESETS.slice(1).map((preset) => (
-              <option key={preset.singular} value={preset.singular}>
-                {preset.singular} / {preset.plural}
-              </option>
-            ))}
-            <option value="custom">Eigene Bezeichnung...</option>
-          </select>
+          <div className="flex items-start gap-2.5 mb-3">
+            <input
+              type="checkbox"
+              id="enableCustomTerms"
+              checked={enableCustomTerms}
+              onChange={(e) => {
+                setEnableCustomTerms(e.target.checked);
+                if (!e.target.checked) {
+                  setSelectedTermPreset("Stand");
+                  setSpotTermSingular("");
+                  setSpotTermPlural("");
+                }
+              }}
+              disabled={loading}
+              className="w-5 h-5 mt-0.5"
+            />
+            <label htmlFor="enableCustomTerms" className="font-bold text-gray-700 text-sm">
+              Bezeichnung anpassen
+            </label>
+          </div>
 
-          {selectedTermPreset === "custom" && (
-            <div className="flex gap-4 mt-3 pt-3 border-t border-gray-200">
-              <div className="flex-1">
-                <label className="block mb-1 text-xs text-gray-600">
-                  Singular
-                </label>
-                <input
-                  type="text"
-                  value={spotTermSingular}
-                  onChange={(e) => setSpotTermSingular(e.target.value)}
-                  placeholder="z.B. Teilnehmer"
-                  disabled={loading}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block mb-1 text-xs text-gray-600">
-                  Plural
-                </label>
-                <input
-                  type="text"
-                  value={spotTermPlural}
-                  onChange={(e) => setSpotTermPlural(e.target.value)}
-                  placeholder="z.B. Teilnehmer"
-                  disabled={loading}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
-                />
-              </div>
-            </div>
+          {enableCustomTerms && (
+            <>
+              <p className="text-xs text-gray-600 mb-3">
+                &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen oder &quot;Checkpoint&quot; für Radtouren, Rallyes etc.
+              </p>
+              <select
+                value={selectedTermPreset}
+                onChange={(e) => {
+                  setSelectedTermPreset(e.target.value);
+                  if (e.target.value !== "custom") {
+                    setSpotTermSingular("");
+                    setSpotTermPlural("");
+                  }
+                }}
+                disabled={loading}
+                className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 bg-white disabled:bg-gray-100"
+              >
+                {SPOT_TERM_PRESETS.slice(1).map((preset) => (
+                  <option key={preset.singular} value={preset.singular}>
+                    {preset.singular}
+                  </option>
+                ))}
+                <option value="custom">Eigene Bezeichnung...</option>
+              </select>
+
+              {selectedTermPreset === "custom" && (
+                <div className="flex gap-4 mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex-1">
+                    <label className="block mb-1 text-xs text-gray-600">
+                      Singular
+                    </label>
+                    <input
+                      type="text"
+                      value={spotTermSingular}
+                      onChange={(e) => setSpotTermSingular(e.target.value)}
+                      placeholder="z.B. Teilnehmer"
+                      disabled={loading}
+                      className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block mb-1 text-xs text-gray-600">
+                      Plural
+                    </label>
+                    <input
+                      type="text"
+                      value={spotTermPlural}
+                      onChange={(e) => setSpotTermPlural(e.target.value)}
+                      placeholder="z.B. Teilnehmer"
+                      disabled={loading}
+                      className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
