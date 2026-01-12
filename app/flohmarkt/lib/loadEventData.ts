@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { Tenant, TenantEvent, User } from "../types";
+import { Tenant, TenantEvent, User, EventImage } from "../types";
 
 export type AccessMode = 'member' | 'public' | 'preview';
 
@@ -74,6 +74,20 @@ export async function loadEventData(
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventSlug);
 
     // Build query based on user's membership status or preview token
+    // Include event_images in the select for all queries
+    const selectWithImages = `
+      *,
+      images:event_images (
+        id,
+        event_id,
+        storage_path,
+        filename,
+        position,
+        is_cover,
+        created_at
+      )
+    `;
+
     let eventQuery;
     let accessMode: AccessMode = 'public';
 
@@ -83,13 +97,13 @@ export async function loadEventData(
       if (isUUID) {
         eventQuery = supabase
           .from("events")
-          .select("*")
+          .select(selectWithImages)
           .eq("tenant_id", tenant.id)
           .or(`slug.eq.${eventSlug},id.eq.${eventSlug}`);
       } else {
         eventQuery = supabase
           .from("events")
-          .select("*")
+          .select(selectWithImages)
           .eq("tenant_id", tenant.id)
           .eq("slug", eventSlug);
       }
@@ -99,14 +113,14 @@ export async function loadEventData(
       if (isUUID) {
         eventQuery = supabase
           .from("events")
-          .select("*")
+          .select(selectWithImages)
           .eq("tenant_id", tenant.id)
           .eq("preview_token", previewToken)
           .or(`slug.eq.${eventSlug},id.eq.${eventSlug}`);
       } else {
         eventQuery = supabase
           .from("events")
-          .select("*")
+          .select(selectWithImages)
           .eq("tenant_id", tenant.id)
           .eq("preview_token", previewToken)
           .eq("slug", eventSlug);
@@ -117,14 +131,14 @@ export async function loadEventData(
       if (isUUID) {
         eventQuery = supabase
           .from("events")
-          .select("*")
+          .select(selectWithImages)
           .eq("tenant_id", tenant.id)
           .eq("status", "published")
           .or(`slug.eq.${eventSlug},id.eq.${eventSlug}`);
       } else {
         eventQuery = supabase
           .from("events")
-          .select("*")
+          .select(selectWithImages)
           .eq("tenant_id", tenant.id)
           .eq("status", "published")
           .eq("slug", eventSlug);
@@ -158,6 +172,10 @@ export async function loadEventData(
       }
     }
 
+    // Sort images by position
+    const sortedImages: EventImage[] = (eventData.images ?? [])
+      .sort((a: { position: number }, b: { position: number }) => a.position - b.position);
+
     // Convert to TenantEvent type
     const event: TenantEvent = {
       id: eventData.id,
@@ -175,6 +193,7 @@ export async function loadEventData(
       preview_token: eventData.preview_token,
       created_by: eventData.created_by,
       created_at: eventData.created_at,
+      images: sortedImages,
     };
 
     return { tenant, event, accessMode };
