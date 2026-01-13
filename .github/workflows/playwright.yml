@@ -1,0 +1,109 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Run test groups in parallel for speed
+        test-group: [smoke, happy-path, negative, accessibility]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Setup test environment
+        run: |
+          cp .env.test.example .env.test
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }}" >> .env.test
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TEST_SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_KEY }}" >> .env.test
+          echo "TEST_ORGANIZER_EMAIL=${{ secrets.TEST_ORGANIZER_EMAIL }}" >> .env.test
+          echo "TEST_MEMBER_EMAIL=${{ secrets.TEST_MEMBER_EMAIL }}" >> .env.test
+          echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> .env.test
+
+      - name: Run Playwright tests (${{ matrix.test-group }})
+        run: npx playwright test tests/e2e/${{ matrix.test-group }}
+        env:
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.test-group }}
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-group }}
+          path: test-results/
+          retention-days: 7
+
+  # Mobile tests run separately (slower)
+  test-mobile:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    # Only run on main branch or manual trigger to save CI time
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps webkit chromium
+
+      - name: Setup test environment
+        run: |
+          cp .env.test.example .env.test
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }}" >> .env.test
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TEST_SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_KEY }}" >> .env.test
+
+      - name: Run mobile tests
+        run: npx playwright test tests/e2e/cross-device
+        env:
+          CI: true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-mobile
+          path: playwright-report/
+          retention-days: 7

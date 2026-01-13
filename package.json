@@ -6,7 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/e2e/smoke",
+    "test:happy-path": "playwright test tests/e2e/happy-path",
+    "test:negative": "playwright test tests/e2e/negative",
+    "test:a11y": "playwright test tests/e2e/accessibility",
+    "test:mobile": "playwright test tests/e2e/cross-device",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -18,6 +28,8 @@
     "resend": "^6.6.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20",
