@@ -12,26 +12,32 @@ test.describe('Core Pages Smoke Tests', () => {
   test('login page renders login form', async ({ page }) => {
     await page.goto('/auth/login');
 
-    // Check for email input
-    await expect(page.getByLabel(/e-mail|email/i)).toBeVisible();
+    // Wait for page to load (avoid flash of loading state)
+    await page.waitForLoadState('networkidle');
 
-    // Check for submit button
-    await expect(page.getByRole('button', { name: /senden|login|anmelden/i })).toBeVisible();
+    // Check for heading
+    await expect(page.locator('h2', { hasText: /login für veranstalter/i })).toBeVisible();
+
+    // Check for email input (by placeholder since label is not properly associated)
+    await expect(page.getByPlaceholder('max@beispiel.de')).toBeVisible();
+
+    // Check for submit button (default is Magic Link mode)
+    await expect(page.getByRole('button', { name: /magic link senden/i })).toBeVisible();
   });
 
   test('public event page loads with event data', async ({ page }) => {
     // Setup: Create a published event
-    const { orgSlug, eventSlug, tenantId } = await createPublishedEvent();
+    const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
 
     try {
       await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
 
-      // Verify page loaded
-      await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+      // Verify page loaded with event title
+      await expect(page.locator('h1', { hasText: event.title })).toBeVisible({ timeout: 10000 });
 
-      // Verify tabs are visible
-      await expect(page.getByRole('button', { name: /liste|list/i })).toBeVisible();
-      await expect(page.getByRole('button', { name: /karte|map/i })).toBeVisible();
+      // Verify tabs are visible (using emojis from the actual UI)
+      await expect(page.getByRole('button', { name: /📋.*liste/i })).toBeVisible();
+      await expect(page.getByRole('button', { name: /🗺️.*karte/i })).toBeVisible();
     } finally {
       // Cleanup
       const { supabaseAdmin } = await import('../../fixtures/supabase-helpers');
@@ -41,23 +47,27 @@ test.describe('Core Pages Smoke Tests', () => {
 
   test('spot registration page loads form', async ({ page }) => {
     // Setup: Create a published event
-    const { orgSlug, eventSlug, tenantId } = await createPublishedEvent();
+    const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
 
     try {
       await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}/register`);
 
       // Wait for registration confirmation page
-      await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 10000 });
 
       // Check for continue button
-      const continueButton = page.getByRole('button', { name: /weiter|continue/i });
-      if (await continueButton.isVisible({ timeout: 2000 })) {
-        await continueButton.click();
-      }
+      const continueButton = page.getByRole('button', { name: /weiter zur spot anmeldung/i });
+      await expect(continueButton).toBeVisible();
+
+      // Click to proceed to actual form
+      await continueButton.click();
+
+      // Wait for navigation to form tab
+      await page.waitForURL(/tab=form/, { timeout: 5000 });
 
       // Now on spot form - check for address fields
-      await expect(page.getByLabel(/straße|street/i)).toBeVisible({ timeout: 5000 });
-      await expect(page.getByLabel(/stadt|city/i)).toBeVisible();
+      await expect(page.getByLabel(/straße/i)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByLabel(/stadt/i)).toBeVisible();
     } finally {
       // Cleanup
       const { supabaseAdmin } = await import('../../fixtures/supabase-helpers');

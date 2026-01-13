@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load test environment variables from .env.test
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 /**
  * Playwright configuration for Quartier-Spots E2E testing
@@ -72,9 +77,12 @@ export default defineConfig({
 
   // Web server (starts dev server if not running)
   webServer: {
-    command: 'npm run dev',
+    // Use dev:test script which loads .env.test via dotenv-cli
+    command: 'npm run dev:test',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    // NEVER reuse existing server - always start fresh with test env vars
+    // This prevents .env.local from interfering with test credentials
+    reuseExistingServer: false,
     timeout: 120000,
   },
 });
