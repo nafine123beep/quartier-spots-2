@@ -45,17 +45,10 @@ export default defineConfig({
 
   // Device profiles for cross-device testing
   projects: [
-    // Setup project that runs before all tests
-    {
-      name: 'setup',
-      testMatch: /global\.setup\.ts/,
-    },
-
     // Desktop (default for most tests)
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
     },
 
     // Mobile devices (run selectively)
@@ -82,18 +75,17 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }],
   ],
 
-  // Web server (starts dev server if not running)
+  // Web server (starts production server with test env vars)
   webServer: {
-    // CRITICAL: test-setup.sh script must run BEFORE Playwright starts
-    // It copies .env.test to .env and removes .env.local
-    // We also explicitly pass env vars to ensure they're available when Next.js compiles
-    command: 'next dev',
+    // CRITICAL: Use production build instead of dev server
+    // This ensures environment variables are properly compiled into client bundle
+    // test-setup.sh script must run BEFORE Playwright starts
+    command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
     // NEVER reuse existing server - always start fresh with test env vars
-    // This prevents .env.local from interfering with test credentials
     reuseExistingServer: false,
-    timeout: 120000,
-    // Explicitly set environment variables for the dev server process
+    timeout: 180000, // Increased timeout for build step
+    // Explicitly set environment variables for the build and server
     env: {
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
