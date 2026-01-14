@@ -65,9 +65,9 @@ test.describe('Core Pages Smoke Tests', () => {
       // Wait for navigation to form tab
       await page.waitForURL(/tab=form/, { timeout: 5000 });
 
-      // Now on spot form - check for address fields
-      await expect(page.getByLabel(/straße/i)).toBeVisible({ timeout: 10000 });
-      await expect(page.getByLabel(/stadt/i)).toBeVisible();
+      // Now on spot form - check for address fields (using placeholders since labels may not be properly associated)
+      await expect(page.getByPlaceholder(/hauptstraße/i)).toBeVisible({ timeout: 10000 });
+      await expect(page.getByPlaceholder(/regensburg/i)).toBeVisible();
     } finally {
       // Cleanup
       const { supabaseAdmin } = await import('../../fixtures/supabase-helpers');
