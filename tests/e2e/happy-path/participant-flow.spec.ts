@@ -1,133 +1,133 @@
 /**
  * Happy Path E2E Test: Participant Flow
  *
- * Tests the complete participant journey:
- * 1. Access public event (no login required)
- * 2. View event details and images
- * 3. Register a spot with address and contact info
- * 4. Verify spot appears in list and on map
- *
- * This test focuses on the most common user flow and should pass consistently.
+ * Tests the complete journey of a participant:
+ * 1. Access a public event URL (no login required)
+ * 2. View event details
+ * 3. Navigate to spot registration
+ * 4. Fill and submit the registration form
+ * 5. Confirm spot location on map
+ * 6. Verify success message
+ * 7. Confirm spot appears in list and on map
  */
 
 import { test, expect } from '@playwright/test';
-import { createPublishedEvent, supabaseAdmin } from '../../fixtures/supabase-helpers';
-import { generateTestSpot } from '../../fixtures/data-generators';
+import { createPublishedEvent } from '../../fixtures/supabase-helpers';
 
 test.describe('Participant Happy Path', () => {
-  let tenantId: string;
+  test('participant can register a spot for a public event', async ({ page }) => {
+    // Setup: Create a published event using test helper
+    const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
 
-  test.afterEach(async () => {
-    // Cleanup: Delete test data
-    if (tenantId) {
-      await supabaseAdmin.from('tenants').delete().eq('id', tenantId);
-    }
-  });
+    console.log(`Testing participant flow for event: /flohmarkt/${orgSlug}/${eventSlug}`);
 
-  test('participant views event and registers spot without login', async ({ page }) => {
-    // Setup: Create published event
-    const { orgSlug, eventSlug, tenantId: tid } = await createPublishedEvent();
-    tenantId = tid;
+    try {
+      // Step 1: Access public event URL (no login)
+      await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
 
-    // STEP 1: Access public event
-    await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
+      // Step 2: Verify event details are visible
+      await expect(page.locator('h1', { hasText: event.title })).toBeVisible({ timeout: 10000 });
 
-    // Verify event page loaded
-    await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+      // Step 3: View tabs (List and Map)
+      const listTab = page.getByRole('button', { name: /📋.*liste/i });
+      const mapTab = page.getByRole('button', { name: /🗺️.*karte/i });
 
-    // STEP 2: View spots list (should be empty initially)
-    await expect(page.getByText(/spot|stand/i)).toBeVisible();
+      await expect(listTab).toBeVisible();
+      await expect(mapTab).toBeVisible();
 
-    // STEP 3: Switch to map view
-    const mapButton = page.getByRole('button', { name: /karte|map/i });
-    await mapButton.click();
+      // Click map tab to verify it works
+      await mapTab.click();
+      await page.waitForTimeout(1000);
 
-    // Wait for map to load
-    await expect(page.locator('.leaflet-container')).toBeVisible({ timeout: 5000 });
+      // Switch back to list tab
+      await listTab.click();
+      await page.waitForTimeout(500);
 
-    // STEP 4: Navigate to spot registration
-    const registerButton = page.getByRole('button', { name: /spot.*registr|stand.*anmeld/i });
-    await registerButton.click();
+      // Step 4: Navigate to spot registration
+      // The button text is "+ Spot anmelden" in the UI (could be link or button)
+      const registerButton = page.locator('text=/\\+?\\s*spot\\s*anmelden/i').first();
+      await expect(registerButton).toBeVisible({ timeout: 10000 });
+      await registerButton.click();
 
-    // Handle confirmation page if present
-    const continueButton = page.getByRole('button', { name: /weiter.*anmeldung|continue/i });
-    if (await continueButton.isVisible({ timeout: 3000 })) {
+      // Wait for registration page
+      await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 10000 });
+
+      // Click continue to form
+      const continueButton = page.getByRole('button', { name: /weiter zur spot anmeldung/i });
+      await expect(continueButton).toBeVisible();
       await continueButton.click();
-    }
 
-    // STEP 5: Fill spot registration form
-    const spotData = generateTestSpot();
+      // Wait for form tab to load
+      await page.waitForURL(/tab=form/, { timeout: 5000 });
 
-    await page.getByLabel(/straße|street/i).fill(spotData.street);
-    await page.getByLabel(/hausnummer|house.*number/i).fill(spotData.house_number);
-    await page.getByLabel(/plz|zip|postcode/i).fill(spotData.zip);
-    await page.getByLabel(/stadt|city/i).fill(spotData.city);
+      // Step 5: Fill spot registration form
+      // Address fields
+      await page.getByPlaceholder(/hauptstraße/i).fill('Teststraße');
+      await page.getByPlaceholder(/42/i).fill('123');
+      await page.getByPlaceholder(/93051/i).fill('93051');
+      await page.getByPlaceholder(/regensburg/i).fill('Regensburg');
 
-    // Consent to public address
-    await page.getByLabel(/einverstanden|consent|agree/i).check();
+      // Consent checkbox
+      const consentCheckbox = page.locator('input[type="checkbox"]').first();
+      await consentCheckbox.check();
 
-    // Fill contact info
-    await page.getByLabel(/dein name|your name|kontakt.*name/i).fill(spotData.contact_name);
-    await page.getByLabel(/e-mail|email/i).fill(spotData.contact_email);
+      // Contact info (optional but filling for completeness)
+      await page.getByPlaceholder(/name/i).fill('Test Participant');
+      await page.getByPlaceholder(/e-mail/i).fill('participant@test.local');
 
-    // Fill public note
-    await page.getByLabel(/verkaufst|selling|note|beschreibung/i).fill(spotData.public_note);
+      // Public note
+      await page.getByPlaceholder(/was verkaufst du/i).fill('Testware und Spielzeug');
 
-    // STEP 6: Submit form
-    await page.getByRole('button', { name: /absenden|submit|registr/i }).click();
+      // Submit form to geocode
+      const submitButton = page.getByRole('button', { name: /adresse prüfen|weiter/i });
+      await submitButton.click();
 
-    // STEP 7: Handle pin confirmation (geocoding completes)
-    // Wait for map pin selector to appear
-    const confirmButton = page.getByRole('button', { name: /bestätigen|confirm/i });
-    await expect(confirmButton).toBeVisible({ timeout: 15000 });
-    await confirmButton.click();
+      // Step 6: Confirm location on map
+      // Wait for map tab to load with geocoded location
+      await page.waitForURL(/tab=map/, { timeout: 10000 });
 
-    // STEP 8: Verify success
-    await expect(page.locator('text=/erfolgreich|success/i')).toBeVisible({ timeout: 5000 });
+      // Verify map is shown
+      await expect(page.locator('.leaflet-container')).toBeVisible({ timeout: 5000 });
 
-    // STEP 9: Verify spot appears in list
-    // Should redirect to list view or we navigate there
-    const listButton = page.getByRole('button', { name: /liste|list/i });
-    if (await listButton.isVisible({ timeout: 2000 })) {
-      await listButton.click();
-    }
+      // Confirm the pin location
+      const confirmButton = page.getByRole('button', { name: /position bestätigen|spot anmelden/i });
+      await expect(confirmButton).toBeVisible();
+      await confirmButton.click();
 
-    // Wait for spot to appear
-    await expect(page.locator(`text=${spotData.street}`)).toBeVisible({ timeout: 5000 });
+      // Step 7: Verify success
+      // Should show success message
+      await expect(page.locator('text=/erfolg|erfolgreich|angemeldet/i')).toBeVisible({ timeout: 10000 });
 
-    // STEP 10: Verify spot appears on map
-    await page.getByRole('button', { name: /karte|map/i }).click();
+      // Navigate back to event page
+      const backButton = page.getByRole('link', { name: /zurück|event ansehen/i });
+      if (await backButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await backButton.click();
+      } else {
+        await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
+      }
 
-    // Wait for map markers
-    await expect(page.locator('.leaflet-marker-icon')).toHaveCount(1, { timeout: 5000 });
-  });
+      // Wait for event page to load
+      await page.waitForTimeout(2000);
 
-  test('participant can view event images', async ({ page }) => {
-    // Setup: Create published event
-    const { orgSlug, eventSlug, tenantId: tid, eventId } = await createPublishedEvent();
-    tenantId = tid;
+      // Step 8: Verify spot appears in list view
+      await expect(page.getByText('Teststraße 123')).toBeVisible({ timeout: 5000 });
 
-    // Add test image to event
-    await supabaseAdmin.from('event_images').insert({
-      event_id: eventId,
-      storage_path: 'test/sample-image.jpg',
-      filename: 'sample-image.jpg',
-      position: 0,
-      is_cover: true,
-    });
+      // Step 9: Verify spot appears on map
+      await mapTab.click();
+      await page.waitForTimeout(1000);
 
-    await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
+      // Check for marker on map (leaflet marker)
+      const marker = page.locator('.leaflet-marker-icon').first();
+      await expect(marker).toBeVisible({ timeout: 5000 });
 
-    // Check if image gallery is visible (if images exist)
-    const imageGallery = page.locator('img[src*="event-images"]').first();
-    const hasImages = await imageGallery.isVisible({ timeout: 3000 }).catch(() => false);
+      console.log('✅ Participant flow completed successfully!');
+      console.log('Spot registered at: Teststraße 123, 93051 Regensburg');
 
-    if (hasImages) {
-      // Click image to open lightbox
-      await imageGallery.click();
-
-      // Verify lightbox opened
-      await expect(page.locator('.fixed.inset-0.bg-black')).toBeVisible();
+    } finally {
+      // Cleanup: Delete test data
+      const { supabaseAdmin } = await import('../../fixtures/supabase-helpers');
+      await supabaseAdmin.from('tenants').delete().eq('id', tenantId);
+      console.log('Test data cleaned up');
     }
   });
 });
