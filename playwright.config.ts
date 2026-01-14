@@ -45,10 +45,17 @@ export default defineConfig({
 
   // Device profiles for cross-device testing
   projects: [
+    // Setup project that runs before all tests
+    {
+      name: 'setup',
+      testMatch: /global\.setup\.ts/,
+    },
+
     // Desktop (default for most tests)
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
     },
 
     // Mobile devices (run selectively)
@@ -77,12 +84,20 @@ export default defineConfig({
 
   // Web server (starts dev server if not running)
   webServer: {
-    // Use dev:test script which loads .env.test via dotenv-cli
-    command: 'npm run dev:test',
+    // CRITICAL: test-setup.sh script must run BEFORE Playwright starts
+    // It copies .env.test to .env and removes .env.local
+    // We also explicitly pass env vars to ensure they're available when Next.js compiles
+    command: 'next dev',
     url: 'http://localhost:3000',
     // NEVER reuse existing server - always start fresh with test env vars
     // This prevents .env.local from interfering with test credentials
     reuseExistingServer: false,
     timeout: 120000,
+    // Explicitly set environment variables for the dev server process
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    },
   },
 });

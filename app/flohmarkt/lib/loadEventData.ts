@@ -40,6 +40,10 @@ export async function loadEventData(
       .eq("slug", organizationSlug)
       .single();
 
+    console.log(`[loadEventData] Looking for tenant with slug: ${organizationSlug}`);
+    console.log(`[loadEventData] Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}`);
+    console.log(`[loadEventData] Tenant query result:`, { tenantData, error: tenantError?.message });
+
     if (tenantError || !tenantData) {
       return { error: "Organisation nicht gefunden." };
     }
