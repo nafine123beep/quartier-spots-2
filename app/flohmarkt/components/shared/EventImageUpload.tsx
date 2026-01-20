@@ -10,6 +10,7 @@ import {
   validateImageFile,
   MAX_IMAGES_PER_EVENT,
 } from "../../lib/imageUpload";
+import { ImageCropModal } from "./ImageCropModal";
 
 interface EventImageUploadProps {
   eventId: string;
@@ -27,6 +28,10 @@ export function EventImageUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [cropModalImage, setCropModalImage] = useState<{
+    url: string;
+    imageId: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canAddMore = images.length < MAX_IMAGES_PER_EVENT;
@@ -138,6 +143,51 @@ export function EventImageUpload({
     }
   };
 
+  const handleOpenCropModal = (image: EventImage) => {
+    if (disabled) return;
+    setCropModalImage({
+      url: getPublicImageUrl(image.storage_path),
+      imageId: image.id,
+    });
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!cropModalImage) return;
+
+    setUploading(true);
+    setCropModalImage(null);
+
+    try {
+      // Delete the old image
+      await deleteEventImage(cropModalImage.imageId);
+
+      // Upload the cropped image
+      const file = new File([croppedBlob], "cropped-image.jpg", {
+        type: "image/jpeg",
+      });
+
+      const imageToReplace = images.find((img) => img.id === cropModalImage.imageId);
+      const wasCover = imageToReplace?.is_cover || false;
+      const position = imageToReplace?.position || images.length;
+
+      const result = await uploadEventImage(eventId, file, position, wasCover);
+
+      if (result.success && result.image) {
+        const updatedImages = images.map((img) =>
+          img.id === cropModalImage.imageId ? result.image! : img
+        );
+        onImagesChange(updatedImages);
+      } else {
+        setError(result.error || "Fehler beim Hochladen des zugeschnittenen Bildes");
+      }
+    } catch (error) {
+      console.error("Error handling cropped image:", error);
+      setError("Fehler beim Verarbeiten des Bildes");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
       <label className="block mb-2 font-bold text-gray-700 text-sm">
@@ -236,7 +286,29 @@ export function EventImageUpload({
 
               {/* Hover overlay with actions */}
               {!disabled && (
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                  {/* Crop/Edit button */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCropModal(image)}
+                    className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                    title="Zuschneiden"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"
+                      />
+                    </svg>
+                  </button>
+
                   {/* Set as cover button */}
                   {!image.is_cover && (
                     <button
@@ -287,6 +359,16 @@ export function EventImageUpload({
       <p className="text-xs text-gray-500 mt-2">
         {images.length} von {MAX_IMAGES_PER_EVENT} Fotos
       </p>
+
+      {/* Crop Modal */}
+      {cropModalImage && (
+        <ImageCropModal
+          imageUrl={cropModalImage.url}
+          onComplete={handleCropComplete}
+          onCancel={() => setCropModalImage(null)}
+          aspectRatio={16 / 9}
+        />
+      )}
     </div>
   );
 }
