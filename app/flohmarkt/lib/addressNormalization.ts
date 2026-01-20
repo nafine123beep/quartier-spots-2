@@ -92,6 +92,7 @@ export function normalizeZip(zip: string): string {
  * Normalize house number
  * - Removes extra spaces
  * - Standardizes format (e.g., "42 a" -> "42a")
+ * - Handles ranges and fractions (e.g., "42 - 44" -> "42-44", "42 / 1" -> "42/1")
  */
 export function normalizeHouseNumber(houseNumber: string): string {
   if (!houseNumber) return houseNumber;
@@ -101,8 +102,19 @@ export function normalizeHouseNumber(houseNumber: string): string {
   // Remove spaces between number and letter (e.g., "42 a" -> "42a")
   normalized = normalized.replace(/(\d)\s+([a-zA-Z])/g, '$1$2');
 
-  // Capitalize letter suffix if present
+  // Remove spaces around dashes in ranges (e.g., "42 - 44" -> "42-44")
+  normalized = normalized.replace(/\s*-\s*/g, '-');
+
+  // Remove spaces around slashes in fractions (e.g., "42 / 1" -> "42/1")
+  normalized = normalized.replace(/\s*\/\s*/g, '/');
+
+  // Capitalize letter suffixes
+  // Handle single letter at end: 42a -> 42A
   normalized = normalized.replace(/([a-z])$/i, (match) => match.toUpperCase());
+  // Handle letters before dash in ranges: 42a-44 -> 42A-44
+  normalized = normalized.replace(/([a-z])(-)/gi, (match, letter, dash) => letter.toUpperCase() + dash);
+  // Handle letters before slash in fractions: 42a/1 -> 42A/1
+  normalized = normalized.replace(/([a-z])(\/)/gi, (match, letter, slash) => letter.toUpperCase() + slash);
 
   return normalized;
 }

@@ -177,7 +177,7 @@ export function SpotForm() {
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Was verkaufst du?
+              Was bietest du an?
             </label>
             <textarea
               value={publicNote}

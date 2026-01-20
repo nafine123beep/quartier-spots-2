@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
 import { normalizeAddress } from "../../lib/addressNormalization";
+import { validateHouseNumber, isPartialHouseNumber } from "../../lib/houseNumberValidation";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { getSpotTerms } from "../../lib/spotTerms";
 
@@ -15,6 +16,7 @@ export function SpotForm() {
   // Address fields
   const [street, setStreet] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
+  const [houseNumberError, setHouseNumberError] = useState<string | undefined>(undefined);
   const [zip, setZip] = useState("");
   const [city, setCity] = useState("");
   // Contact fields
@@ -75,10 +77,37 @@ export function SpotForm() {
     }
   }, [street, houseNumber, zip, city, contactName, contactEmail, contactPhone, publicNote, addressPublic, currentTenantEvent]);
 
+  // Handle house number change with validation
+  const handleHouseNumberChange = (value: string) => {
+    setHouseNumber(value);
+
+    // Don't show errors for partial input states (e.g., typing "42-" for range)
+    if (isPartialHouseNumber(value)) {
+      setHouseNumberError(undefined);
+      return;
+    }
+
+    // Validate the house number
+    const validation = validateHouseNumber(value);
+    if (!validation.isValid) {
+      setHouseNumberError(validation.errorMessage);
+    } else {
+      setHouseNumberError(undefined);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentTenantEvent || !currentTenant) {
       alert("Kein Event ausgewählt.");
+      return;
+    }
+
+    // Validate house number before submission
+    const houseNumberValidation = validateHouseNumber(houseNumber);
+    if (!houseNumberValidation.isValid) {
+      alert(`Bitte korrigiere die Hausnummer:\n${houseNumberValidation.errorMessage}`);
+      setHouseNumberError(houseNumberValidation.errorMessage);
       return;
     }
 
@@ -186,6 +215,7 @@ export function SpotForm() {
       // Reset form
       setStreet("");
       setHouseNumber("");
+      setHouseNumberError(undefined);
       setZip("");
       setCity("");
       setContactName("");
@@ -250,10 +280,15 @@ export function SpotForm() {
               <input
                 type="text"
                 value={houseNumber}
-                onChange={(e) => setHouseNumber(e.target.value)}
+                onChange={(e) => handleHouseNumberChange(e.target.value)}
                 placeholder="z.B. 42"
-                className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
+                className={`w-full p-3 border rounded-md text-base text-gray-900 placeholder:text-gray-400 ${
+                  houseNumberError ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {houseNumberError && (
+                <p className="mt-1 text-xs text-red-600">{houseNumberError}</p>
+              )}
             </div>
             <div>
               <label className="block mb-1 font-bold text-gray-700 text-sm">
@@ -345,7 +380,7 @@ export function SpotForm() {
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Was verkaufst du?
+              Was bietest du an?
             </label>
             <textarea
               value={publicNote}
