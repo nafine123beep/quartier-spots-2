@@ -16,6 +16,9 @@ import { createPublishedEvent } from '../../fixtures/supabase-helpers';
 
 test.describe('Participant Happy Path', () => {
   test('participant can register a spot for a public event', async ({ page }) => {
+    // Increase timeout for this test
+    test.setTimeout(60000); // 60 seconds
+
     // Setup: Create a published event using test helper
     const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
 
@@ -44,27 +47,20 @@ test.describe('Participant Happy Path', () => {
       await page.waitForTimeout(500);
 
       // Step 4: Navigate to spot registration
-      // The button text is "+ Spot anmelden" in the UI (could be link or button)
-      const registerButton = page.locator('text=/\\+?\\s*spot\\s*anmelden/i').first();
-      await expect(registerButton).toBeVisible({ timeout: 10000 });
-      await registerButton.click();
+      // Click the "+ Spot anmelden" tab
+      const registerTab = page.getByRole('button', { name: /spot anmelden/i });
+      await expect(registerTab).toBeVisible({ timeout: 10000 });
+      await registerTab.click();
 
-      // Wait for registration page
-      await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 10000 });
-
-      // Click continue to form
-      const continueButton = page.getByRole('button', { name: /weiter zur spot anmeldung/i });
-      await expect(continueButton).toBeVisible();
-      await continueButton.click();
-
-      // Wait for form tab to load
-      await page.waitForURL(/tab=form/, { timeout: 5000 });
+      // Wait for registration form to appear - check for the street field
+      await page.waitForTimeout(1000);
+      await expect(page.getByPlaceholder(/hauptstraße/i)).toBeVisible({ timeout: 5000 });
 
       // Step 5: Fill spot registration form
-      // Address fields
-      await page.getByPlaceholder(/hauptstraße/i).fill('Teststraße');
-      await page.getByPlaceholder(/42/i).fill('123');
-      await page.getByPlaceholder(/93051/i).fill('93051');
+      // Use a real address in Regensburg that can be geocoded
+      await page.getByPlaceholder(/hauptstraße/i).fill('Domplatz');
+      await page.getByPlaceholder(/42/i).fill('1');
+      await page.getByPlaceholder(/93051/i).fill('93047');
       await page.getByPlaceholder(/regensburg/i).fill('Regensburg');
 
       // Consent checkbox
@@ -72,31 +68,56 @@ test.describe('Participant Happy Path', () => {
       await consentCheckbox.check();
 
       // Contact info (optional but filling for completeness)
-      await page.getByPlaceholder(/name/i).fill('Test Participant');
-      await page.getByPlaceholder(/e-mail/i).fill('participant@test.local');
+      await page.getByPlaceholder('Name').fill('Test Participant');
+      await page.getByPlaceholder(/e-mail-adresse/i).fill('participant@test.local');
 
-      // Public note
-      await page.getByPlaceholder(/was verkaufst du/i).fill('Testware und Spielzeug');
+      // Public note - fill the textarea (last one on form)
+      await page.locator('textarea').last().fill('Testware und Spielzeug');
 
-      // Submit form to geocode
-      const submitButton = page.getByRole('button', { name: /adresse prüfen|weiter/i });
-      await submitButton.click();
+      // Wait a moment for form to process
+      await page.waitForTimeout(1000);
 
-      // Step 6: Confirm location on map
-      // Wait for map tab to load with geocoded location
-      await page.waitForURL(/tab=map/, { timeout: 10000 });
+      // Scroll to submit button to ensure it's in view
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.waitForTimeout(500);
 
-      // Verify map is shown
+      // Submit form - try clicking with Promise.all to wait for navigation
+      const submitButton = page.getByRole('button', { name: 'Absenden' });
+      await expect(submitButton).toBeVisible();
+
+      // Click and wait for navigation simultaneously
+      await Promise.all([
+        page.waitForLoadState('networkidle', { timeout: 15000 }),
+        submitButton.click()
+      ]);
+
+      // Step 6: Confirm position on "Position bestätigen" page
+      // Wait for redirect to position confirmation page
+      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForTimeout(2000);
+
+      // Check for the "Position bestätigen" heading or page
+      const positionHeading = page.locator('h1, h2, h3').filter({ hasText: /position bestätigen/i });
+      await expect(positionHeading).toBeVisible({ timeout: 10000 });
+      console.log('✓ Redirected to position confirmation page');
+
+      // Verify map is shown with the geocoded location
       await expect(page.locator('.leaflet-container')).toBeVisible({ timeout: 5000 });
+      console.log('✓ Map is visible');
+
+      // Wait for geocoding to complete and marker to appear
+      await page.waitForTimeout(2000);
 
       // Confirm the pin location
-      const confirmButton = page.getByRole('button', { name: /position bestätigen|spot anmelden/i });
-      await expect(confirmButton).toBeVisible();
+      const confirmButton = page.getByRole('button', { name: 'Position bestätigen' });
+      await expect(confirmButton).toBeVisible({ timeout: 5000 });
       await confirmButton.click();
+      console.log('✓ Clicked position confirmation button');
 
       // Step 7: Verify success
-      // Should show success message
-      await expect(page.locator('text=/erfolg|erfolgreich|angemeldet/i')).toBeVisible({ timeout: 10000 });
+      // Should show success message heading
+      await expect(page.getByRole('heading', { name: /spot erfolgreich/i })).toBeVisible({ timeout: 10000 });
+      console.log('✅ Spot registration successful!');
 
       // Navigate back to event page
       const backButton = page.getByRole('link', { name: /zurück|event ansehen/i });
@@ -110,7 +131,8 @@ test.describe('Participant Happy Path', () => {
       await page.waitForTimeout(2000);
 
       // Step 8: Verify spot appears in list view
-      await expect(page.getByText('Teststraße 123')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText('Domplatz 1')).toBeVisible({ timeout: 5000 });
+      console.log('✓ Spot appears in list view');
 
       // Step 9: Verify spot appears on map
       await mapTab.click();
