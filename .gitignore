@@ -47,3 +47,4 @@ test-results/
 playwright-report/
 .env.test
 auth-state.json
+GITHUB_SECRETS_SETUP.md

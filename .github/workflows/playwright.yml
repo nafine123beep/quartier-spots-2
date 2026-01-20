@@ -39,7 +39,7 @@ jobs:
           cp .env.test.example .env.test
           echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }}" >> .env.test
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TEST_SUPABASE_ANON_KEY }}" >> .env.test
-          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
           echo "TEST_ORGANIZER_EMAIL=${{ secrets.TEST_ORGANIZER_EMAIL }}" >> .env.test
           echo "TEST_MEMBER_EMAIL=${{ secrets.TEST_MEMBER_EMAIL }}" >> .env.test
           echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> .env.test
@@ -93,7 +93,10 @@ jobs:
           cp .env.test.example .env.test
           echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }}" >> .env.test
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TEST_SUPABASE_ANON_KEY }}" >> .env.test
-          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }}" >> .env.test
+          echo "TEST_ORGANIZER_EMAIL=${{ secrets.TEST_ORGANIZER_EMAIL }}" >> .env.test
+          echo "TEST_MEMBER_EMAIL=${{ secrets.TEST_MEMBER_EMAIL }}" >> .env.test
+          echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> .env.test
 
       - name: Run mobile tests
         run: npx playwright test tests/e2e/cross-device
