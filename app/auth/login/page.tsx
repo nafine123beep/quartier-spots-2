@@ -37,7 +37,7 @@ export default function LoginPage() {
   if (checkingSession) {
     return (
       <div className="fixed inset-0 bg-gray-100 z-[4000] flex items-center justify-center">
-        <div className="text-gray-500">Laden...</div>
+        <div className="text-[#003366] font-semibold">Laden...</div>
       </div>
     );
   }

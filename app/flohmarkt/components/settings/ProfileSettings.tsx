@@ -338,7 +338,7 @@ export function ProfileSettings() {
               </div>
             </div>
           ) : (
-            <p className="text-gray-500">Laden...</p>
+            <p className="text-[#003366] font-semibold">Laden...</p>
           )}
         </div>
       </div>

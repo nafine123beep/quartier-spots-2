@@ -437,7 +437,7 @@ export default function DemoPage() {
   return (
     <Suspense fallback={
       <div className="fixed inset-0 flex items-center justify-center bg-gray-100">
-        <p>Laden...</p>
+        <p className="text-[#003366] font-semibold">Laden...</p>
       </div>
     }>
       <DemoPageContent />

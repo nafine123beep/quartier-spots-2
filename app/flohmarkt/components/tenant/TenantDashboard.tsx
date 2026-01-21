@@ -62,7 +62,7 @@ export function TenantDashboard() {
             {loading ? (
               <div className="text-center py-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003366] mx-auto mb-4"></div>
-                <p>Lade Organisationen...</p>
+                <p className="text-[#003366] font-semibold">Lade Organisationen...</p>
               </div>
             ) : tenants.length === 0 ? (
               <div className="bg-white p-8 rounded-lg shadow-md text-center">
