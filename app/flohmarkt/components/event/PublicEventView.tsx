@@ -263,7 +263,7 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
               key={tab.id}
               onClick={() => setCurrentTab(tab.id)}
               className={`
-                flex-1 min-w-[120px] px-4 py-3 font-medium text-sm
+                flex-1 min-w-[120px] px-5 py-4 font-medium text-sm
                 transition-all duration-200 border-b-2
                 ${
                   currentTab === tab.id

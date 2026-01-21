@@ -87,10 +87,10 @@ export function CollapsibleHeader({ children, className = "" }: CollapsibleHeade
             flex items-center gap-1
             ${isCollapsed ? "top-0" : "-bottom-6"}
           `}
-          aria-label={isCollapsed ? "Header einblenden" : "Header ausblenden"}
+          aria-label={isCollapsed ? "Details einblenden" : "Details ausblenden"}
         >
           <span>{isCollapsed ? "▼" : "▲"}</span>
-          <span>{isCollapsed ? "Einblenden" : "Ausblenden"}</span>
+          <span>{isCollapsed ? "Details einblenden" : "Details ausblenden"}</span>
         </button>
       )}
     </div>

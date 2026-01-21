@@ -20,7 +20,7 @@ export function TabNavigation() {
           onClick={() => setCurrentTab(tab.id)}
           className={`
             flex-1 border-none bg-transparent font-bold cursor-pointer text-base
-            border-b-4 transition-colors
+            border-b-4 transition-colors px-4 py-3
             ${
               currentTab === tab.id
                 ? "text-[#003366] border-b-[#FFCC00] bg-gray-50"
