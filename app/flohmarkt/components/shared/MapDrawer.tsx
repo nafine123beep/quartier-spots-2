@@ -29,7 +29,7 @@ export function MapDrawer({ isOpen, onClose, title, children }: MapDrawerProps) 
           ×
         </button>
       </div>
-      <div className="overflow-y-auto p-2.5 flex-grow">{children}</div>
+      <div className="overflow-y-auto p-2.5 flex-grow flex flex-col gap-3">{children}</div>
     </div>
   );
 }
