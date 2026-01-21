@@ -7,13 +7,16 @@ import { ListView } from "./ListView";
 import { MapView } from "./MapView";
 import { SpotForm } from "./SpotForm";
 import { DeleteSpotForm } from "./DeleteSpotForm";
+import { CollapsibleHeader } from "../shared/CollapsibleHeader";
 
 export function AppView() {
   const { currentTab } = useFlohmarkt();
 
   return (
     <div className="fixed inset-0 flex flex-col z-[3000]">
-      <AppHeader />
+      <CollapsibleHeader>
+        <AppHeader />
+      </CollapsibleHeader>
       <TabNavigation />
 
       <div className="relative flex-grow overflow-hidden bg-gray-200">
