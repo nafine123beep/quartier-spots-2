@@ -102,6 +102,12 @@ export function FrontPage() {
           >
             Kontakt & Support
           </button>
+          <Link
+            href="/impressum"
+            className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
+          >
+            Impressum & Datenschutz
+          </Link>
         </footer>
 
         {/* Support Form Modal */}
