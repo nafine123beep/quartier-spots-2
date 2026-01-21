@@ -5,6 +5,7 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 import { MapDrawer } from "../shared/MapDrawer";
 import { SpotItem } from "../shared/SpotItem";
 import { ContactFormModal } from "../shared/ContactFormModal";
+import { SpotCarousel } from "../shared/SpotCarousel";
 import { Spot } from "../../types";
 import { getSpotTerms } from "../../lib/spotTerms";
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
@@ -215,36 +216,48 @@ export function MapView() {
         </div>
       )}
 
-      {/* Toggle List Button */}
+      {/* Toggle List Button - Desktop only */}
       <button
         onClick={toggleDrawer}
         className="
           absolute bottom-5 left-5 z-[1000]
           bg-[#003366] text-white px-5 py-3 rounded-full
           font-bold shadow-lg cursor-pointer
-          flex items-center gap-2
+          items-center gap-2
           hover:bg-[#002244]
+          hidden md:flex
         "
       >
         <span>☰</span> Liste
       </button>
 
-      {/* Drawer */}
-      <MapDrawer
-        isOpen={isDrawerOpen}
-        onClose={toggleDrawer}
-        title={terms.spotsNearby}
-      >
-        {spots.map((spot) => (
-          <SpotItem
-            key={spot.id}
-            spot={spot}
-            isCompact
-            showDeleteButton={false}
-            onClick={() => handleSpotClick(spot)}
-          />
-        ))}
-      </MapDrawer>
+      {/* Drawer - Desktop only */}
+      <div className="hidden md:block">
+        <MapDrawer
+          isOpen={isDrawerOpen}
+          onClose={toggleDrawer}
+          title={terms.spotsNearby}
+        >
+          {spots.map((spot) => (
+            <SpotItem
+              key={spot.id}
+              spot={spot}
+              isCompact
+              showDeleteButton={false}
+              onClick={() => handleSpotClick(spot)}
+            />
+          ))}
+        </MapDrawer>
+      </div>
+
+      {/* Mobile Carousel - Mobile only */}
+      <div className="block md:hidden">
+        <SpotCarousel
+          spots={spots}
+          onSpotClick={handleSpotClick}
+          spotTermSingular={currentTenantEvent?.spot_term_singular}
+        />
+      </div>
 
       {/* Contact FAB */}
       <button
