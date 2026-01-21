@@ -259,10 +259,11 @@ export function SpotForm() {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-700 text-sm">
+            <label htmlFor="street" className="block mb-1 font-bold text-gray-700 text-sm">
               Straße *
             </label>
             <input
+              id="street"
               type="text"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
@@ -274,10 +275,11 @@ export function SpotForm() {
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block mb-1 font-bold text-gray-700 text-sm">
+              <label htmlFor="houseNumber" className="block mb-1 font-bold text-gray-700 text-sm">
                 Hausnummer
               </label>
               <input
+                id="houseNumber"
                 type="text"
                 value={houseNumber}
                 onChange={(e) => handleHouseNumberChange(e.target.value)}
@@ -291,10 +293,11 @@ export function SpotForm() {
               )}
             </div>
             <div>
-              <label className="block mb-1 font-bold text-gray-700 text-sm">
+              <label htmlFor="zip" className="block mb-1 font-bold text-gray-700 text-sm">
                 PLZ
               </label>
               <input
+                id="zip"
                 type="text"
                 value={zip}
                 onChange={(e) => setZip(e.target.value)}
@@ -305,10 +308,11 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-700 text-sm">
+            <label htmlFor="city" className="block mb-1 font-bold text-gray-700 text-sm">
               Stadt *
             </label>
             <input
+              id="city"
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
@@ -334,10 +338,11 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-700 text-sm">
+            <label htmlFor="contactName" className="block mb-1 font-bold text-gray-700 text-sm">
               Dein Name (Optional)
             </label>
             <input
+              id="contactName"
               type="text"
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
@@ -347,10 +352,11 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-700 text-sm">
+            <label htmlFor="contactEmail" className="block mb-1 font-bold text-gray-700 text-sm">
               E-Mail (Optional)
             </label>
             <input
+              id="contactEmail"
               type="email"
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
@@ -360,10 +366,11 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-700 text-sm">
+            <label htmlFor="contactPhone" className="block mb-1 font-bold text-gray-700 text-sm">
               Telefon (Optional)
             </label>
             <input
+              id="contactPhone"
               type="tel"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
@@ -379,10 +386,11 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-bold text-gray-700 text-sm">
+            <label htmlFor="publicNote" className="block mb-1 font-bold text-gray-700 text-sm">
               Was bietest du an?
             </label>
             <textarea
+              id="publicNote"
               value={publicNote}
               onChange={(e) => setPublicNote(e.target.value)}
               rows={3}

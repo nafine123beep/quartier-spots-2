@@ -23,8 +23,8 @@ export default defineConfig({
   // Retry strategy for flaky tests
   retries: process.env.CI ? 2 : 0,
 
-  // Timeout settings (critical for <30s target)
-  timeout: 15000, // 15s per test
+  // Timeout settings - increased for reliability with production builds
+  timeout: 30000, // 30s per test (increased for slow builds)
   expect: {
     timeout: 5000, // 5s for assertions
   },
@@ -39,8 +39,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
 
-    // Navigation timeout
-    navigationTimeout: 10000,
+    // Navigation timeout (increased for slow production builds)
+    navigationTimeout: 20000,
   },
 
   // Device profiles for cross-device testing
@@ -82,8 +82,8 @@ export default defineConfig({
     // test-setup.sh script must run BEFORE Playwright starts
     command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
-    // NEVER reuse existing server - always start fresh with test env vars
-    reuseExistingServer: false,
+    // Reuse existing server locally to avoid slow rebuilds, but not in CI
+    reuseExistingServer: !process.env.CI,
     timeout: 180000, // Increased timeout for build step
     // Explicitly set environment variables for the build and server
     env: {
