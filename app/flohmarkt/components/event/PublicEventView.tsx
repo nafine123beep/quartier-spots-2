@@ -224,9 +224,9 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
               {currentTenantEvent.description && (
                 <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
               )}
-              <div className="text-sm opacity-80">
+              <div className="text-sm opacity-80 flex flex-col md:flex-row md:gap-4">
                 {currentTenantEvent.starts_at && (
-                  <span className="mr-4">
+                  <span>
                     Start: {formatDate(currentTenantEvent.starts_at)}
                   </span>
                 )}
