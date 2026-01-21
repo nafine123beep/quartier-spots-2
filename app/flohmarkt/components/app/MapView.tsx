@@ -8,6 +8,7 @@ import { ContactFormModal } from "../shared/ContactFormModal";
 import { SpotCarousel } from "../shared/SpotCarousel";
 import { Spot } from "../../types";
 import { getSpotTerms } from "../../lib/spotTerms";
+import { Emoji, EMOJIS } from "../icons";
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
 export function MapView() {
@@ -207,7 +208,7 @@ export function MapView() {
           hidden md:flex
         "
       >
-        <span>☰</span> Liste
+        <Emoji symbol={EMOJIS.MENU} label="Menu" /> Liste
       </button>
 
       {/* Drawer - Desktop only */}
@@ -250,7 +251,7 @@ export function MapView() {
         "
         title="Veranstalter:in kontaktieren"
       >
-        ✉️
+        <Emoji symbol={EMOJIS.EMAIL} label="Kontakt" size="lg" />
       </button>
 
       {/* Contact Form Modal */}
