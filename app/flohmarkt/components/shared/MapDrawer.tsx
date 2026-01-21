@@ -21,10 +21,10 @@ export function MapDrawer({ isOpen, onClose, title, children }: MapDrawerProps) 
       `}
     >
       <div className="p-4 bg-gray-100 border-b border-gray-300 flex justify-between items-center">
-        <strong>{title}</strong>
+        <strong className="text-[#003366] font-bold">{title}</strong>
         <button
           onClick={onClose}
-          className="bg-transparent border-none text-2xl cursor-pointer"
+          className="bg-transparent border-none text-2xl cursor-pointer text-[#003366] hover:text-[#002244]"
         >
           ×
         </button>
