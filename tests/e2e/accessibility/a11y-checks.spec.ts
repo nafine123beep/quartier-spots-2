@@ -93,20 +93,13 @@ test.describe('Accessibility Tests (WCAG 2.1 AA)', () => {
     const { orgSlug, eventSlug, tenantId: tid } = await createPublishedEvent();
     tenantId = tid;
 
-    await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}/register`);
-
-    const continueButton = page.getByRole('button', { name: /weiter/i });
-    if (await continueButton.isVisible({ timeout: 2000 })) {
-      await continueButton.click();
-      // Wait for navigation to complete
-      await page.waitForURL(/\?tab=form/);
-    }
-
-    // Wait for the form to be fully loaded
+    // Navigate directly to the form with tab parameter to skip confirmation page
+    await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}?tab=form`);
     await page.waitForLoadState('networkidle');
 
-    // Get the focused element's outline
+    // Get the focused element's outline - wait for field to be visible first
     const firstInput = page.getByLabel(/straße/i);
+    await expect(firstInput).toBeVisible({ timeout: 15000 });
     await firstInput.focus();
 
     const outlineStyle = await firstInput.evaluate((el) => {

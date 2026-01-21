@@ -98,13 +98,13 @@ export function FrontPage() {
         <footer className="mt-5 flex gap-5 text-sm">
           <button
             onClick={() => setIsSupportModalOpen(true)}
-            className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid bg-transparent border-t-0 border-l-0 border-r-0"
+            className="text-gray-300 no-underline border-b border-dotted border-gray-300 pb-0.5 cursor-pointer hover:text-white hover:border-solid bg-transparent border-t-0 border-l-0 border-r-0"
           >
             Kontakt & Support
           </button>
           <Link
             href="/impressum"
-            className="text-gray-400 no-underline border-b border-dotted border-gray-400 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
+            className="text-gray-300 no-underline border-b border-dotted border-gray-300 pb-0.5 cursor-pointer hover:text-white hover:border-solid"
           >
             Impressum & Datenschutz
           </Link>
