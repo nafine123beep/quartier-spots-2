@@ -210,17 +210,17 @@ export function AddressPinSelector({
         crossOrigin=""
       />
 
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999]">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-4 overflow-hidden flex flex-col" style={{ maxHeight: "90vh" }}>
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4 md:p-0">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden flex flex-col max-h-[90vh] md:max-h-[90vh]">
           {/* Header */}
-          <div className="bg-[#003366] text-white p-6">
-            <h2 className="text-2xl font-bold mb-2">Position bestätigen</h2>
+          <div className="bg-[#003366] text-white p-4 md:p-6">
+            <h2 className="text-xl md:text-2xl font-bold mb-2">Position bestätigen</h2>
             <p className="text-sm opacity-90">{address}</p>
           </div>
 
           {/* Map Container */}
-          <div className="relative" style={{ height: "500px" }}>
-            <div ref={mapContainerRef} className="w-full h-full" style={{ height: "500px" }} />
+          <div className="relative h-[50vh] md:h-[500px]">
+            <div ref={mapContainerRef} className="w-full h-full" />
 
             {!isMapReady && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
@@ -267,7 +267,7 @@ export function AddressPinSelector({
           </div>
 
           {/* Instructions and Actions */}
-          <div className="p-6 bg-gray-50 border-t border-gray-200">
+          <div className="p-4 md:p-6 bg-gray-50 border-t border-gray-200 pb-8 md:pb-6">
             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-800">
                 <strong>💡 Tipp:</strong> Ziehe die rote Markierung auf der Karte, um die Position präzise anzupassen.
@@ -278,14 +278,14 @@ export function AddressPinSelector({
             <div className="flex gap-3 justify-end">
               <button
                 onClick={onCancel}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors"
+                className="px-4 md:px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors"
               >
                 Abbrechen
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={isOutOfBounds}
-                className={`px-6 py-3 rounded-lg font-bold transition-colors ${
+                className={`px-4 md:px-6 py-3 rounded-lg font-bold transition-colors ${
                   isOutOfBounds
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-[#003366] text-white hover:bg-[#002244]"
