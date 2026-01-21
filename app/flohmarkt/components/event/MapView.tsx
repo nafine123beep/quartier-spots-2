@@ -10,7 +10,7 @@ import { getSpotTerms } from "../../lib/spotTerms";
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
 export function MapView() {
-  const { spots, setCurrentTab, setDeletePreFill, currentTenantEvent, currentTenant } = useFlohmarkt();
+  const { spots, setCurrentTab, setDeletePreFill, currentTenantEvent, currentTenant, selectedSpotId, setSelectedSpotId } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -173,6 +173,18 @@ export function MapView() {
   const toggleDrawer = () => {
     setIsDrawerOpen((prev) => !prev);
   };
+
+  // Navigate to selected spot when coming from ListView
+  useEffect(() => {
+    if (selectedSpotId && isMapReady) {
+      const spot = spots.find(s => s.id === selectedSpotId);
+      if (spot) {
+        handleSpotClick(spot);
+        // Clear the selection after navigating
+        setSelectedSpotId(null);
+      }
+    }
+  }, [selectedSpotId, isMapReady, spots, handleSpotClick, setSelectedSpotId]);
 
   // Invalidate map size when it becomes visible
   useEffect(() => {

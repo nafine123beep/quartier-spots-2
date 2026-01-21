@@ -5,7 +5,7 @@ import { SpotItem } from "../shared/SpotItem";
 import { getSpotTerms } from "../../lib/spotTerms";
 
 export function ListView() {
-  const { spots, setCurrentTab, setDeletePreFill, highlightedSpotId, currentTenantEvent } = useFlohmarkt();
+  const { spots, setCurrentTab, setDeletePreFill, highlightedSpotId, currentTenantEvent, setSelectedSpotId } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
   const handleDelete = (address: string) => {
@@ -13,7 +13,9 @@ export function ListView() {
     setCurrentTab("delete");
   };
 
-  const handleSpotClick = () => {
+  const handleSpotClick = (spot: any) => {
+    // Set the selected spot ID so MapView can navigate to it
+    setSelectedSpotId(spot.id);
     // Switch to map view - map will center on this spot
     setCurrentTab("map");
   };
@@ -42,7 +44,7 @@ export function ListView() {
               key={spot.id}
               spot={spot}
               onDelete={handleDelete}
-              onClick={handleSpotClick}
+              onClick={() => handleSpotClick(spot)}
               isHighlighted={spot.id === highlightedSpotId}
               deleteButtonTitle={terms.deleteOwnSpot}
             />

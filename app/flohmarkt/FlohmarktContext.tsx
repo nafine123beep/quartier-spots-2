@@ -16,6 +16,7 @@ interface FlohmarktContextType {
   user: User | null;
   deletePreFill: string;
   highlightedSpotId: string | null;
+  selectedSpotId: string | null;
 
   // Tenant state
   tenants: Tenant[];
@@ -35,6 +36,7 @@ interface FlohmarktContextType {
   logout: () => void;
   setDeletePreFill: (address: string) => void;
   setHighlightedSpotId: (id: string | null) => void;
+  setSelectedSpotId: (id: string | null) => void;
   getAllEmails: () => string[];
 
   // Tenant actions
@@ -96,6 +98,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [deletePreFill, setDeletePreFill] = useState("");
   const [highlightedSpotId, setHighlightedSpotId] = useState<string | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
 
   // Tenant state
   const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -1190,6 +1193,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         user,
         deletePreFill,
         highlightedSpotId,
+        selectedSpotId,
         tenants,
         currentTenant,
         tenantEvents,
@@ -1206,6 +1210,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         logout,
         setDeletePreFill,
         setHighlightedSpotId,
+        setSelectedSpotId,
         getAllEmails,
         loadTenants,
         selectTenant,
