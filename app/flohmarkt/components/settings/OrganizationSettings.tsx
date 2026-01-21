@@ -21,6 +21,15 @@ export function OrganizationSettings() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Update page title
+  useEffect(() => {
+    if (currentTenant) {
+      document.title = `Einstellungen | ${currentTenant.name}`;
+    } else {
+      document.title = "Organisations-Einstellungen | Quartierspot";
+    }
+  }, [currentTenant]);
+
   // Sync state when tenant changes
   useEffect(() => {
     if (currentTenant) {

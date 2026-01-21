@@ -31,6 +31,13 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
     }
   }, [searchParams, setCurrentTab]);
 
+  // Update page title dynamically
+  useEffect(() => {
+    if (currentTenantEvent && currentTenant) {
+      document.title = `${currentTenantEvent.title} | ${currentTenant.name}`;
+    }
+  }, [currentTenantEvent, currentTenant]);
+
   if (!currentTenantEvent) {
     return null;
   }

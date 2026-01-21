@@ -26,6 +26,11 @@ export function ProfileSettings() {
   const [notificationMessage, setNotificationMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notificationLoaded, setNotificationLoaded] = useState(false);
 
+  // Update page title
+  useEffect(() => {
+    document.title = "Profil-Einstellungen | Quartierspot";
+  }, []);
+
   // Sync state when user changes
   useEffect(() => {
     if (user) {

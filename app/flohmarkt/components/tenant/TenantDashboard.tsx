@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { CreateTenantForm } from "./CreateTenantForm";
@@ -12,6 +12,11 @@ type Mode = "list" | "create" | "join";
 export function TenantDashboard() {
   const { tenants, user, logout, loading } = useFlohmarkt();
   const [mode, setMode] = useState<Mode>("list");
+
+  // Update page title
+  useEffect(() => {
+    document.title = "Meine Organisationen | Quartierspot";
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">

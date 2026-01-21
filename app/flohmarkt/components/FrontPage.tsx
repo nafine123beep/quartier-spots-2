@@ -10,6 +10,11 @@ export function FrontPage() {
   const mapRef = useRef<LeafletMap | null>(null);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
 
+  // Update page title
+  useEffect(() => {
+    document.title = "Quartierspot - Organisiere lokale Veranstaltungen";
+  }, []);
+
   // Initialize background map
   useEffect(() => {
     if (typeof window === "undefined" || !mapContainerRef.current || mapRef.current) {
