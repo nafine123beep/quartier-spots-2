@@ -98,13 +98,15 @@ test.describe('Accessibility Tests (WCAG 2.1 AA)', () => {
     const continueButton = page.getByRole('button', { name: /weiter/i });
     if (await continueButton.isVisible({ timeout: 2000 })) {
       await continueButton.click();
+      // Wait for navigation to complete
+      await page.waitForURL(/\?tab=form/);
     }
 
-    // Tab to first input
-    await page.keyboard.press('Tab');
+    // Wait for the form to be fully loaded
+    await page.waitForLoadState('networkidle');
 
     // Get the focused element's outline
-    const firstInput = page.getByLabel(/straße|street/i);
+    const firstInput = page.getByLabel(/straße/i);
     await firstInput.focus();
 
     const outlineStyle = await firstInput.evaluate((el) => {
