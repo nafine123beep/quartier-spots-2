@@ -33,7 +33,7 @@ test.describe('iPhone Safari Tests', () => {
     expect(hasHorizontalScroll).toBe(false);
 
     // Tap register button (should be large enough for touch)
-    const registerButton = page.getByRole('button', { name: /spot.*registr|stand.*anmeld/i });
+    const registerButton = page.getByRole('button', { name: /spot.*anmeld|stand.*anmeld/i });
 
     // Verify button size meets iOS minimum (44x44px)
     const box = await registerButton.boundingBox();
@@ -50,27 +50,40 @@ test.describe('iPhone Safari Tests', () => {
       await continueButton.tap();
     }
 
-    // Fill form with mobile keyboard
-    const spotData = generateTestSpot();
-
+    // Fill form with mobile keyboard - use real address for geocoding
     await page.getByLabel(/straße|street/i).tap();
-    await page.keyboard.type(spotData.street);
+    await page.keyboard.type('Domplatz');
+
+    await page.getByLabel(/hausnummer/i).tap();
+    await page.keyboard.type('1');
+
+    await page.getByLabel(/plz|zip/i).tap();
+    await page.keyboard.type('93047');
 
     await page.getByLabel(/stadt|city/i).tap();
-    await page.keyboard.type(spotData.city);
+    await page.keyboard.type('Regensburg');
 
     // Scroll to consent checkbox
     await page.getByLabel(/einverstanden|consent/i).scrollIntoViewIfNeeded();
     await page.getByLabel(/einverstanden|consent/i).tap();
 
-    await page.getByLabel(/verkaufst|note/i).tap();
-    await page.keyboard.type(spotData.public_note);
+    await page.getByLabel(/bietest du an|verkaufst|note/i).tap();
+    await page.keyboard.type('Test items for sale');
+
+    // Scroll to submit button to ensure it's visible
+    const submitButton = page.getByRole('button', { name: /absenden|submit/i });
+    await submitButton.scrollIntoViewIfNeeded();
 
     // Submit
-    await page.getByRole('button', { name: /absenden|submit/i }).tap();
+    await submitButton.tap();
 
-    // Verify submission worked
-    await expect(page.locator('text=/erfolgreich|success|bestätigen/i')).toBeVisible({ timeout: 15000 });
+    // Wait for geocoding and pin position modal (can take longer in tests)
+    const confirmButton = page.getByRole('button', { name: /position bestätigen/i });
+    await expect(confirmButton).toBeVisible({ timeout: 20000 });
+    await confirmButton.tap();
+
+    // Verify submission worked - look for success modal
+    await expect(page.getByText(/erfolgreich.*gespeichert|spot.*erstellt/i)).toBeVisible({ timeout: 10000 });
   });
 
   test('map interactions work on iPhone touchscreen', async ({ page }) => {

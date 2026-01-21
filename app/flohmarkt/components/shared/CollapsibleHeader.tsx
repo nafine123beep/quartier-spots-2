@@ -81,7 +81,7 @@ export function CollapsibleHeader({ children, className = "" }: CollapsibleHeade
           onClick={toggleCollapse}
           className={`
             absolute left-1/2 -translate-x-1/2 z-10
-            bg-[#003366] text-white px-4 py-1 rounded-b-lg shadow-lg
+            bg-[#003366] text-white px-4 py-3 rounded-b-lg shadow-lg min-h-[44px]
             text-xs font-medium transition-all duration-300
             hover:bg-[#002244] active:scale-95
             flex items-center gap-1

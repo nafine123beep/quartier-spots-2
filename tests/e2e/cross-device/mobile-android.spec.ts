@@ -29,12 +29,16 @@ test.describe('Android Chrome Tests', () => {
     // Should default to list view
     await expect(page.locator('body')).toBeVisible();
 
-    // Scroll through list
-    await page.evaluate(() => window.scrollTo(0, 500));
+    // Find the scrollable list container
+    const listContainer = page.locator('.overflow-y-auto').first();
+    await expect(listContainer).toBeVisible();
+
+    // Scroll through list using the container
+    await listContainer.evaluate((el) => el.scrollTo(0, 500));
     await page.waitForTimeout(100);
 
     // Verify scroll worked
-    const scrollY = await page.evaluate(() => window.scrollY);
+    const scrollY = await listContainer.evaluate((el) => el.scrollTop);
     expect(scrollY).toBeGreaterThan(400);
   });
 

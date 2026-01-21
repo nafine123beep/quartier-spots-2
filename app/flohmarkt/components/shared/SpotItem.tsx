@@ -46,7 +46,7 @@ export function SpotItem({
           onClick={handleDelete}
           title={deleteButtonTitle}
           className="
-            absolute top-4 right-4 w-8 h-8
+            absolute top-4 right-4 w-11 h-11
             bg-red-50 border border-red-200 text-red-500
             rounded-full flex items-center justify-center
             hover:bg-red-500 hover:text-white
