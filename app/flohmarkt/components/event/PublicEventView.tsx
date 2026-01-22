@@ -18,7 +18,7 @@ interface PublicEventViewProps {
 }
 
 export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps) {
-  const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, user } = useFlohmarkt();
+  const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, user, setIsLightboxOpen } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const searchParams = useSearchParams();
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -50,10 +50,12 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);
     setLightboxImage(getPublicImageUrl(images[index].storage_path));
+    setIsLightboxOpen(true);
   };
 
   const closeLightbox = () => {
     setLightboxImage(null);
+    setIsLightboxOpen(false);
   };
 
   const navigateLightbox = (direction: 'prev' | 'next') => {

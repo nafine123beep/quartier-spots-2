@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { Spot } from "../../types";
+import { useFlohmarkt } from "../../FlohmarktContext";
 
 interface SpotCarouselProps {
   spots: Spot[];
@@ -10,6 +11,7 @@ interface SpotCarouselProps {
 }
 
 export function SpotCarousel({ spots, onSpotClick, spotTermSingular }: SpotCarouselProps) {
+  const { isLightboxOpen } = useFlohmarkt();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -31,7 +33,7 @@ export function SpotCarousel({ spots, onSpotClick, spotTermSingular }: SpotCarou
     }
   }, []);
 
-  if (spots.length === 0) {
+  if (spots.length === 0 || isLightboxOpen) {
     return null;
   }
 
