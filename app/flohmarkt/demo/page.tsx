@@ -390,13 +390,13 @@ function DemoPageContent() {
     <div className="fixed inset-0 flex flex-col z-[3000]">
       {/* Demo Header */}
       <header className="bg-[#003366] text-white px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold m-0">QuartierSpots Demo</h1>
         <a
           href="/flohmarkt"
           className="text-white/80 hover:text-white text-sm no-underline"
         >
           ← Zurück
         </a>
+        <h1 className="text-lg font-bold m-0">QuartierSpots Demo</h1>
       </header>
 
       {/* Tab Navigation */}
