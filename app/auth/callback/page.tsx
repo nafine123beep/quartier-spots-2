@@ -19,14 +19,29 @@ export default function AuthCallbackPage() {
         .eq("id", session.user.id)
         .maybeSingle();
 
-      // Only redirect to onboarding if user has no display_name (first-time user)
+      // Check if user has any memberships
+      const { data: memberships } = await supabase
+        .from("memberships")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .limit(1);
+
+      // If user has memberships, they've completed onboarding - go to dashboard
+      if (memberships && memberships.length > 0) {
+        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
+        window.location.replace("/flohmarkt/organizations");
+        return;
+      }
+
+      // If user has no display_name, they need to complete onboarding
       if (!profile?.display_name) {
         setStatus("Erfolgreich eingeloggt! Weiterleitung zum Onboarding...");
         window.location.replace("/onboarding");
       } else {
-        // Existing user - go to dashboard (even if they have no memberships yet)
-        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
-        window.location.replace("/flohmarkt/organizations");
+        // User has display_name but no memberships - might be mid-onboarding
+        // Send them to onboarding to complete organization setup
+        setStatus("Erfolgreich eingeloggt! Weiterleitung zum Onboarding...");
+        window.location.replace("/onboarding");
       }
     }
 
