@@ -9,8 +9,9 @@ export default function EventsPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
-  const { findTenantBySlug, selectTenant, currentTenant, loading } = useFlohmarkt();
+  const { findTenantBySlug, selectTenant, currentTenant, loading, isAuthenticated, tenants } = useFlohmarkt();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Auto-select tenant based on URL slug
   useEffect(() => {
@@ -22,18 +23,24 @@ export default function EventsPage() {
     }
   }, [slug, currentTenant?.slug, findTenantBySlug, selectTenant]);
 
-  // Add timeout for loading state
+  // Track when initial load is complete
   useEffect(() => {
-    if (loading || !currentTenant) {
+    // If we have a tenant or we're not authenticated or tenants are loaded but slug not found
+    if (currentTenant || !isAuthenticated || (tenants.length > 0 && !findTenantBySlug(slug))) {
+      setInitialLoadComplete(true);
+    }
+  }, [currentTenant, isAuthenticated, tenants.length, slug, findTenantBySlug]);
+
+  // Add timeout for loading state - trigger if stuck loading
+  useEffect(() => {
+    if (!initialLoadComplete) {
       const timer = setTimeout(() => {
         setLoadingTimeout(true);
       }, 10000); // 10 seconds timeout
 
       return () => clearTimeout(timer);
-    } else {
-      setLoadingTimeout(false);
     }
-  }, [loading, currentTenant]);
+  }, [initialLoadComplete]);
 
   if (loadingTimeout) {
     return (

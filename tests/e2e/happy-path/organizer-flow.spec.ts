@@ -124,10 +124,10 @@ test.describe('Organizer Happy Path', () => {
     console.log('✓ Logged in and redirected to dashboard');
 
     // Step 3: Select the test organization
-    // Try using getByText since getByRole might have issues with the button
-    const selectOrgButton = page.getByText('Auswählen');
-    await expect(selectOrgButton).toBeVisible({ timeout: 5000 });
-    await selectOrgButton.click();
+    // Look for the "Test Organization" card and click its "Auswählen" button
+    const testOrgCard = page.locator('text=Test Organization').locator('..').locator('..');
+    await expect(testOrgCard).toBeVisible({ timeout: 5000 });
+    await testOrgCard.getByText('Auswählen').click();
     await page.waitForLoadState('networkidle');
     console.log('✓ Selected test organization');
 
