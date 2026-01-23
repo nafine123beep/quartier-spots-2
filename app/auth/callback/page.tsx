@@ -12,31 +12,22 @@ export default function AuthCallbackPage() {
     async function handleAuthCallback(session: any) {
       if (!session) return;
 
-      console.log("Auth callback - User ID:", session.user.id);
-
       // Check if this is a new user or existing user
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("display_name")
         .eq("id", session.user.id)
         .maybeSingle();
 
-      console.log("Profile data:", profile);
-      console.log("Profile error:", profileError);
-
       // Check if user has any memberships
-      const { data: memberships, error: membershipError } = await supabase
+      const { data: memberships } = await supabase
         .from("memberships")
         .select("id")
         .eq("user_id", session.user.id)
         .limit(1);
 
-      console.log("Memberships data:", memberships);
-      console.log("Memberships error:", membershipError);
-
       // If user has memberships, they've completed onboarding - go to dashboard
       if (memberships && memberships.length > 0) {
-        console.log("User has memberships - redirecting to organizations");
         setStatus("Erfolgreich eingeloggt! Weiterleitung...");
         window.location.replace("/flohmarkt/organizations");
         return;
@@ -44,13 +35,11 @@ export default function AuthCallbackPage() {
 
       // If user has no display_name, they need to complete onboarding
       if (!profile?.display_name) {
-        console.log("User has no display_name - redirecting to onboarding");
         setStatus("Erfolgreich eingeloggt! Weiterleitung zum Onboarding...");
         window.location.replace("/onboarding");
       } else {
         // User has display_name but no memberships - might be mid-onboarding
         // Send them to onboarding to complete organization setup
-        console.log("User has display_name but no memberships - redirecting to onboarding");
         setStatus("Erfolgreich eingeloggt! Weiterleitung zum Onboarding...");
         window.location.replace("/onboarding");
       }
