@@ -13,30 +13,35 @@ export function TenantDashboard() {
   const { tenants, user, logout, loading, isAuthenticated } = useFlohmarkt();
   const [mode, setMode] = useState<Mode>("list");
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   // Update page title
   useEffect(() => {
     document.title = "Meine Organisationen | Quartierspot";
   }, []);
 
-  // Track when initial load is complete
+  // Track when we've checked authentication status
   useEffect(() => {
-    if (!loading && (tenants.length > 0 || !isAuthenticated)) {
-      setInitialLoadComplete(true);
-    }
-  }, [loading, tenants.length, isAuthenticated]);
+    // Wait a bit to let the auth check complete
+    const timer = setTimeout(() => {
+      setHasCheckedAuth(true);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Add timeout for loading state - trigger if stuck loading
+  // Add timeout for loading state - trigger if stuck loading for too long
   useEffect(() => {
-    if (!initialLoadComplete) {
-      const timer = setTimeout(() => {
+    if (!hasCheckedAuth) return; // Wait for initial auth check
+
+    const timer = setTimeout(() => {
+      // If after 10 seconds we still have no user or no tenants, show error
+      if (!user || !isAuthenticated) {
         setLoadingTimeout(true);
-      }, 10000); // 10 seconds timeout
+      }
+    }, 10000); // 10 seconds timeout
 
-      return () => clearTimeout(timer);
-    }
-  }, [initialLoadComplete]);
+    return () => clearTimeout(timer);
+  }, [hasCheckedAuth, user, isAuthenticated]);
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">

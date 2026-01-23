@@ -9,9 +9,9 @@ export default function EventsPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
-  const { findTenantBySlug, selectTenant, currentTenant, loading, isAuthenticated, tenants } = useFlohmarkt();
+  const { findTenantBySlug, selectTenant, currentTenant, loading, isAuthenticated, tenants, user } = useFlohmarkt();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
   // Auto-select tenant based on URL slug
   useEffect(() => {
@@ -23,24 +23,28 @@ export default function EventsPage() {
     }
   }, [slug, currentTenant?.slug, findTenantBySlug, selectTenant]);
 
-  // Track when initial load is complete
+  // Track when we've checked authentication status
   useEffect(() => {
-    // If we have a tenant or we're not authenticated or tenants are loaded but slug not found
-    if (currentTenant || !isAuthenticated || (tenants.length > 0 && !findTenantBySlug(slug))) {
-      setInitialLoadComplete(true);
-    }
-  }, [currentTenant, isAuthenticated, tenants.length, slug, findTenantBySlug]);
+    // Wait a bit to let the auth check complete
+    const timer = setTimeout(() => {
+      setHasCheckedAuth(true);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Add timeout for loading state - trigger if stuck loading
+  // Add timeout for loading state - trigger if stuck loading for too long
   useEffect(() => {
-    if (!initialLoadComplete) {
-      const timer = setTimeout(() => {
+    if (!hasCheckedAuth) return; // Wait for initial auth check
+
+    const timer = setTimeout(() => {
+      // If after 10 seconds we still have no user, no tenant, or not authenticated
+      if (!user || !isAuthenticated || !currentTenant) {
         setLoadingTimeout(true);
-      }, 10000); // 10 seconds timeout
+      }
+    }, 10000); // 10 seconds timeout
 
-      return () => clearTimeout(timer);
-    }
-  }, [initialLoadComplete]);
+    return () => clearTimeout(timer);
+  }, [hasCheckedAuth, user, isAuthenticated, currentTenant]);
 
   if (loadingTimeout) {
     return (
