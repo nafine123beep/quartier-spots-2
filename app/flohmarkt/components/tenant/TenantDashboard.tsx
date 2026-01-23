@@ -12,11 +12,25 @@ type Mode = "list" | "create" | "join";
 export function TenantDashboard() {
   const { tenants, user, logout, loading } = useFlohmarkt();
   const [mode, setMode] = useState<Mode>("list");
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   // Update page title
   useEffect(() => {
     document.title = "Meine Organisationen | Quartierspot";
   }, []);
+
+  // Add timeout for loading state
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 10000); // 10 seconds timeout
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [loading]);
 
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
@@ -59,10 +73,31 @@ export function TenantDashboard() {
       <div className="p-5 overflow-y-auto w-full max-w-[800px] mx-auto flex-grow">
         {mode === "list" && (
           <>
-            {loading ? (
+            {loading && !loadingTimeout ? (
               <div className="text-center py-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#003366] mx-auto mb-4"></div>
                 <p className="text-[#003366] font-semibold">Lade Organisationen...</p>
+              </div>
+            ) : loadingTimeout ? (
+              <div className="bg-red-50 border border-red-200 p-8 rounded-lg text-center">
+                <h2 className="text-red-600 mt-0">Laden fehlgeschlagen</h2>
+                <p className="text-gray-600 mb-6">
+                  Die Organisationen konnten nicht geladen werden. Möglicherweise bist du nicht mehr angemeldet.
+                </p>
+                <div className="flex gap-4 justify-center flex-wrap">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="bg-[#003366] text-white px-6 py-3 rounded-md font-bold cursor-pointer hover:bg-[#002244]"
+                  >
+                    Neu laden
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="bg-white border-2 border-[#003366] text-[#003366] px-6 py-3 rounded-md font-bold cursor-pointer hover:bg-gray-50"
+                  >
+                    Zur Startseite
+                  </button>
+                </div>
               </div>
             ) : tenants.length === 0 ? (
               <div className="bg-white p-8 rounded-lg shadow-md text-center">
