@@ -47,11 +47,14 @@ function OnboardingContent() {
                 .maybeSingle();
 
             // Check if user has any memberships
-            const { data: memberships } = await supabase
+            const { data: memberships, error: membershipError } = await supabase
                 .from("memberships")
                 .select("id")
                 .eq("user_id", session.user.id)
                 .limit(1);
+
+            console.log("Onboarding check - Memberships:", memberships);
+            console.log("Onboarding check - Error:", membershipError);
 
             // If user has memberships, redirect to dashboard
             if (memberships && memberships.length > 0) {
