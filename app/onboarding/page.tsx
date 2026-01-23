@@ -47,14 +47,26 @@ function OnboardingContent() {
                 .maybeSingle();
 
             // Check if user has any memberships
+            // Try querying memberships table with proper column name
             const { data: memberships, error: membershipError } = await supabase
                 .from("memberships")
-                .select("id")
+                .select("tenant_id")
                 .eq("user_id", session.user.id)
                 .limit(1);
 
             console.log("Onboarding check - Memberships:", memberships);
             console.log("Onboarding check - Error:", membershipError);
+            console.log("Onboarding check - Error code:", membershipError?.code);
+
+            // If error, try alternative query without user_id filter to test RLS
+            if (membershipError) {
+                const { data: allMemberships, error: altError } = await supabase
+                    .from("memberships")
+                    .select("*")
+                    .limit(5);
+                console.log("Alternative query - All memberships:", allMemberships);
+                console.log("Alternative query - Error:", altError);
+            }
 
             // If user has memberships, redirect to dashboard
             if (memberships && memberships.length > 0) {
