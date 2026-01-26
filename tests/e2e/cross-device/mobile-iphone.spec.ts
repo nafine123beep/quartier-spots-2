@@ -44,11 +44,8 @@ test.describe('iPhone Safari Tests', () => {
 
     await registerButton.tap();
 
-    // Handle confirmation page
-    const continueButton = page.getByRole('button', { name: /weiter/i });
-    if (await continueButton.isVisible({ timeout: 2000 })) {
-      await continueButton.tap();
-    }
+    // Wait a moment for tab to switch to form
+    await page.waitForTimeout(500);
 
     // Fill form with mobile keyboard - use real address for geocoding
     await page.getByLabel(/straße|street/i).tap();

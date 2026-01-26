@@ -69,7 +69,7 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
   }, [currentTenant, currentTenantEvent, router]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col overflow-y-auto z-50">
+    <div className="fixed inset-0 bg-white flex flex-col overflow-y-auto z-50">
       {/* Lightbox for full-size image viewing */}
       {lightboxImage && (
         <div
