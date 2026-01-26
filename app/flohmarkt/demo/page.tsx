@@ -7,6 +7,7 @@ import { TabNavigation } from "../components/app/TabNavigation";
 import { SpotItem } from "../components/shared/SpotItem";
 import { MapDrawer } from "../components/shared/MapDrawer";
 import { Spot, AppTabType } from "../types";
+import { getSpotTerms } from "../lib/spotTerms";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
 import { useRef, useCallback } from "react";
 
@@ -175,10 +176,11 @@ const DEMO_SPOTS: Spot[] = [
 ];
 
 function DemoListView({ spots, onSpotClick }: { spots: Spot[]; onSpotClick: (spot: Spot) => void }) {
+  const terms = getSpotTerms(); // Use default "Spot"/"Spots" for demo
   return (
     <div className="h-full overflow-y-auto p-5">
       <div className="max-w-[800px] mx-auto pb-20">
-        <h2 className="text-[#003366] mt-0">Alle Spots</h2>
+        <h2 className="text-[#003366] mt-0">{terms.allSpots}</h2>
         <p className="text-gray-500 text-sm mb-4">Dies ist eine Demo-Ansicht mit Beispieldaten.</p>
 
         {spots.map((spot) => (
