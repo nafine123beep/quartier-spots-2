@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { createClient } from "@/lib/supabase/client";
+import { AddressManagement } from "./AddressManagement";
 
 export function ProfileSettings() {
   const { user, updateUserProfile } = useFlohmarkt();
@@ -340,6 +341,15 @@ export function ProfileSettings() {
           ) : (
             <p className="text-[#003366] font-semibold">Laden...</p>
           )}
+        </div>
+
+        {/* Address Management Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+          <h3 className="text-[#003366] mt-0 mb-4 font-bold">Adressverwaltung</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            Verwalte deine gespeicherte Adresse für schnellere Spot-Erstellung.
+          </p>
+          <AddressManagement />
         </div>
       </div>
     </div>

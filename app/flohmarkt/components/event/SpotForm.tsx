@@ -7,6 +7,13 @@ import { normalizeAddress } from "../../lib/addressNormalization";
 import { validateHouseNumber, isPartialHouseNumber } from "../../lib/houseNumberValidation";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { getSpotTerms } from "../../lib/spotTerms";
+import { LocationCacheConsentModal } from "../shared/LocationCacheConsentModal";
+import { AddressCacheIndicator } from "../shared/AddressCacheIndicator";
+import {
+  loadLocationCache,
+  saveLocationToCache,
+  updateCacheConsent,
+} from "../../lib/locationCache";
 
 const FORM_STORAGE_KEY = "spotFormData";
 
@@ -32,6 +39,10 @@ export function SpotForm() {
   const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
   const [finalLat, setFinalLat] = useState<number | null>(null);
   const [finalLng, setFinalLng] = useState<number | null>(null);
+  // Location cache state
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showCacheIndicator, setShowCacheIndicator] = useState(false);
+  const [cacheLoaded, setCacheLoaded] = useState(false);
 
   // Load saved form data on mount
   useEffect(() => {
@@ -77,6 +88,46 @@ export function SpotForm() {
     }
   }, [street, houseNumber, zip, city, contactName, contactEmail, contactPhone, publicNote, addressPublic, currentTenantEvent]);
 
+  // Load location cache and check for consent modal
+  useEffect(() => {
+    if (typeof window === 'undefined' || cacheLoaded) return;
+
+    // Priority: Form persistence > Location cache
+    const hasExistingData = street || houseNumber || zip || city;
+    if (hasExistingData) {
+      setCacheLoaded(true);
+      return;
+    }
+
+    const cache = loadLocationCache();
+    if (!cache || !cache.consentGiven) {
+      // No cache - ask for consent on first load
+      const askedBefore = localStorage.getItem('locationCacheAsked');
+      if (!askedBefore) {
+        // Small delay to let form render first
+        setTimeout(() => setShowConsentModal(true), 500);
+      }
+      setCacheLoaded(true);
+      return;
+    }
+
+    // Pre-populate from cache
+    setStreet(cache.address.street);
+    setHouseNumber(cache.address.houseNumber);
+    setZip(cache.address.zip);
+    setCity(cache.address.city);
+    if (cache.coordinates) {
+      setFinalLat(cache.coordinates.lat);
+      setFinalLng(cache.coordinates.lng);
+    }
+
+    setShowCacheIndicator(true);
+    setCacheLoaded(true);
+
+    // Update lastUsed timestamp
+    saveLocationToCache(cache.address, cache.coordinates, true);
+  }, [street, houseNumber, zip, city, cacheLoaded]);
+
   // Handle house number change with validation
   const handleHouseNumberChange = (value: string) => {
     setHouseNumber(value);
@@ -94,6 +145,40 @@ export function SpotForm() {
     } else {
       setHouseNumberError(undefined);
     }
+  };
+
+  // Handle consent acceptance
+  const handleConsentAccept = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locationCacheAsked', 'true');
+      updateCacheConsent(true, '1.0');
+    }
+    setShowConsentModal(false);
+  };
+
+  // Handle consent decline
+  const handleConsentDecline = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locationCacheAsked', 'true');
+      updateCacheConsent(false, '1.0');
+    }
+    setShowConsentModal(false);
+  };
+
+  // Handle clearing cached address
+  const handleClearCache = () => {
+    setStreet('');
+    setHouseNumber('');
+    setZip('');
+    setCity('');
+    setFinalLat(null);
+    setFinalLng(null);
+    setShowCacheIndicator(false);
+  };
+
+  // Handle dismissing cache indicator
+  const handleDismissIndicator = () => {
+    setShowCacheIndicator(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,31 +219,38 @@ export function SpotForm() {
 
     console.log("Submitting spot with address:", addressQuery);
 
-    // Geocode the address
-    const result = await geocodeAddress(addressQuery);
-
-    if (!result) {
-      alert(
-        `Adresse konnte nicht gefunden werden.\n\n` +
-        `Eingegebene Adresse: ${addressQuery}\n\n` +
-        `Bitte überprüfe:\n` +
-        `- Ist die Straße korrekt geschrieben?\n` +
-        `- Ist die Stadt korrekt?\n` +
-        `- Liegt die Adresse in Deutschland?\n\n` +
-        `Tipp: Versuche es ohne Hausnummer oder PLZ, nur mit Straße und Stadt.`
-      );
+    // Skip geocoding if coordinates are already cached
+    if (finalLat !== null && finalLng !== null) {
+      console.log("Using cached coordinates:", finalLat, finalLng);
       setSubmitting(false);
-      return;
+      setShowPinSelector(true);
+    } else {
+      // Geocode the address
+      const result = await geocodeAddress(addressQuery);
+
+      if (!result) {
+        alert(
+          `Adresse konnte nicht gefunden werden.\n\n` +
+          `Eingegebene Adresse: ${addressQuery}\n\n` +
+          `Bitte überprüfe:\n` +
+          `- Ist die Straße korrekt geschrieben?\n` +
+          `- Ist die Stadt korrekt?\n` +
+          `- Liegt die Adresse in Deutschland?\n\n` +
+          `Tipp: Versuche es ohne Hausnummer oder PLZ, nur mit Straße und Stadt.`
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      console.log("Geocoding successful:", result);
+
+      // Store geocode result and show pin selector
+      setGeocodeResult(result);
+      setFinalLat(result.lat);
+      setFinalLng(result.lng);
+      setSubmitting(false);
+      setShowPinSelector(true);
     }
-
-    console.log("Geocoding successful:", result);
-
-    // Store geocode result and show pin selector
-    setGeocodeResult(result);
-    setFinalLat(result.lat);
-    setFinalLng(result.lng);
-    setSubmitting(false);
-    setShowPinSelector(true);
   };
 
   const handlePinConfirm = async (lat: number, lng: number) => {
@@ -207,6 +299,27 @@ export function SpotForm() {
     if (newSpotId) {
       setHighlightedSpotId(newSpotId);
 
+      // Save to location cache if consent given
+      const cache = loadLocationCache();
+      if (cache?.consentGiven) {
+        const addressRawForCache = `${normalized.street}${normalized.houseNumber ? ' ' + normalized.houseNumber : ''}, ${normalized.zip} ${normalized.city}`;
+        saveLocationToCache(
+          {
+            street: normalized.street,
+            houseNumber: normalized.houseNumber,
+            zip: normalized.zip,
+            city: normalized.city,
+            addressRaw: addressRawForCache,
+          },
+          {
+            lat,
+            lng,
+            geoPrecision: 'exact',
+          },
+          true
+        );
+      }
+
       // Clear saved form data from localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem(FORM_STORAGE_KEY);
@@ -226,6 +339,7 @@ export function SpotForm() {
       setGeocodeResult(null);
       setFinalLat(null);
       setFinalLng(null);
+      setShowCacheIndicator(false);
 
       // Show success modal
       setShowSuccessModal(true);
@@ -258,6 +372,14 @@ export function SpotForm() {
         <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
         <form onSubmit={handleSubmit}>
+          {/* Cache Indicator */}
+          {showCacheIndicator && (
+            <AddressCacheIndicator
+              onClear={handleClearCache}
+              onDismiss={handleDismissIndicator}
+            />
+          )}
+
           <div className="mb-4">
             <label htmlFor="street" className="block mb-1 font-bold text-gray-700 text-sm">
               Straße *
@@ -465,6 +587,14 @@ export function SpotForm() {
           </div>
         </div>
       )}
+
+      {/* Consent Modal */}
+      <LocationCacheConsentModal
+        isOpen={showConsentModal}
+        onAccept={handleConsentAccept}
+        onDecline={handleConsentDecline}
+        onClose={() => setShowConsentModal(false)}
+      />
     </div>
   );
 }

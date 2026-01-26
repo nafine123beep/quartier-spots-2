@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { getSpotTerms } from "../../lib/spotTerms";
+import { LocationCacheConsentModal } from "../shared/LocationCacheConsentModal";
+import { AddressCacheIndicator } from "../shared/AddressCacheIndicator";
+import {
+  loadLocationCache,
+  saveLocationToCache,
+  updateCacheConsent,
+} from "../../lib/locationCache";
 
 export function SpotForm() {
   const { addSpot, setCurrentTab, currentTenantEvent, currentTenant } = useFlohmarkt();
@@ -21,6 +28,76 @@ export function SpotForm() {
   const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
   const [finalLat, setFinalLat] = useState<number | null>(null);
   const [finalLng, setFinalLng] = useState<number | null>(null);
+  // Location cache state
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [showCacheIndicator, setShowCacheIndicator] = useState(false);
+  const [cacheLoaded, setCacheLoaded] = useState(false);
+
+  // Load location cache on mount
+  useEffect(() => {
+    if (typeof window === 'undefined' || cacheLoaded) return;
+
+    // Don't override if form already has data
+    if (addressRaw) {
+      setCacheLoaded(true);
+      return;
+    }
+
+    const cache = loadLocationCache();
+    if (!cache || !cache.consentGiven) {
+      // No cache - ask for consent on first load
+      const askedBefore = localStorage.getItem('locationCacheAsked');
+      if (!askedBefore) {
+        setTimeout(() => setShowConsentModal(true), 500);
+      }
+      setCacheLoaded(true);
+      return;
+    }
+
+    // Pre-populate from cache
+    setAddressRaw(cache.address.addressRaw);
+    if (cache.coordinates) {
+      setFinalLat(cache.coordinates.lat);
+      setFinalLng(cache.coordinates.lng);
+    }
+
+    setShowCacheIndicator(true);
+    setCacheLoaded(true);
+
+    // Update lastUsed timestamp
+    saveLocationToCache(cache.address, cache.coordinates, true);
+  }, [addressRaw, cacheLoaded]);
+
+  // Handle consent acceptance
+  const handleConsentAccept = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locationCacheAsked', 'true');
+      updateCacheConsent(true, '1.0');
+    }
+    setShowConsentModal(false);
+  };
+
+  // Handle consent decline
+  const handleConsentDecline = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locationCacheAsked', 'true');
+      updateCacheConsent(false, '1.0');
+    }
+    setShowConsentModal(false);
+  };
+
+  // Handle clearing cached address
+  const handleClearCache = () => {
+    setAddressRaw('');
+    setFinalLat(null);
+    setFinalLng(null);
+    setShowCacheIndicator(false);
+  };
+
+  // Handle dismissing cache indicator
+  const handleDismissIndicator = () => {
+    setShowCacheIndicator(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,21 +108,27 @@ export function SpotForm() {
 
     setSubmitting(true);
 
-    // Geocode the address
-    const result = await geocodeAddress(addressRaw);
-
-    if (!result) {
-      alert("Adresse konnte nicht gefunden werden. Bitte überprüfe die Eingabe und versuche es erneut.");
+    // Skip geocoding if coordinates are already cached
+    if (finalLat !== null && finalLng !== null) {
       setSubmitting(false);
-      return;
-    }
+      setShowPinSelector(true);
+    } else {
+      // Geocode the address
+      const result = await geocodeAddress(addressRaw);
 
-    // Store geocode result and show pin selector
-    setGeocodeResult(result);
-    setFinalLat(result.lat);
-    setFinalLng(result.lng);
-    setSubmitting(false);
-    setShowPinSelector(true);
+      if (!result) {
+        alert("Adresse konnte nicht gefunden werden. Bitte überprüfe die Eingabe und versuche es erneut.");
+        setSubmitting(false);
+        return;
+      }
+
+      // Store geocode result and show pin selector
+      setGeocodeResult(result);
+      setFinalLat(result.lat);
+      setFinalLng(result.lng);
+      setSubmitting(false);
+      setShowPinSelector(true);
+    }
   };
 
   const handlePinConfirm = async (lat: number, lng: number) => {
@@ -72,6 +155,26 @@ export function SpotForm() {
       updated_at: new Date().toISOString(),
     });
 
+    // Save to location cache if consent given
+    const cache = loadLocationCache();
+    if (cache?.consentGiven) {
+      saveLocationToCache(
+        {
+          street: '',
+          houseNumber: '',
+          zip: '',
+          city: '',
+          addressRaw: addressRaw,
+        },
+        {
+          lat,
+          lng,
+          geoPrecision: 'exact',
+        },
+        true
+      );
+    }
+
     setSubmitting(false);
     alert(terms.spotCreated);
     setCurrentTab("list");
@@ -86,6 +189,7 @@ export function SpotForm() {
     setGeocodeResult(null);
     setFinalLat(null);
     setFinalLng(null);
+    setShowCacheIndicator(false);
   };
 
   const handlePinCancel = () => {
@@ -101,6 +205,14 @@ export function SpotForm() {
         <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
         <form onSubmit={handleSubmit}>
+          {/* Cache Indicator */}
+          {showCacheIndicator && (
+            <AddressCacheIndicator
+              onClear={handleClearCache}
+              onDismiss={handleDismissIndicator}
+            />
+          )}
+
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
               Adresse
@@ -215,6 +327,14 @@ export function SpotForm() {
           boundaryRadiusMeters={currentTenantEvent?.boundary_radius_meters ?? undefined}
         />
       )}
+
+      {/* Consent Modal */}
+      <LocationCacheConsentModal
+        isOpen={showConsentModal}
+        onAccept={handleConsentAccept}
+        onDecline={handleConsentDecline}
+        onClose={() => setShowConsentModal(false)}
+      />
     </div>
   );
 }

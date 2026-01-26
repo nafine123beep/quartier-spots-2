@@ -118,8 +118,39 @@ export interface ContactMessage {
   created_at: string;
 }
 
+export interface LocationCache {
+  consentGiven: boolean;
+  consentTimestamp: string;
+  consentVersion: string;
+  address: {
+    street: string;
+    houseNumber: string;
+    zip: string;
+    city: string;
+    addressRaw: string;
+  };
+  coordinates: {
+    lat: number;
+    lng: number;
+    geoPrecision: 'exact' | 'street' | 'city';
+  };
+  lastUsed: string;
+  createdAt: string;
+}
+
 export interface NotificationPreferences {
   contact_form_emails: boolean;
+  location_cache?: {
+    consent_given: boolean;
+    consent_version: string;
+    street: string;
+    house_number: string;
+    zip: string;
+    city: string;
+    lat: number;
+    lng: number;
+    last_used: string;
+  };
 }
 
 export type ViewType = 'frontpage' | 'tenantDashboard' | 'eventOverview' | 'eventDetail' | 'settings' | 'app';
