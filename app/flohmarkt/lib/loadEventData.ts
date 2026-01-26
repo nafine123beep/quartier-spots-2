@@ -194,6 +194,8 @@ export async function loadEventData(
       map_center_lng: eventData.map_center_lng,
       map_center_address: eventData.map_center_address,
       boundary_radius_meters: eventData.boundary_radius_meters,
+      spot_term_singular: eventData.spot_term_singular,
+      spot_term_plural: eventData.spot_term_plural,
       preview_token: eventData.preview_token,
       created_by: eventData.created_by,
       created_at: eventData.created_at,
