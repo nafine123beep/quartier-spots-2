@@ -45,29 +45,32 @@ test.describe('Core Pages Smoke Tests', () => {
     }
   });
 
-  test('spot registration page loads form', async ({ page }) => {
+  test('spot registration modal displays and redirects', async ({ page }) => {
     // Setup: Create a published event
     const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
 
     try {
       await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}/register`);
 
-      // Wait for registration confirmation page
+      // Wait for registration confirmation modal
       await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 10000 });
 
-      // Check for continue button (accepts both "Spot Anmeldung" and "Spot-Anmeldung")
-      const continueButton = page.getByRole('button', { name: /weiter zur spot[-\s]?anmeldung/i });
-      await expect(continueButton).toBeVisible();
+      // Verify modal content elements
+      await expect(page.getByText(/keine anmeldung erforderlich/i)).toBeVisible();
+      await expect(page.getByText(/du wirst automatisch weitergeleitet/i)).toBeVisible();
 
-      // Click to proceed to actual form
-      await continueButton.click();
+      // Verify close button is present
+      const closeButton = page.getByRole('button', { name: /schließen/i });
+      await expect(closeButton).toBeVisible();
 
-      // Wait for navigation to form tab
-      await page.waitForURL(/tab=form/, { timeout: 5000 });
+      // Click close button to trigger redirect
+      await closeButton.click();
 
-      // Now on spot form - check for address fields (using placeholders since labels may not be properly associated)
-      await expect(page.getByPlaceholder(/hauptstraße/i)).toBeVisible({ timeout: 10000 });
-      await expect(page.getByPlaceholder(/regensburg/i)).toBeVisible();
+      // Verify redirect to event page (should not have /register in URL)
+      await page.waitForURL(new RegExp(`/flohmarkt/${orgSlug}/${eventSlug}(?!.*register)`), { timeout: 5000 });
+
+      // Verify we're on the event page
+      await expect(page).toHaveURL(`/flohmarkt/${orgSlug}/${eventSlug}`);
     } finally {
       // Cleanup
       const { supabaseAdmin } = await import('../../fixtures/supabase-helpers');

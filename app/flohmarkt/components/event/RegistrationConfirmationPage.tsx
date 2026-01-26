@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { getSpotTerms } from "../../lib/spotTerms";
@@ -54,13 +54,22 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
     setLightboxImage(getPublicImageUrl(images[newIndex].storage_path));
   };
 
-  const handleContinue = () => {
-    // Navigate to main event page with form tab selected
-    router.push(`/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?tab=form`);
+  const handleClose = () => {
+    // Navigate to main event page (default list tab)
+    router.push(`/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`);
   };
 
+  // Auto-redirect after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [currentTenant, currentTenantEvent, router]);
+
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col overflow-y-auto z-50">
       {/* Lightbox for full-size image viewing */}
       {lightboxImage && (
         <div
@@ -162,7 +171,16 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-lg shadow-xl p-8 sm:p-12">
+        <div className="max-w-xl w-full bg-white rounded-xl shadow-2xl p-8 sm:p-10 relative">
+          {/* Close button */}
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-4xl leading-none transition-colors"
+            aria-label="Schließen"
+          >
+            ×
+          </button>
+
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -233,27 +251,14 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
             )}
           </div>
 
-          {/* Call to Action */}
-          <div className="space-y-4">
-            <button
-              onClick={handleContinue}
-              className="w-full bg-[#003366] text-white px-8 py-4 rounded-lg text-xl font-bold hover:bg-[#002244] transition-colors shadow-lg hover:shadow-xl"
-            >
-              {terms.continueToSpotRegistration} →
-            </button>
-            <p className="text-center text-sm text-gray-500 m-0">
+          {/* Info Footer */}
+          <div className="text-center pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-500 m-0">
               Keine Anmeldung erforderlich • Kostenlos
             </p>
-          </div>
-
-          {/* Back Link */}
-          <div className="mt-8 text-center">
-            <a
-              href={`/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`}
-              className="text-[#003366] hover:underline text-sm"
-            >
-              ← Zurück zur Event-Übersicht
-            </a>
+            <p className="text-sm text-gray-400 mt-2">
+              Du wirst automatisch weitergeleitet...
+            </p>
           </div>
         </div>
       </div>
