@@ -256,7 +256,7 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
             <p className="text-sm text-gray-500 m-0">
               Keine Anmeldung erforderlich • Kostenlos
             </p>
-            <p className="text-sm text-gray-400 mt-2">
+            <p className="text-sm text-gray-600 mt-2">
               Du wirst automatisch weitergeleitet...
             </p>
           </div>

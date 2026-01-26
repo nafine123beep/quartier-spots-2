@@ -54,18 +54,13 @@ test.describe('Accessibility Tests (WCAG 2.1 AA)', () => {
     expect(results.violations).toEqual([]);
   });
 
-  test('spot registration form is accessible', async ({ page }) => {
+  test('spot registration modal is accessible', async ({ page }) => {
     const { orgSlug, eventSlug, tenantId: tid } = await createPublishedEvent();
     tenantId = tid;
 
     await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}/register`);
 
-    // Navigate past confirmation if present
-    const continueButton = page.getByRole('button', { name: /weiter/i });
-    if (await continueButton.isVisible({ timeout: 2000 })) {
-      await continueButton.click();
-    }
-
+    // Wait for modal to load
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page })
