@@ -50,7 +50,7 @@ interface FlohmarktContextType {
   searchTenants: (query: string) => Promise<Tenant[]>;
   loadTenantEvents: () => Promise<void>;
   loadMembers: () => Promise<void>;
-  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null, spotTermSingular?: string, spotTermPlural?: string) => Promise<{ success: boolean; error?: string }>;
+  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null, spotTermSingular?: string, spotTermPlural?: string) => Promise<{ success: boolean; error?: string; event?: { title: string; slug: string } }>;
   removeMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
   updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
