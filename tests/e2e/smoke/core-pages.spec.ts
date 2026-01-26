@@ -55,8 +55,8 @@ test.describe('Core Pages Smoke Tests', () => {
       // Wait for registration confirmation page
       await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 10000 });
 
-      // Check for continue button
-      const continueButton = page.getByRole('button', { name: /weiter zur spot anmeldung/i });
+      // Check for continue button (accepts both "Spot Anmeldung" and "Spot-Anmeldung")
+      const continueButton = page.getByRole('button', { name: /weiter zur spot[-\s]?anmeldung/i });
       await expect(continueButton).toBeVisible();
 
       // Click to proceed to actual form

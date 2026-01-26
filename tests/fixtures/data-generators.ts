@@ -52,8 +52,8 @@ export function generateTestEvent(overrides: Record<string, any> = {}) {
     map_center_lng: 12.1016,
     boundary_radius_meters: 2000,
     status: 'published',
-    spot_term_singular: 'Stand',
-    spot_term_plural: 'Stände',
+    // Use default spot terminology ('Spot'/'Spots') unless overridden
+    // This ensures tests that look for 'Spot anmelden', 'Alle Spots', etc. continue to work
     ...overrides,
   };
 }
