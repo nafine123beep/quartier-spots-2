@@ -2,49 +2,53 @@
  * Generates all spot-related UI strings based on custom singular/plural terms.
  * This allows event organizers to customize "Spots" to terms like "Stände", "Teilnehmer", etc.
  */
-export function getSpotTerms(singular = 'Spot', plural = 'Spots') {
+export function getSpotTerms(singular?: string | null, plural?: string | null) {
+  // Use defaults if values are null, undefined, or empty strings
+  const singularTerm = singular || 'Spot';
+  const pluralTerm = plural || 'Spots';
+
   return {
     // Base terms
-    singular,
-    plural,
+    singular: singularTerm,
+    plural: pluralTerm,
 
     // List/Overview
-    allSpots: `Alle ${plural}`,
-    noSpotsYet: `Noch keine ${plural} eingetragen.`,
-    noSpotsRegistered: `Noch keine ${plural} angemeldet.`,
+    allSpots: `Alle ${pluralTerm}`,
+    noSpotsYet: `Noch keine ${pluralTerm} eingetragen.`,
+    noSpotsRegistered: `Noch keine ${pluralTerm} angemeldet.`,
 
     // Registration/Creation
-    registerSpot: `${singular} anmelden`,
-    yourSpot: `Deinen ${singular} eintragen`,
-    spotCreated: `${singular} erfolgreich angelegt!`,
-    toSpotList: `Zur ${singular}-Liste`,
-    spotRegistration: `${singular}-Anmeldung`,
-    spotRegistrationRecommended: `${singular}-Anmeldung (Empfohlen)`,
-    continueToSpotRegistration: `Weiter zur ${singular}-Anmeldung`,
-    enterYourSpot: `Trage deinen ${singular} ein und werde Teil des Flohmarkts!`,
+    registerSpot: `${singularTerm} anmelden`,
+    yourSpot: `Deinen ${singularTerm} eintragen`,
+    spotCreated: `${singularTerm} erfolgreich angelegt!`,
+    toSpotList: `Zur ${singularTerm}-Liste`,
+    spotRegistration: `${singularTerm}-Anmeldung`,
+    spotRegistrationRecommended: `${singularTerm}-Anmeldung (Empfohlen)`,
+    continueToSpotRegistration: `Weiter zur ${singularTerm}-Anmeldung`,
+    enterYourSpot: `Trage deinen ${singularTerm} ein und werde Teil des Flohmarkts!`,
 
     // Deletion
-    deleteSpot: `${singular} löschen`,
-    deleteOwnSpot: `Eigenen ${singular} löschen`,
-    noSpotFound: `Fehler: Es wurde kein ${singular} mit diesen exakten Daten gefunden.`,
-    deleteThisSpotConfirm: `Diesen ${singular} wirklich unwiderruflich löschen?`,
-    spotWillBeDeleted: `Der ${singular} wird ENDGÜLTIG gelöscht und kann nicht wiederhergestellt werden.`,
+    deleteSpot: `${singularTerm} löschen`,
+    deleteOwnSpot: `Eigenen ${singularTerm} löschen`,
+    noSpotFound: `Fehler: Es wurde kein ${singularTerm} mit diesen exakten Daten gefunden.`,
+    deleteThisSpotConfirm: `Diesen ${singularTerm} wirklich unwiderruflich löschen?`,
+    spotWillBeDeleted: `Der ${singularTerm} wird ENDGÜLTIG gelöscht und kann nicht wiederhergestellt werden.`,
 
     // Map view
-    spotsNearby: `${plural} in der Nähe`,
+    spotsNearby: `${pluralTerm} in der Nähe`,
 
     // Admin/Dashboard
-    registeredSpots: `Angemeldete ${plural}`,
-    managementRegisteredSpots: `Verwaltung: Angemeldete ${plural}`,
-    contactAllSpots: `Alle ${plural} kontaktieren`,
-    allSpotsDeleted: `Alle ${plural} werden ebenfalls gelöscht!`,
-    addressSlashSpot: `Adresse / ${singular}`,
-    spotsAwaitingDeletion: `Folgende ${plural} haben eine Löschanfrage von Besucher:innen erhalten`,
-    spotInformation: `${singular}-Informationen`,
-    errorCreatingSpot: `Fehler beim Anlegen des ${plural}.`,
+    registeredSpots: `Angemeldete ${pluralTerm}`,
+    managementRegisteredSpots: `Verwaltung: Angemeldete ${pluralTerm}`,
+    contactAllSpots: `Alle ${pluralTerm} kontaktieren`,
+    allSpotsDeleted: `Alle ${pluralTerm} werden ebenfalls gelöscht!`,
+    addressSlashSpot: `Adresse / ${singularTerm}`,
+    spotsAwaitingDeletion: `Folgende ${pluralTerm} haben eine Löschanfrage von Besucher:innen erhalten`,
+    spotInformation: `${singularTerm}-Informationen`,
+    errorCreatingSpot: `Fehler beim Anlegen des ${pluralTerm}.`,
 
     // Contact form
-    questionAboutSpot: `Frage zu meinem ${singular}`,
+    questionAboutSpot: `Frage zu meinem ${singularTerm}`,
   };
 }
 
