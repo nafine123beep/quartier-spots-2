@@ -6,12 +6,15 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 import { EventCard } from "./EventCard";
 import { MemberManagement } from "./MemberManagement";
 import { CreateEventForm } from "./CreateEventForm";
+import { EventCreatedNotification } from "./EventCreatedNotification";
 
 type Tab = "events" | "members" | "create";
 
 export function EventOverview() {
   const { currentTenant, tenantEvents, user, logout, isAdmin } = useFlohmarkt();
   const [activeTab, setActiveTab] = useState<Tab>("events");
+  const [showNotification, setShowNotification] = useState(false);
+  const [createdEvent, setCreatedEvent] = useState<{ title: string; slug: string } | null>(null);
 
   if (!currentTenant) {
     return null;
@@ -156,9 +159,25 @@ export function EventOverview() {
         {activeTab === "members" && <MemberManagement />}
 
         {activeTab === "create" && (
-          <CreateEventForm onSuccess={() => setActiveTab("events")} />
+          <CreateEventForm
+            onSuccess={(event) => {
+              setCreatedEvent(event);
+              setShowNotification(true);
+              setActiveTab("events");
+            }}
+          />
         )}
       </div>
+
+      {/* Event Created Notification Modal */}
+      {createdEvent && (
+        <EventCreatedNotification
+          isOpen={showNotification}
+          onClose={() => setShowNotification(false)}
+          eventTitle={createdEvent.title}
+          eventSlug={createdEvent.slug}
+        />
+      )}
     </div>
   );
 }

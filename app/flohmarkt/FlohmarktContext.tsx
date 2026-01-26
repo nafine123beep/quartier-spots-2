@@ -609,7 +609,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     }
 
     await loadTenantEvents();
-    return { success: true };
+    return { success: true, event: { title, slug } };
   }, [currentTenant, user, loadTenantEvents]);
 
   const removeMember = useCallback(async (userId: string) => {
