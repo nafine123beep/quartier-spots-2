@@ -236,7 +236,7 @@ export function SpotForm() {
         setCurrentTab("list");
       }, 3000);
     } else {
-      alert("Fehler beim Anlegen des Spots.");
+      alert(terms.errorCreatingSpot);
     }
   };
 

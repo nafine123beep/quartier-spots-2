@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { getSpotTerms } from "../../lib/spotTerms";
 
 export function PendingDeletionRequests() {
-  const { deletionRequests, pendingDeletionCount, approveDeletionRequest, rejectDeletionRequest } = useFlohmarkt();
+  const { deletionRequests, pendingDeletionCount, approveDeletionRequest, rejectDeletionRequest, currentTenantEvent } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [reviewerNote, setReviewerNote] = useState("");
@@ -15,7 +17,7 @@ export function PendingDeletionRequests() {
     if (!confirm(
       `Löschanfrage genehmigen?\n\n` +
       `Adresse: ${spotAddress}\n\n` +
-      `Der Spot wird ENDGÜLTIG gelöscht und kann nicht wiederhergestellt werden.`
+      `${terms.spotWillBeDeleted}`
     )) {
       return;
     }
@@ -76,7 +78,7 @@ export function PendingDeletionRequests() {
       </div>
 
       <p className="text-gray-600 mb-6">
-        Folgende Spots haben eine Löschanfrage von Besucher:innen erhalten und warten auf deine Freigabe.
+        {terms.spotsAwaitingDeletion} und warten auf deine Freigabe.
       </p>
 
       <div className="space-y-4">
@@ -85,7 +87,7 @@ export function PendingDeletionRequests() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {/* Left column - Spot info */}
               <div>
-                <h3 className="font-bold text-gray-800 mb-2">Spot-Informationen</h3>
+                <h3 className="font-bold text-gray-800 mb-2">{terms.spotInformation}</h3>
                 <div className="text-sm text-gray-700 space-y-1">
                   <div>
                     <span className="font-semibold">Adresse:</span>{" "}

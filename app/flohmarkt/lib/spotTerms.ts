@@ -20,11 +20,15 @@ export function getSpotTerms(singular = 'Spot', plural = 'Spots') {
     toSpotList: `Zur ${singular}-Liste`,
     spotRegistration: `${singular}-Anmeldung`,
     spotRegistrationRecommended: `${singular}-Anmeldung (Empfohlen)`,
+    continueToSpotRegistration: `Weiter zur ${singular}-Anmeldung`,
+    enterYourSpot: `Trage deinen ${singular} ein und werde Teil des Flohmarkts!`,
 
     // Deletion
     deleteSpot: `${singular} löschen`,
     deleteOwnSpot: `Eigenen ${singular} löschen`,
     noSpotFound: `Fehler: Es wurde kein ${singular} mit diesen exakten Daten gefunden.`,
+    deleteThisSpotConfirm: `Diesen ${singular} wirklich unwiderruflich löschen?`,
+    spotWillBeDeleted: `Der ${singular} wird ENDGÜLTIG gelöscht und kann nicht wiederhergestellt werden.`,
 
     // Map view
     spotsNearby: `${plural} in der Nähe`,
@@ -35,6 +39,9 @@ export function getSpotTerms(singular = 'Spot', plural = 'Spots') {
     contactAllSpots: `Alle ${plural} kontaktieren`,
     allSpotsDeleted: `Alle ${plural} werden ebenfalls gelöscht!`,
     addressSlashSpot: `Adresse / ${singular}`,
+    spotsAwaitingDeletion: `Folgende ${plural} haben eine Löschanfrage von Besucher:innen erhalten`,
+    spotInformation: `${singular}-Informationen`,
+    errorCreatingSpot: `Fehler beim Anlegen des ${plural}.`,
 
     // Contact form
     questionAboutSpot: `Frage zu meinem ${singular}`,

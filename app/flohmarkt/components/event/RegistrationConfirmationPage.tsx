@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { getSpotTerms } from "../../lib/spotTerms";
 import { AccessMode } from "../../lib/loadEventData";
 import { getPublicImageUrl } from "../../lib/imageUpload";
 
@@ -13,6 +14,7 @@ interface RegistrationConfirmationPageProps {
 export function RegistrationConfirmationPage({ accessMode = 'public' }: RegistrationConfirmationPageProps) {
   const router = useRouter();
   const { currentTenantEvent, currentTenant } = useFlohmarkt();
+  const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -180,7 +182,7 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
               )}
             </div>
             <p className="text-lg text-gray-600">
-              Trage deinen Spot ein und werde Teil des Flohmarkts!
+              {terms.enterYourSpot}
             </p>
           </div>
 
@@ -237,7 +239,7 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
               onClick={handleContinue}
               className="w-full bg-[#003366] text-white px-8 py-4 rounded-lg text-xl font-bold hover:bg-[#002244] transition-colors shadow-lg hover:shadow-xl"
             >
-              Weiter zur Spot Anmeldung →
+              {terms.continueToSpotRegistration} →
             </button>
             <p className="text-center text-sm text-gray-500 m-0">
               Keine Anmeldung erforderlich • Kostenlos

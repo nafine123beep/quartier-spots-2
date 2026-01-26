@@ -8,7 +8,7 @@ export function AdminSpotTable() {
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
   const handleDelete = (id: string) => {
-    if (confirm("Diesen Spot wirklich unwiderruflich löschen?")) {
+    if (confirm(terms.deleteThisSpotConfirm)) {
       deleteSpot(id);
     }
   };
