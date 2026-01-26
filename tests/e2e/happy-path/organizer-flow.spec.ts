@@ -179,8 +179,18 @@ test.describe('Organizer Happy Path', () => {
     // Check that we're back on the event list page
     await expect(page.getByRole('button', { name: /aktive events/i })).toBeVisible({ timeout: 5000 });
 
+    // NEW: Verify the notification modal appears
+    await expect(page.getByText('Event erstellt!')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Jetzt veröffentlichen und sichtbar machen')).toBeVisible();
+
+    console.log('✅ Event created notification shown!');
+
+    // Close the notification modal
+    await page.getByRole('button', { name: 'Später' }).click();
+    await page.waitForTimeout(500);
+
     // Verify the event appears in the list with "Entwurf" (draft) status
-    await expect(page.getByText(eventTitle)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: eventTitle, exact: true })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Entwurf')).toBeVisible();
 
     console.log('✅ Event created successfully as draft!');
