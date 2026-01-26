@@ -1,19 +1,62 @@
 "use client";
 
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
 interface EventCreatedNotificationProps {
   isOpen: boolean;
   onClose: () => void;
+  eventId: string;
   eventTitle: string;
   eventSlug: string;
+  tenantSlug: string;
 }
 
 export function EventCreatedNotification({
   isOpen,
   onClose,
+  eventId,
   eventTitle,
   eventSlug,
+  tenantSlug,
 }: EventCreatedNotificationProps) {
+  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
+
   if (!isOpen) return null;
+
+  const handleGoToEvent = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsGeneratingToken(true);
+
+    try {
+      const supabase = createClient();
+
+      // Generate a new UUID token
+      const newToken = crypto.randomUUID();
+
+      const { error } = await supabase
+        .from("events")
+        .update({ preview_token: newToken })
+        .eq("id", eventId);
+
+      if (error) {
+        console.error("Error generating preview token:", error);
+        // Still navigate to event even if token generation fails
+        window.location.href = `/flohmarkt/${tenantSlug}/${eventSlug}/dashboard`;
+        return;
+      }
+
+      // Navigate to preview URL
+      const previewUrl = `/flohmarkt/${tenantSlug}/${eventSlug}?preview=${newToken}`;
+      window.location.href = previewUrl;
+    } catch (error) {
+      console.error("Error:", error);
+      // Fallback to dashboard
+      window.location.href = `/flohmarkt/${tenantSlug}/${eventSlug}/dashboard`;
+    } finally {
+      setIsGeneratingToken(false);
+    }
+  };
 
   return (
     <div
@@ -80,27 +123,43 @@ export function EventCreatedNotification({
           {/* Next Steps */}
           <div className="mb-4">
             <p className="text-sm font-bold text-gray-700 mb-2">Nächste Schritte:</p>
-            <ol className="text-sm text-gray-700 space-y-1 pl-5">
+            <ul className="text-sm text-gray-700 space-y-1 pl-5 list-disc">
               <li>Prüfe und vervollständige die Event-Details</li>
               <li>Füge optional Fotos hinzu</li>
               <li>Klicke auf &quot;Event veröffentlichen&quot;</li>
-            </ol>
+            </ul>
+          </div>
+
+          {/* Video Guide */}
+          <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full"
+            >
+              <source src="/videos/screen-flow-event-creation.mp4" type="video/mp4" />
+              Dein Browser unterstützt keine Video-Wiedergabe.
+            </video>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-md font-bold hover:bg-gray-300 transition-colors"
+              disabled={isGeneratingToken}
+              className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-md font-bold hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Später
             </button>
-            <a
-              href={`/flohmarkt/events/${eventSlug}/dashboard`}
-              className="flex-1 bg-[#003366] text-white px-4 py-3 rounded-md font-bold hover:bg-[#002244] transition-colors text-center no-underline"
+            <button
+              onClick={handleGoToEvent}
+              disabled={isGeneratingToken}
+              className="flex-1 bg-[#003366] text-white px-4 py-3 rounded-md font-bold hover:bg-[#002244] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Zum Event
-            </a>
+              {isGeneratingToken ? "Lade..." : "Zum Event"}
+            </button>
           </div>
         </div>
       </div>

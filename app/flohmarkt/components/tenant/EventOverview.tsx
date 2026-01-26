@@ -14,7 +14,7 @@ export function EventOverview() {
   const { currentTenant, tenantEvents, user, logout, isAdmin } = useFlohmarkt();
   const [activeTab, setActiveTab] = useState<Tab>("events");
   const [showNotification, setShowNotification] = useState(false);
-  const [createdEvent, setCreatedEvent] = useState<{ title: string; slug: string } | null>(null);
+  const [createdEvent, setCreatedEvent] = useState<{ id: string; title: string; slug: string } | null>(null);
 
   if (!currentTenant) {
     return null;
@@ -174,8 +174,10 @@ export function EventOverview() {
         <EventCreatedNotification
           isOpen={showNotification}
           onClose={() => setShowNotification(false)}
+          eventId={createdEvent.id}
           eventTitle={createdEvent.title}
           eventSlug={createdEvent.slug}
+          tenantSlug={currentTenant.slug}
         />
       )}
     </div>

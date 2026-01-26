@@ -50,7 +50,7 @@ interface FlohmarktContextType {
   searchTenants: (query: string) => Promise<Tenant[]>;
   loadTenantEvents: () => Promise<void>;
   loadMembers: () => Promise<void>;
-  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null, spotTermSingular?: string, spotTermPlural?: string) => Promise<{ success: boolean; error?: string; event?: { title: string; slug: string } }>;
+  createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null, spotTermSingular?: string, spotTermPlural?: string) => Promise<{ success: boolean; error?: string; event?: { id: string; title: string; slug: string } }>;
   removeMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
   updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
@@ -600,16 +600,18 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       eventData.created_by = user.id;
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("events")
-      .insert(eventData);
+      .insert(eventData)
+      .select('id')
+      .single();
 
     if (error) {
       return { success: false, error: error.message };
     }
 
     await loadTenantEvents();
-    return { success: true, event: { title, slug } };
+    return { success: true, event: { id: data.id, title, slug } };
   }, [currentTenant, user, loadTenantEvents]);
 
   const removeMember = useCallback(async (userId: string) => {

@@ -183,7 +183,9 @@ test.describe('Organizer Happy Path', () => {
     await expect(page.getByText('Event erstellt!')).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Jetzt veröffentlichen und sichtbar machen')).toBeVisible();
 
-    console.log('✅ Event created notification shown!');
+    // Check if video element is in the DOM (may not be fully loaded yet)
+    const videoCount = await page.locator('video').count();
+    console.log(`✅ Event created notification shown! (Video elements found: ${videoCount})`);
 
     // Close the notification modal
     await page.getByRole('button', { name: 'Später' }).click();

@@ -7,7 +7,7 @@ import { BOUNDARY_RADIUS_PRESETS } from "../../lib/geoUtils";
 import { SPOT_TERM_PRESETS } from "../../lib/spotTerms";
 
 interface CreateEventFormProps {
-  onSuccess: (event: { title: string; slug: string }) => void;
+  onSuccess: (event: { id: string; title: string; slug: string }) => void;
 }
 
 export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
