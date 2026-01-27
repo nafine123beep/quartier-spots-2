@@ -7,6 +7,7 @@ import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { getSpotTerms } from "../../lib/spotTerms";
 import { LocationCacheConsentModal } from "../shared/LocationCacheConsentModal";
 import { AddressCacheIndicator } from "../shared/AddressCacheIndicator";
+import { UseCurrentLocationButton } from "../shared/UseCurrentLocationButton";
 import {
   loadLocationCache,
   saveLocationToCache,
@@ -44,37 +45,67 @@ export function SpotForm() {
     }
 
     const cache = loadLocationCache();
-    if (!cache || !cache.consentGiven) {
-      // No cache - ask for consent on first load
-      const askedBefore = localStorage.getItem('locationCacheAsked');
-      if (!askedBefore) {
-        setTimeout(() => setShowConsentModal(true), 500);
+
+    // Only pre-populate if we have a complete cached address with consent
+    if (cache && cache.consentGiven && cache.address.addressRaw) {
+      // Pre-populate from cache
+      setAddressRaw(cache.address.addressRaw);
+      if (cache.coordinates) {
+        setFinalLat(cache.coordinates.lat);
+        setFinalLng(cache.coordinates.lng);
       }
-      setCacheLoaded(true);
-      return;
+
+      setShowCacheIndicator(true);
+
+      // Update lastUsed timestamp
+      saveLocationToCache(cache.address, cache.coordinates, true);
     }
 
-    // Pre-populate from cache
-    setAddressRaw(cache.address.addressRaw);
-    if (cache.coordinates) {
-      setFinalLat(cache.coordinates.lat);
-      setFinalLng(cache.coordinates.lng);
-    }
-
-    setShowCacheIndicator(true);
     setCacheLoaded(true);
-
-    // Update lastUsed timestamp
-    saveLocationToCache(cache.address, cache.coordinates, true);
   }, [addressRaw, cacheLoaded]);
 
   // Handle consent acceptance
   const handleConsentAccept = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('locationCacheAsked', 'true');
-      updateCacheConsent(true, '1.0');
+
+      // Save the pending address that was just created
+      const pendingStr = localStorage.getItem('pendingAddressCache');
+      if (pendingStr) {
+        try {
+          const pending = JSON.parse(pendingStr);
+          saveLocationToCache(
+            {
+              street: '',
+              houseNumber: '',
+              zip: '',
+              city: '',
+              addressRaw: pending.addressRaw,
+            },
+            {
+              lat: pending.lat,
+              lng: pending.lng,
+              geoPrecision: 'exact',
+            },
+            true
+          );
+          localStorage.removeItem('pendingAddressCache');
+
+          // Immediately pre-fill the form with the saved address
+          setAddressRaw(pending.addressRaw);
+          setFinalLat(pending.lat);
+          setFinalLng(pending.lng);
+          setShowCacheIndicator(true);
+        } catch (error) {
+          console.error('Error saving pending address:', error);
+        }
+      } else {
+        // No pending address, just update consent
+        updateCacheConsent(true, '1.0');
+      }
     }
     setShowConsentModal(false);
+    // Stay on form tab with pre-filled address (don't redirect to list)
   };
 
   // Handle consent decline
@@ -82,8 +113,10 @@ export function SpotForm() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('locationCacheAsked', 'true');
       updateCacheConsent(false, '1.0');
+      localStorage.removeItem('pendingAddressCache');
     }
     setShowConsentModal(false);
+    // Stay on form tab (don't redirect)
   };
 
   // Handle clearing cached address
@@ -155,9 +188,14 @@ export function SpotForm() {
       updated_at: new Date().toISOString(),
     });
 
-    // Save to location cache if consent given
+    setSubmitting(false);
+
+    // Check if we should ask for consent to cache location
     const cache = loadLocationCache();
+    const askedBefore = typeof window !== 'undefined' ? localStorage.getItem('locationCacheAsked') : null;
+
     if (cache?.consentGiven) {
+      // Already have consent, just save the address
       saveLocationToCache(
         {
           street: '',
@@ -173,11 +211,26 @@ export function SpotForm() {
         },
         true
       );
-    }
+      alert(terms.spotCreated);
+      setCurrentTab("list");
+    } else if (!askedBefore) {
+      // First time - ask for consent to save this address
+      alert(terms.spotCreated);
+      setShowConsentModal(true);
 
-    setSubmitting(false);
-    alert(terms.spotCreated);
-    setCurrentTab("list");
+      // Store the address temporarily so we can save it after consent
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingAddressCache', JSON.stringify({
+          addressRaw,
+          lat,
+          lng,
+        }));
+      }
+    } else {
+      // User previously declined, don't ask again
+      alert(terms.spotCreated);
+      setCurrentTab("list");
+    }
 
     // Reset form
     setAddressRaw("");
@@ -186,7 +239,6 @@ export function SpotForm() {
     setContactPhone("");
     setPublicNote("");
     setAddressPublic(false);
-    setGeocodeResult(null);
     setFinalLat(null);
     setFinalLng(null);
     setShowCacheIndicator(false);
@@ -224,6 +276,19 @@ export function SpotForm() {
               placeholder="Straße, Hausnummer, Stadt"
               required
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
+            />
+          </div>
+
+          {/* GPS Location Button */}
+          <div className="mb-5">
+            <UseCurrentLocationButton
+              onLocationDetected={(location) => {
+                const addressRaw = `${location.street}${location.houseNumber ? ' ' + location.houseNumber : ''}, ${location.zip} ${location.city}`.trim();
+                setAddressRaw(addressRaw);
+                setFinalLat(location.lat);
+                setFinalLng(location.lng);
+              }}
+              disabled={submitting}
             />
           </div>
 

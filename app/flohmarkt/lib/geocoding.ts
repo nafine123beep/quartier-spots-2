@@ -120,3 +120,73 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string |
     return null;
   }
 }
+
+/**
+ * Reverse geocode GPS coordinates to structured address data
+ * Used for "Use my current location" feature
+ * @param lat - Latitude from GPS
+ * @param lng - Longitude from GPS
+ * @returns Structured address data or null if not found
+ */
+export async function reverseGeocodeCoordinates(
+  lat: number,
+  lng: number
+): Promise<GeocodeResult | null> {
+  try {
+    console.log("Reverse geocoding coordinates:", lat, lng);
+
+    const params = new URLSearchParams({
+      format: "json",
+      lat: lat.toString(),
+      lon: lng.toString(),
+      zoom: "18", // Street-level detail
+      addressdetails: "1",
+      "accept-language": "de", // German language preference
+    });
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?${params}`,
+      {
+        headers: {
+          "User-Agent": "Quartier-Spots-Flohmarkt-App",
+          "Accept-Language": "de",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Reverse geocoding API error:", response.status, response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log("Reverse geocoding response:", data);
+
+    if (!data || data.error) {
+      console.log("Reverse geocoding: No address found for coordinates");
+      return null;
+    }
+
+    const addressData = data.address || {};
+
+    console.log("Reverse geocoding success:", {
+      lat: data.lat,
+      lon: data.lon,
+      display_name: data.display_name,
+      address: addressData
+    });
+
+    return {
+      lat: parseFloat(data.lat),
+      lng: parseFloat(data.lon),
+      displayName: data.display_name,
+      street: addressData.road || addressData.street || addressData.pedestrian || addressData.footway || '',
+      houseNumber: addressData.house_number || '',
+      zip: addressData.postcode || '',
+      city: addressData.city || addressData.town || addressData.village || addressData.municipality || '',
+    };
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return null;
+  }
+}
