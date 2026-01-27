@@ -138,6 +138,40 @@ tests/
 - iPhone Safari: Touch interactions, responsive layout
 - Android Chrome: Scrolling, button sizes
 
+### Highlights Feature Tests
+
+**Smoke Tests** (`tests/e2e/smoke/highlights.spec.ts`):
+- Highlights tab accessibility for admins
+- Highlight form modal opens/closes
+- Highlights render on public map
+
+**Happy Path Tests** (`tests/e2e/happy-path/highlights-management.spec.ts`):
+- Admin creates, edits, and deletes highlights
+- Custom highlight types creation and usage
+- Highlights display in public list and map views
+
+**Accessibility Tests** (`tests/e2e/accessibility/highlights-a11y.spec.ts`):
+- Highlights management panel WCAG compliance
+- Keyboard navigation in highlight form
+- Highlights in list view are keyboard accessible
+- Proper ARIA labels and attributes
+
+**Mobile Tests** (`tests/e2e/cross-device/highlights-mobile.spec.ts`):
+- Labels always visible on mobile map
+- Mobile carousel excludes highlights
+- Highlight form usability on mobile
+
+**Unit Tests** (`tests/unit/highlightConfig.test.ts`):
+- Base highlight types validation
+- Icon configuration correctness
+- Type label and icon retrieval functions
+- Custom type handling
+
+Run highlight-specific unit tests:
+```bash
+npx ts-node tests/unit/highlightConfig.test.ts
+```
+
 ## CI/CD Integration
 
 Tests run automatically on GitHub Actions:

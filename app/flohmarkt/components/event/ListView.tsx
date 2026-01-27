@@ -1,11 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { SpotItem } from "../shared/SpotItem";
 import { getSpotTerms } from "../../lib/spotTerms";
+import { getHighlightIcon, getHighlightTypeLabel } from "../../lib/highlightConfig";
 
 export function ListView() {
-  const { spots, setCurrentTab, setDeletePreFill, highlightedSpotId, currentTenantEvent, setSelectedSpotId } = useFlohmarkt();
+  const { spots, setCurrentTab, setDeletePreFill, highlightedSpotId, currentTenantEvent, setSelectedSpotId, customHighlightTypes } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
   const handleDelete = (address: string) => {
@@ -20,8 +22,12 @@ export function ListView() {
     setCurrentTab("map");
   };
 
+  // Separate highlights from regular spots
+  const regularSpots = useMemo(() => spots.filter(spot => !spot.is_highlight), [spots]);
+  const highlights = useMemo(() => spots.filter(spot => spot.is_highlight), [spots]);
+
   // Sort spots alphabetically by street and house number
-  const sortedSpots = [...spots].sort((a, b) => {
+  const sortedSpots = [...regularSpots].sort((a, b) => {
     const addressA = a.street && a.house_number
       ? `${a.street} ${a.house_number}`.toLowerCase()
       : (a.address_raw || '').toLowerCase();
@@ -34,6 +40,41 @@ export function ListView() {
   return (
     <div className="h-full overflow-y-auto p-5">
       <div className="max-w-[800px] mx-auto pb-20">
+        {/* Event Highlights Section */}
+        {highlights.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-[#003366] mt-0 mb-4">Event Highlights</h2>
+            <div className="space-y-3">
+              {highlights.map((highlight) => {
+                const icon = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
+                const label = highlight.title || getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
+
+                return (
+                  <div
+                    key={highlight.id}
+                    onClick={() => handleSpotClick(highlight)}
+                    className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="text-3xl flex-shrink-0">{icon}</div>
+                      <div className="flex-grow">
+                        <h4 className="font-semibold text-gray-900 m-0">{label}</h4>
+                        {highlight.public_note && (
+                          <p className="text-sm text-gray-700 mt-1 mb-0">{highlight.public_note}</p>
+                        )}
+                        {highlight.address_public && highlight.address_raw && (
+                          <p className="text-xs text-gray-600 mt-2 mb-0">📍 {highlight.address_raw}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Regular Spots Section */}
         <h2 className="text-[#003366] mt-0">{terms.allSpots}</h2>
 
         {sortedSpots.length === 0 ? (

@@ -8,6 +8,7 @@ import { EventControlPanel } from "./EventControlPanel";
 import { AdminSpotTable } from "./AdminSpotTable";
 import { EventEditForm } from "./EventEditForm";
 import { PendingDeletionRequests } from "./PendingDeletionRequests";
+import { HighlightManagementPanel } from "./HighlightManagementPanel";
 import { getSpotTerms } from "../../lib/spotTerms";
 
 export function EventDetail() {
@@ -26,6 +27,7 @@ export function EventDetail() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "spots" | "highlights" | "deletion-requests">("overview");
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
@@ -119,90 +121,149 @@ export function EventDetail() {
 
       {/* Content */}
       <div className="p-5 overflow-y-auto w-full max-w-[1000px] mx-auto flex-grow">
-        {/* Event Info & Management */}
-        {isEditing ? (
-          <EventEditForm
-            event={currentTenantEvent}
-            onSave={() => setIsEditing(false)}
-            onCancel={() => setIsEditing(false)}
-          />
-        ) : (
-          <div className="bg-white p-5 rounded-lg shadow-md mb-5">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-grow">
-                <h2 className="m-0 text-[#003366]">{currentTenantEvent.title}</h2>
-                {currentTenantEvent.description && (
-                  <p className="text-gray-600 mt-2">{currentTenantEvent.description}</p>
-                )}
-                <div className="text-sm text-gray-600 mt-2">
-                  {currentTenantEvent.starts_at && (
-                    <span>
-                      Start: {new Date(currentTenantEvent.starts_at).toLocaleString("de-DE")}
-                    </span>
-                  )}
-                  {currentTenantEvent.ends_at && (
-                    <span className="ml-4">
-                      Ende: {new Date(currentTenantEvent.ends_at).toLocaleString("de-DE")}
-                    </span>
-                  )}
-                </div>
-                {currentTenantEvent.map_center_address && (
-                  <div className="text-sm text-gray-600 mt-2">
-                    📍 Karten-Zentrum: {currentTenantEvent.map_center_address}
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-lg shadow-md mb-5">
+          <div className="border-b border-gray-200">
+            <nav className="flex gap-4 px-5">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "overview"
+                    ? "border-[#003366] text-[#003366]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Übersicht
+              </button>
+              <button
+                onClick={() => setActiveTab("spots")}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "spots"
+                    ? "border-[#003366] text-[#003366]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                {terms.spots}
+              </button>
+              <button
+                onClick={() => setActiveTab("highlights")}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "highlights"
+                    ? "border-[#003366] text-[#003366]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Highlights
+              </button>
+              <button
+                onClick={() => setActiveTab("deletion-requests")}
+                className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "deletion-requests"
+                    ? "border-[#003366] text-[#003366]"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                Löschanfragen
+              </button>
+            </nav>
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-5">
+            {activeTab === "overview" && (
+              <>
+                {/* Event Info & Management */}
+                {isEditing ? (
+                  <EventEditForm
+                    event={currentTenantEvent}
+                    onSave={() => setIsEditing(false)}
+                    onCancel={() => setIsEditing(false)}
+                  />
+                ) : (
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-grow">
+                        <h2 className="m-0 text-[#003366]">{currentTenantEvent.title}</h2>
+                        {currentTenantEvent.description && (
+                          <p className="text-gray-600 mt-2">{currentTenantEvent.description}</p>
+                        )}
+                        <div className="text-sm text-gray-600 mt-2">
+                          {currentTenantEvent.starts_at && (
+                            <span>
+                              Start: {new Date(currentTenantEvent.starts_at).toLocaleString("de-DE")}
+                            </span>
+                          )}
+                          {currentTenantEvent.ends_at && (
+                            <span className="ml-4">
+                              Ende: {new Date(currentTenantEvent.ends_at).toLocaleString("de-DE")}
+                            </span>
+                          )}
+                        </div>
+                        {currentTenantEvent.map_center_address && (
+                          <div className="text-sm text-gray-600 mt-2">
+                            📍 Karten-Zentrum: {currentTenantEvent.map_center_address}
+                          </div>
+                        )}
+                      </div>
+                      <span className={`px-3 py-1 rounded text-sm font-medium ${config.bg} ${config.text}`}>
+                        {config.label}
+                      </span>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        disabled={isProcessing}
+                        className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
+                      >
+                        ✏️ Bearbeiten
+                      </button>
+
+                      {currentTenantEvent.status === 'draft' && (
+                        <button
+                          onClick={handlePublish}
+                          disabled={isProcessing}
+                          className="bg-green-600 text-white px-4 py-2 rounded-md font-bold hover:bg-green-700 disabled:opacity-50"
+                        >
+                          🚀 Veröffentlichen
+                        </button>
+                      )}
+
+                      {currentTenantEvent.status === 'published' && (
+                        <button
+                          onClick={handleArchive}
+                          disabled={isProcessing}
+                          className="bg-yellow-600 text-white px-4 py-2 rounded-md font-bold hover:bg-yellow-700 disabled:opacity-50"
+                        >
+                          📦 Archivieren
+                        </button>
+                      )}
+
+                      <button
+                        onClick={handleDelete}
+                        disabled={isProcessing}
+                        className="bg-red-600 text-white px-4 py-2 rounded-md font-bold hover:bg-red-700 disabled:opacity-50 ml-auto"
+                      >
+                        🗑️ Löschen
+                      </button>
+                    </div>
+
+                    {/* Event Control Panel */}
+                    <div className="mt-5">
+                      <EventControlPanel />
+                    </div>
                   </div>
                 )}
-              </div>
-              <span className={`px-3 py-1 rounded text-sm font-medium ${config.bg} ${config.text}`}>
-                {config.label}
-              </span>
-            </div>
+              </>
+            )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => setIsEditing(true)}
-                disabled={isProcessing}
-                className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
-              >
-                ✏️ Bearbeiten
-              </button>
+            {activeTab === "spots" && <AdminSpotTable />}
 
-              {currentTenantEvent.status === 'draft' && (
-                <button
-                  onClick={handlePublish}
-                  disabled={isProcessing}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md font-bold hover:bg-green-700 disabled:opacity-50"
-                >
-                  🚀 Veröffentlichen
-                </button>
-              )}
+            {activeTab === "highlights" && <HighlightManagementPanel />}
 
-              {currentTenantEvent.status === 'published' && (
-                <button
-                  onClick={handleArchive}
-                  disabled={isProcessing}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded-md font-bold hover:bg-yellow-700 disabled:opacity-50"
-                >
-                  📦 Archivieren
-                </button>
-              )}
-
-              <button
-                onClick={handleDelete}
-                disabled={isProcessing}
-                className="bg-red-600 text-white px-4 py-2 rounded-md font-bold hover:bg-red-700 disabled:opacity-50 ml-auto"
-              >
-                🗑️ Löschen
-              </button>
-            </div>
+            {activeTab === "deletion-requests" && <PendingDeletionRequests />}
           </div>
-        )}
-
-        {/* Existing components */}
-        <div className="flex flex-col gap-5">
-          <PendingDeletionRequests />
-          <EventControlPanel />
-          <AdminSpotTable />
         </div>
       </div>
     </div>
