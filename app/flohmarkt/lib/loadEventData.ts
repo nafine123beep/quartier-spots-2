@@ -177,6 +177,8 @@ export async function loadEventData(
     }
 
     // Sort images by position
+    // Note: PostgREST doesn't support ordering embedded resources directly in the query,
+    // so we sort in JavaScript. This is efficient since image arrays are typically small (<10 items).
     const sortedImages: EventImage[] = (eventData.images ?? [])
       .sort((a: { position: number }, b: { position: number }) => a.position - b.position);
 

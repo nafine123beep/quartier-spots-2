@@ -1,10 +1,14 @@
 import { createClient } from "@/lib/supabase/client";
 import { EventImage } from "../types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const BUCKET_NAME = "event-images";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_IMAGES_PER_EVENT = 5;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Cache Supabase client for public URL generation to avoid repeated instantiation
+let cachedPublicClient: SupabaseClient | null = null;
 
 export interface UploadResult {
   success: boolean;
@@ -189,10 +193,14 @@ export async function setEventCoverImage(
 
 /**
  * Gets the public URL for an image
+ * Uses a cached Supabase client to avoid repeated instantiation
  */
 export function getPublicImageUrl(storagePath: string): string {
-  const supabase = createClient();
-  const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
+  if (!cachedPublicClient) {
+    cachedPublicClient = createClient();
+  }
+
+  const { data } = cachedPublicClient.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
   return data.publicUrl;
 }
 

@@ -433,6 +433,18 @@ export function SpotForm() {
       <div className="max-w-[600px] mx-auto bg-white p-5 rounded-lg">
         <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
+        {/* Data Security Notice */}
+        <div className="mb-6 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <span className="text-2xl flex-shrink-0">🔒</span>
+          <div className="text-sm text-gray-700 leading-relaxed">
+            <p className="font-semibold mb-1 mt-0">Datenschutz-Hinweis</p>
+            <p className="m-0">
+              Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
+              Daten dienen lediglich der Kontaktaufnahme seitens der Veranstalter:innen.
+            </p>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit}>
           {/* Cache Indicator */}
           {showCacheIndicator && (
@@ -532,7 +544,7 @@ export function SpotForm() {
             />
             <label htmlFor="addressPublic" className="text-sm text-gray-700 leading-snug">
               Ich bin damit einverstanden, dass meine Adresse öffentlich auf der
-              Karte angezeigt wird.
+              Karte angezeigt wird. *
             </label>
           </div>
 
@@ -553,17 +565,21 @@ export function SpotForm() {
 
           {/* Collapsible Contact Section */}
           <div className="mb-5">
-            <button
-              type="button"
-              onClick={() => setShowContactFields(!showContactFields)}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
-            >
-              <span className="text-lg">{showContactFields ? '−' : '+'}</span>
-              <span>Meinen Kontakt hinzufügen (optional)</span>
-            </button>
+            <div className="flex items-center gap-2 mb-4">
+              <input
+                type="checkbox"
+                id="showContactFields"
+                checked={showContactFields}
+                onChange={(e) => setShowContactFields(e.target.checked)}
+                className="w-5 h-5"
+              />
+              <label htmlFor="showContactFields" className="text-sm font-medium text-gray-700 cursor-pointer">
+                Meinen Kontakt hinzufügen (optional)
+              </label>
+            </div>
 
             {showContactFields && (
-              <div className="mt-4 space-y-4 pl-1">
+              <div className="space-y-4 pl-7">
                 <div>
                   <label htmlFor="contactName" className="block mb-1 text-gray-600 text-sm">
                     Dein Name (Optional)
@@ -604,12 +620,6 @@ export function SpotForm() {
                     placeholder="Telefonnummer"
                     className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400"
                   />
-                </div>
-
-                <div className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded leading-snug">
-                  Hinweis: Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
-                  Daten dienen lediglich der Kontaktaufnahme seitens der
-                  Veranstalter:innen.
                 </div>
               </div>
             )}
