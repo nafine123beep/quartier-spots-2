@@ -433,18 +433,6 @@ export function SpotForm() {
       <div className="max-w-[600px] mx-auto bg-white p-5 rounded-lg">
         <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
-        {/* Data Security Notice */}
-        <div className="mb-6 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <span className="text-2xl flex-shrink-0">🔒</span>
-          <div className="text-sm text-gray-700 leading-relaxed">
-            <p className="font-semibold mb-1 mt-0">Datenschutz-Hinweis</p>
-            <p className="m-0">
-              Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
-              Daten dienen lediglich der Kontaktaufnahme seitens der Veranstalter:innen.
-            </p>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit}>
           {/* Cache Indicator */}
           {showCacheIndicator && (
@@ -576,6 +564,18 @@ export function SpotForm() {
               <label htmlFor="showContactFields" className="text-sm font-medium text-gray-700 cursor-pointer">
                 Meinen Kontakt hinzufügen (optional)
               </label>
+            </div>
+
+            {/* Data Security Notice */}
+            <div className="mb-4 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <span className="text-2xl flex-shrink-0">🔒</span>
+              <div className="text-sm text-gray-700 leading-relaxed">
+                <p className="font-semibold mb-1 mt-0">Datenschutz-Hinweis</p>
+                <p className="m-0">
+                  Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
+                  Daten dienen lediglich der Kontaktaufnahme seitens der Veranstalter:innen.
+                </p>
+              </div>
             </div>
 
             {showContactFields && (

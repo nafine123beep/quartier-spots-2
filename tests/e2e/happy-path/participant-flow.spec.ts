@@ -63,16 +63,23 @@ test.describe('Participant Happy Path', () => {
       await page.getByPlaceholder(/93051/i).fill('93047');
       await page.getByPlaceholder(/regensburg/i).fill('Regensburg');
 
-      // Consent checkbox
-      const consentCheckbox = page.locator('input[type="checkbox"]').first();
+      // Address consent checkbox (required)
+      const consentCheckbox = page.locator('label:has-text("Ich bin damit einverstanden")').locator('..').locator('input[type="checkbox"]');
       await consentCheckbox.check();
+
+      // Public note - fill the textarea
+      await page.locator('textarea').fill('Testware und Spielzeug');
+
+      // Check the "Meinen Kontakt hinzufügen" checkbox to reveal contact fields
+      const contactCheckbox = page.locator('label:has-text("Meinen Kontakt hinzufügen")').locator('..').locator('input[type="checkbox"]');
+      await contactCheckbox.check();
+
+      // Wait for contact fields to appear
+      await page.waitForTimeout(500);
 
       // Contact info (optional but filling for completeness)
       await page.getByPlaceholder('Name').fill('Test Participant');
       await page.getByPlaceholder(/e-mail-adresse/i).fill('participant@test.local');
-
-      // Public note - fill the textarea (last one on form)
-      await page.locator('textarea').last().fill('Testware und Spielzeug');
 
       // Wait a moment for form to process
       await page.waitForTimeout(1000);

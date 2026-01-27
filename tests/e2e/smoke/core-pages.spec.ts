@@ -50,27 +50,31 @@ test.describe('Core Pages Smoke Tests', () => {
     const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
 
     try {
+      // Navigate to /register route which should redirect to event page with ?tab=form
       await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}/register`);
 
-      // Wait for registration confirmation modal
+      // Wait for redirect to main event page with tab=form
+      await page.waitForURL(new RegExp(`/flohmarkt/${orgSlug}/${eventSlug}\\?tab=form`), { timeout: 10000 });
+
+      // Wait for registration info modal to appear
       await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 10000 });
 
       // Verify modal content elements
       await expect(page.getByText(/keine anmeldung erforderlich/i)).toBeVisible();
-      await expect(page.getByText(/du wirst automatisch weitergeleitet/i)).toBeVisible();
+      await expect(page.getByText(/das formular öffnet sich automatisch/i)).toBeVisible();
 
       // Verify close button is present
-      const closeButton = page.getByRole('button', { name: /schließen/i });
+      const closeButton = page.locator('button[aria-label="Schließen"]');
       await expect(closeButton).toBeVisible();
 
-      // Click close button to trigger redirect
+      // Click close button to close modal and show form
       await closeButton.click();
 
-      // Verify redirect to event page (should not have /register in URL)
-      await page.waitForURL(new RegExp(`/flohmarkt/${orgSlug}/${eventSlug}(?!.*register)`), { timeout: 5000 });
+      // Wait for modal to close and form to appear
+      await page.waitForTimeout(500);
 
-      // Verify we're on the event page
-      await expect(page).toHaveURL(`/flohmarkt/${orgSlug}/${eventSlug}`);
+      // Verify form is now visible (check for street input field)
+      await expect(page.getByPlaceholder(/hauptstraße/i)).toBeVisible({ timeout: 5000 });
     } finally {
       // Cleanup
       const { supabaseAdmin } = await import('../../fixtures/supabase-helpers');

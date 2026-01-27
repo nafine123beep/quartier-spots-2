@@ -58,9 +58,14 @@ test.describe('Accessibility Tests (WCAG 2.1 AA)', () => {
     const { orgSlug, eventSlug, tenantId: tid } = await createPublishedEvent();
     tenantId = tid;
 
+    // Navigate to /register which redirects to event page with ?tab=form and shows modal
     await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}/register`);
 
-    // Wait for modal to load
+    // Wait for redirect and modal to appear
+    await page.waitForURL(new RegExp(`/flohmarkt/${orgSlug}/${eventSlug}\\?tab=form`), { timeout: 10000 });
+    await expect(page.locator('h1', { hasText: /teilnehmen/i })).toBeVisible({ timeout: 5000 });
+
+    // Wait for modal to fully load
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page })
