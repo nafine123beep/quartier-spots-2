@@ -543,13 +543,12 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTenant, loadTenantEvents, loadMembers]);
 
-  // Load spots and custom highlight types when event changes
+  // Load spots when event changes (custom highlight types loaded separately below)
   useEffect(() => {
     if (currentTenantEvent) {
       loadSpots();
-      loadCustomHighlightTypes();
     }
-  }, [currentTenantEvent, loadSpots, loadCustomHighlightTypes]);
+  }, [currentTenantEvent, loadSpots]);
 
   const createTenantEvent = useCallback(async (
     title: string,
@@ -1103,7 +1102,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     if (!currentTenantEvent) return;
 
     const supabase = createClient();
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from('event_custom_highlight_types')
       .select('*')
       .eq('event_id', currentTenantEvent.id)
@@ -1116,6 +1115,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     setCustomHighlightTypes(data ?? []);
   }, [currentTenantEvent]);
+
+  // Load custom highlight types when event changes
+  useEffect(() => {
+    if (currentTenantEvent) {
+      loadCustomHighlightTypes();
+    }
+  }, [currentTenantEvent, loadCustomHighlightTypes]);
 
   // Add highlight
   const addHighlight = useCallback(async (highlightData: Omit<Spot, "id">): Promise<string | null> => {

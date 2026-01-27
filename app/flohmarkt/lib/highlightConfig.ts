@@ -1,4 +1,4 @@
-import { HighlightTypeDefinition } from '../types';
+import { HighlightTypeDefinition, CustomHighlightType } from '../types';
 
 /**
  * Base highlight types predefined in the system
@@ -42,14 +42,14 @@ export const AVAILABLE_HIGHLIGHT_ICONS = [
  */
 export function getHighlightTypeLabel(
   typeKey: string,
-  customTypes: HighlightTypeDefinition[]
+  customTypes: CustomHighlightType[]
 ): string {
   // Check base types first (they take precedence)
   const baseType = BASE_HIGHLIGHT_TYPES.find(t => t.key === typeKey);
   if (baseType) return baseType.label;
 
-  // Check custom types
-  const customType = customTypes.find(t => t.key === typeKey);
+  // Check custom types (CustomHighlightType has type_key instead of key)
+  const customType = customTypes.find(t => t.type_key === typeKey);
   if (customType) return customType.label;
 
   // Fallback to the key itself if not found
@@ -66,14 +66,14 @@ export function getHighlightTypeLabel(
  */
 export function getHighlightIcon(
   typeKey: string,
-  customTypes: HighlightTypeDefinition[]
+  customTypes: CustomHighlightType[]
 ): string {
   // Check base types first (they take precedence)
   const baseType = BASE_HIGHLIGHT_TYPES.find(t => t.key === typeKey);
   if (baseType) return baseType.icon;
 
-  // Check custom types
-  const customType = customTypes.find(t => t.key === typeKey);
+  // Check custom types (CustomHighlightType has type_key instead of key)
+  const customType = customTypes.find(t => t.type_key === typeKey);
   if (customType) return customType.icon;
 
   // Fallback to default icon if not found
@@ -87,7 +87,14 @@ export function getHighlightIcon(
  * @returns Combined array of base and custom highlight types
  */
 export function getAllHighlightTypes(
-  customTypes: HighlightTypeDefinition[]
+  customTypes: CustomHighlightType[]
 ): HighlightTypeDefinition[] {
-  return [...BASE_HIGHLIGHT_TYPES, ...customTypes];
+  // Convert CustomHighlightType to HighlightTypeDefinition format
+  const convertedCustomTypes: HighlightTypeDefinition[] = customTypes.map(ct => ({
+    key: ct.type_key,
+    label: ct.label,
+    icon: ct.icon,
+  }));
+
+  return [...BASE_HIGHLIGHT_TYPES, ...convertedCustomTypes];
 }

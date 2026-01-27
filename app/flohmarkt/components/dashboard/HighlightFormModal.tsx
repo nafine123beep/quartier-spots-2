@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { Spot } from "../../types";
 import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
-import { normalizeAddress } from "../../lib/addressNormalization";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { BASE_HIGHLIGHT_TYPES, getAllHighlightTypes } from "../../lib/highlightConfig";
 import { isWithinBoundary } from "../../lib/geoUtils";
@@ -32,11 +31,12 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(
     highlight?.lat && highlight?.lng
-      ? { lat: highlight.lat, lng: highlight.lng, precision: highlight.geo_precision }
+      ? { lat: highlight.lat, lng: highlight.lng }
       : null
   );
   const [finalLat, setFinalLat] = useState<number | null>(highlight?.lat || null);
   const [finalLng, setFinalLng] = useState<number | null>(highlight?.lng || null);
+  const [geoPrecision, setGeoPrecision] = useState<'exact' | 'street' | 'city'>(highlight?.geo_precision || 'exact');
   const [showPinSelector, setShowPinSelector] = useState(false);
 
   // Submission state
@@ -71,6 +71,7 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
     setGeocodeResult(result);
     setFinalLat(result.lat);
     setFinalLng(result.lng);
+    setGeoPrecision('exact');
 
     // Check boundary
     if (currentTenantEvent?.boundary_radius_meters &&
@@ -137,7 +138,8 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
     setSubmitting(true);
     setError(null);
 
-    const addressRaw = normalizeAddress(street, houseNumber, zip, city);
+    // Construct address_raw string from components
+    const addressRaw = `${street}${houseNumber ? ' ' + houseNumber : ''}, ${zip} ${city}`.trim();
 
     const highlightData: Partial<Spot> = {
       is_highlight: true,
@@ -153,7 +155,7 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
       address_public: addressPublic,
       lat: finalLat,
       lng: finalLng,
-      geo_precision: geocodeResult?.precision || 'exact',
+      geo_precision: geoPrecision,
     };
 
     let success = false;
@@ -379,9 +381,13 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
         <AddressPinSelector
           initialLat={finalLat || geocodeResult.lat}
           initialLng={finalLng || geocodeResult.lng}
-          eventCenterLat={currentTenantEvent.map_center_lat || geocodeResult.lat}
-          eventCenterLng={currentTenantEvent.map_center_lng || geocodeResult.lng}
-          boundaryRadiusMeters={currentTenantEvent.boundary_radius_meters || null}
+          address={`${street}${houseNumber ? ' ' + houseNumber : ''}, ${zip} ${city}`.trim()}
+          boundaryCenter={
+            currentTenantEvent.map_center_lat && currentTenantEvent.map_center_lng
+              ? { lat: currentTenantEvent.map_center_lat, lng: currentTenantEvent.map_center_lng }
+              : undefined
+          }
+          boundaryRadiusMeters={currentTenantEvent.boundary_radius_meters || undefined}
           onConfirm={handlePinConfirm}
           onCancel={() => setShowPinSelector(false)}
         />

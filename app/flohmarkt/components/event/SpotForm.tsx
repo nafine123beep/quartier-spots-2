@@ -324,6 +324,7 @@ export function SpotForm() {
       contact_name: contactName,
       contact_email: contactEmail,
       contact_phone: contactPhone,
+      is_highlight: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
