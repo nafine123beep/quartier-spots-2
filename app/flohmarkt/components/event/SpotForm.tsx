@@ -312,11 +312,11 @@ export function SpotForm() {
       address_raw: addressQuery,
       address_public: addressPublic,
       public_note: publicNote,
-      // Use normalized user input first, fallback to geocoded values if empty
-      street: normalized.street || geocodeResult.street,
-      house_number: normalized.houseNumber || geocodeResult.houseNumber,
-      zip: normalized.zip || geocodeResult.zip,
-      city: normalized.city || geocodeResult.city,
+      // Use normalized user input first, fallback to geocoded values if available
+      street: normalized.street || geocodeResult?.street,
+      house_number: normalized.houseNumber || geocodeResult?.houseNumber,
+      zip: normalized.zip || geocodeResult?.zip,
+      city: normalized.city || geocodeResult?.city,
       lat: lat, // Use confirmed coordinates
       lng: lng, // Use confirmed coordinates
       geo_precision: 'exact',
