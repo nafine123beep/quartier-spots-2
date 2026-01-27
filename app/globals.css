@@ -39,3 +39,18 @@ body {
   height: 100%;
   width: 100%;
 }
+
+/* Event Highlights - Marker Label Styles */
+/* Desktop: show label on hover */
+@media (min-width: 768px) {
+  .highlight-marker:hover .highlight-label {
+    display: block !important;
+  }
+}
+
+/* Mobile: always show label */
+@media (max-width: 767px) {
+  .highlight-label {
+    display: block !important;
+  }
+}

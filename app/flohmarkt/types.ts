@@ -20,6 +20,10 @@ export interface Spot {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  // Event Highlights fields
+  is_highlight: boolean;
+  highlight_type?: string | null;
+  highlight_icon?: string | null;
 }
 
 export interface FlohmarktEvent {
@@ -155,3 +159,20 @@ export interface NotificationPreferences {
 
 export type ViewType = 'frontpage' | 'tenantDashboard' | 'eventOverview' | 'eventDetail' | 'settings' | 'app';
 export type AppTabType = 'list' | 'map' | 'form' | 'delete';
+
+// Event Highlights interfaces
+export interface CustomHighlightType {
+  id: string;
+  event_id: string;
+  type_key: string;
+  label: string;
+  icon: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface HighlightTypeDefinition {
+  key: string;
+  label: string;
+  icon: string;
+}

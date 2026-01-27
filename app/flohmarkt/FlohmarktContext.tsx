@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent, SpotDeletionRequest } from "./types";
+import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent, SpotDeletionRequest, CustomHighlightType } from "./types";
 import { generateSlug } from "./utils/slug";
 
 
@@ -87,6 +87,17 @@ interface FlohmarktContextType {
   loadDeletionRequests: () => Promise<void>;
   approveDeletionRequest: (requestId: string) => Promise<{ success: boolean; error?: string }>;
   rejectDeletionRequest: (requestId: string, reviewerNote: string) => Promise<{ success: boolean; error?: string }>;
+
+  // Event Highlights state
+  customHighlightTypes: CustomHighlightType[];
+
+  // Event Highlights actions
+  loadCustomHighlightTypes: () => Promise<void>;
+  addHighlight: (highlightData: Omit<Spot, "id">) => Promise<string | null>;
+  updateHighlight: (id: string, updates: Partial<Spot>) => Promise<boolean>;
+  deleteHighlight: (id: string) => Promise<boolean>;
+  addCustomHighlightType: (typeKey: string, label: string, icon: string) => Promise<boolean>;
+  deleteCustomHighlightType: (id: string) => Promise<boolean>;
 }
 
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
@@ -115,6 +126,9 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   // Deletion request state
   const [deletionRequests, setDeletionRequests] = useState<SpotDeletionRequest[]>([]);
   const [pendingDeletionCount, setPendingDeletionCount] = useState(0);
+
+  // Event Highlights state
+  const [customHighlightTypes, setCustomHighlightTypes] = useState<CustomHighlightType[]>([]);
 
   // Check Supabase session on mount and listen for auth changes
   useEffect(() => {
@@ -529,12 +543,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTenant, loadTenantEvents, loadMembers]);
 
-  // Load spots when event changes
+  // Load spots and custom highlight types when event changes
   useEffect(() => {
     if (currentTenantEvent) {
       loadSpots();
+      loadCustomHighlightTypes();
     }
-  }, [currentTenantEvent, loadSpots]);
+  }, [currentTenantEvent, loadSpots, loadCustomHighlightTypes]);
 
   const createTenantEvent = useCallback(async (
     title: string,
@@ -1081,6 +1096,141 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     [user, loadDeletionRequests]
   );
 
+  // ============ Event Highlights Functions ============
+
+  // Load custom highlight types for current event
+  const loadCustomHighlightTypes = useCallback(async () => {
+    if (!currentTenantEvent) return;
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('event_custom_highlight_types')
+      .select('*')
+      .eq('event_id', currentTenantEvent.id)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error("Error loading custom highlight types:", error);
+      return;
+    }
+
+    setCustomHighlightTypes(data ?? []);
+  }, [currentTenantEvent]);
+
+  // Add highlight
+  const addHighlight = useCallback(async (highlightData: Omit<Spot, "id">): Promise<string | null> => {
+    if (!currentTenant || !currentTenantEvent || !user || !isAdmin) {
+      return null;
+    }
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("spots")
+      .insert({
+        ...highlightData,
+        is_highlight: true,
+        tenant_id: currentTenant.id,
+        event_id: currentTenantEvent.id,
+        created_by: user.id,
+      })
+      .select("id")
+      .single();
+
+    if (error) {
+      console.error("Error adding highlight:", error);
+      return null;
+    }
+
+    await loadSpots();
+    return data.id;
+  }, [currentTenant, currentTenantEvent, user, isAdmin, loadSpots]);
+
+  // Update highlight
+  const updateHighlight = useCallback(async (id: string, updates: Partial<Spot>): Promise<boolean> => {
+    if (!currentTenant || !isAdmin) return false;
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("spots")
+      .update(updates)
+      .eq("id", id)
+      .eq("tenant_id", currentTenant.id)
+      .eq("is_highlight", true);
+
+    if (error) {
+      console.error("Error updating highlight:", error);
+      return false;
+    }
+
+    await loadSpots();
+    return true;
+  }, [currentTenant, isAdmin, loadSpots]);
+
+  // Delete highlight
+  const deleteHighlight = useCallback(async (id: string): Promise<boolean> => {
+    if (!currentTenant || !isAdmin) return false;
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("spots")
+      .delete()
+      .eq("id", id)
+      .eq("tenant_id", currentTenant.id)
+      .eq("is_highlight", true);
+
+    if (error) {
+      console.error("Error deleting highlight:", error);
+      return false;
+    }
+
+    await loadSpots();
+    return true;
+  }, [currentTenant, isAdmin, loadSpots]);
+
+  // Add custom highlight type
+  const addCustomHighlightType = useCallback(async (typeKey: string, label: string, icon: string): Promise<boolean> => {
+    if (!currentTenantEvent || !user || !isAdmin) return false;
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('event_custom_highlight_types')
+      .insert({
+        event_id: currentTenantEvent.id,
+        type_key: typeKey,
+        label,
+        icon,
+        created_by: user.id,
+      });
+
+    if (error) {
+      console.error("Error adding custom type:", error);
+      return false;
+    }
+
+    await loadCustomHighlightTypes();
+    return true;
+  }, [currentTenantEvent, user, isAdmin, loadCustomHighlightTypes]);
+
+  // Delete custom highlight type
+  const deleteCustomHighlightType = useCallback(async (id: string): Promise<boolean> => {
+    if (!currentTenantEvent || !isAdmin) return false;
+
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('event_custom_highlight_types')
+      .delete()
+      .eq('id', id)
+      .eq('event_id', currentTenantEvent.id);
+
+    if (error) {
+      console.error("Error deleting custom type:", error);
+      return false;
+    }
+
+    await loadCustomHighlightTypes();
+    return true;
+  }, [currentTenantEvent, isAdmin, loadCustomHighlightTypes]);
+
   const deleteSpotByVerification = useCallback(
     async (
       addressRaw: string,
@@ -1247,6 +1397,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         loadDeletionRequests,
         approveDeletionRequest,
         rejectDeletionRequest,
+        customHighlightTypes,
+        loadCustomHighlightTypes,
+        addHighlight,
+        updateHighlight,
+        deleteHighlight,
+        addCustomHighlightType,
+        deleteCustomHighlightType,
       }}
     >
       {children}

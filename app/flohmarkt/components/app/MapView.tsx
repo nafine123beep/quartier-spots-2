@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { MapDrawer } from "../shared/MapDrawer";
 import { SpotItem } from "../shared/SpotItem";
@@ -8,11 +8,12 @@ import { ContactFormModal } from "../shared/ContactFormModal";
 import { SpotCarousel } from "../shared/SpotCarousel";
 import { Spot } from "../../types";
 import { getSpotTerms } from "../../lib/spotTerms";
+import { getHighlightIcon, getHighlightTypeLabel } from "../../lib/highlightConfig";
 import { Emoji, EMOJIS } from "../icons";
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
 export function MapView() {
-  const { spots, setCurrentTab, setDeletePreFill, currentTenant, currentTenantEvent, selectedSpotId, setSelectedSpotId } = useFlohmarkt();
+  const { spots, setCurrentTab, setDeletePreFill, currentTenant, currentTenantEvent, selectedSpotId, setSelectedSpotId, customHighlightTypes } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -20,12 +21,53 @@ export function MapView() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
+  const highlightMarkersRef = useRef<LeafletMarker[]>([]);
   const boundaryCircleRef = useRef<LeafletCircle | null>(null);
+
+  // Separate regular spots and highlights
+  const regularSpots = useMemo(() => spots.filter(spot => !spot.is_highlight), [spots]);
+  const highlights = useMemo(() => spots.filter(spot => spot.is_highlight), [spots]);
 
   const handleDelete = useCallback((addressRaw: string) => {
     setDeletePreFill(addressRaw);
     setCurrentTab("delete");
   }, [setDeletePreFill, setCurrentTab]);
+
+  // Function to create custom divIcon for highlights
+  const createHighlightIcon = useCallback((L: any, icon: string, label: string) => {
+    return L.divIcon({
+      html: `
+        <div style="text-align: center;">
+          <div style="
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #FFC107;
+            border: 3px solid #FF9800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          ">${icon}</div>
+          <div class="highlight-label" style="
+            margin-top: 4px;
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            display: none;
+          ">${label}</div>
+        </div>
+      `,
+      className: 'highlight-marker',
+      iconSize: [48, 72],
+      iconAnchor: [24, 48],
+    });
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -78,6 +120,8 @@ export function MapView() {
 
     return () => {
       if (mapRef.current) {
+        markersRef.current.forEach(marker => marker.remove());
+        highlightMarkersRef.current.forEach(marker => marker.remove());
         mapRef.current.remove();
         mapRef.current = null;
         boundaryCircleRef.current = null;
@@ -96,10 +140,12 @@ export function MapView() {
 
       // Remove existing markers
       markersRef.current.forEach((marker) => map.removeLayer(marker));
+      highlightMarkersRef.current.forEach((marker) => map.removeLayer(marker));
       markersRef.current = [];
+      highlightMarkersRef.current = [];
 
-      // Add new markers
-      spots.forEach((spot) => {
+      // Add regular spot markers first
+      regularSpots.forEach((spot) => {
         if (spot.lat == null || spot.lng == null) return;
 
         const popupContent = `
@@ -121,10 +167,38 @@ export function MapView() {
 
         markersRef.current.push(marker);
       });
+
+      // Add highlight markers on top
+      highlights.forEach((highlight) => {
+        if (highlight.lat == null || highlight.lng == null) return;
+
+        const icon = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
+        const label = highlight.title || getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
+
+        const popupContent = `
+          <div>
+            <div style="font-size: 20px; text-align: center;">${icon}</div>
+            <b>${label}</b><br/>
+            ${highlight.public_note ? `<p style="margin: 4px 0;">${highlight.public_note}</p>` : ''}
+          </div>
+        `;
+
+        const marker = L.marker(
+          [highlight.lat, highlight.lng],
+          {
+            icon: createHighlightIcon(L, icon, label),
+            zIndexOffset: 1000  // Render above regular spots
+          }
+        )
+          .addTo(map)
+          .bindPopup(popupContent);
+
+        highlightMarkersRef.current.push(marker);
+      });
     };
 
     updateMarkers();
-  }, [spots, isMapReady]);
+  }, [regularSpots, highlights, isMapReady, customHighlightTypes, terms.deleteSpot, createHighlightIcon]);
 
   // Listen for delete events from popup
   useEffect(() => {
@@ -141,15 +215,22 @@ export function MapView() {
       mapRef.current.setView([spot.lat, spot.lng], 16);
 
       // Find and open the marker's popup
-      const markerIndex = spots.findIndex((s) => s.id === spot.id);
-      if (markerIndex >= 0 && markersRef.current[markerIndex]) {
-        markersRef.current[markerIndex].openPopup();
+      if (spot.is_highlight) {
+        const markerIndex = highlights.findIndex((s) => s.id === spot.id);
+        if (markerIndex >= 0 && highlightMarkersRef.current[markerIndex]) {
+          highlightMarkersRef.current[markerIndex].openPopup();
+        }
+      } else {
+        const markerIndex = regularSpots.findIndex((s) => s.id === spot.id);
+        if (markerIndex >= 0 && markersRef.current[markerIndex]) {
+          markersRef.current[markerIndex].openPopup();
+        }
       }
     }
     if (window.innerWidth < 768) {
       setIsDrawerOpen(false);
     }
-  }, [spots]);
+  }, [regularSpots, highlights]);
 
   const toggleDrawer = () => {
     setIsDrawerOpen((prev) => !prev);
@@ -218,7 +299,7 @@ export function MapView() {
           onClose={toggleDrawer}
           title={terms.spotsNearby}
         >
-          {spots.map((spot) => (
+          {regularSpots.map((spot) => (
             <SpotItem
               key={spot.id}
               spot={spot}
@@ -233,7 +314,7 @@ export function MapView() {
       {/* Mobile Carousel - Mobile only */}
       <div className="block md:hidden">
         <SpotCarousel
-          spots={spots}
+          spots={regularSpots}
           onSpotClick={handleSpotClick}
           spotTermSingular={currentTenantEvent?.spot_term_singular}
         />
