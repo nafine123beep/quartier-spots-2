@@ -9,6 +9,7 @@ import {
   syncCacheToDatabase,
   syncCacheFromDatabase,
   saveLocationToCache,
+  isCompleteCache,
 } from "../../lib/locationCache";
 import { LocationCache } from "../../types";
 
@@ -58,12 +59,17 @@ export function AddressManagement() {
   };
 
   const handleEdit = () => {
-    if (cache) {
+    if (isCompleteCache(cache)) {
       setEditStreet(cache.address.street);
       setEditHouseNumber(cache.address.houseNumber);
       setEditZip(cache.address.zip);
       setEditCity(cache.address.city);
       setIsEditing(true);
+    } else {
+      setMessage({
+        type: 'error',
+        text: 'Keine vollständige Adresse zum Bearbeiten verfügbar',
+      });
     }
   };
 
@@ -79,6 +85,13 @@ export function AddressManagement() {
     try {
       const addressRaw = `${editStreet}${editHouseNumber ? " " + editHouseNumber : ""}, ${editZip} ${editCity}`;
 
+      // Preserve existing coordinates if available, otherwise use city-level precision
+      const coordinates = cache?.coordinates || {
+        lat: 0,
+        lng: 0,
+        geoPrecision: "city" as const
+      };
+
       saveLocationToCache(
         {
           street: editStreet,
@@ -87,7 +100,7 @@ export function AddressManagement() {
           city: editCity,
           addressRaw,
         },
-        cache?.coordinates || { lat: 0, lng: 0, geoPrecision: "city" },
+        coordinates,
         true
       );
 
@@ -181,7 +194,7 @@ export function AddressManagement() {
     });
   };
 
-  if (!cache || !cache.consentGiven) {
+  if (!isCompleteCache(cache) || !cache.consentGiven) {
     return (
       <div className="text-sm text-gray-600">
         <p>Keine gespeicherte Adresse vorhanden.</p>

@@ -122,14 +122,14 @@ export interface LocationCache {
   consentGiven: boolean;
   consentTimestamp: string;
   consentVersion: string;
-  address: {
+  address?: {
     street: string;
     houseNumber: string;
     zip: string;
     city: string;
     addressRaw: string;
   };
-  coordinates: {
+  coordinates?: {
     lat: number;
     lng: number;
     geoPrecision: 'exact' | 'street' | 'city';

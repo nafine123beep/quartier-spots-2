@@ -12,6 +12,7 @@ import {
   loadLocationCache,
   saveLocationToCache,
   updateCacheConsent,
+  isCompleteCache,
 } from "../../lib/locationCache";
 
 export function SpotForm() {
@@ -47,14 +48,11 @@ export function SpotForm() {
     const cache = loadLocationCache();
 
     // Only pre-populate if we have a complete cached address with consent
-    if (cache && cache.consentGiven && cache.address.addressRaw) {
+    if (isCompleteCache(cache) && cache.consentGiven) {
       // Pre-populate from cache
       setAddressRaw(cache.address.addressRaw);
-      if (cache.coordinates) {
-        setFinalLat(cache.coordinates.lat);
-        setFinalLng(cache.coordinates.lng);
-      }
-
+      setFinalLat(cache.coordinates.lat);
+      setFinalLng(cache.coordinates.lng);
       setShowCacheIndicator(true);
 
       // Update lastUsed timestamp

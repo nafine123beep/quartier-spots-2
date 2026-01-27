@@ -134,7 +134,35 @@ export async function clearLocationCache(
 }
 
 /**
+ * Type guard to check if cache has complete location data
+ */
+export function isCompleteCache(cache: LocationCache | null): cache is LocationCache & {
+  address: NonNullable<LocationCache['address']>;
+  coordinates: NonNullable<LocationCache['coordinates']>;
+} {
+  return (
+    cache !== null &&
+    cache.address !== undefined &&
+    cache.coordinates !== undefined &&
+    typeof cache.address.street === 'string' &&
+    typeof cache.address.city === 'string' &&
+    typeof cache.coordinates.lat === 'number' &&
+    typeof cache.coordinates.lng === 'number'
+  );
+}
+
+/**
+ * Check if cache is partial (consent only)
+ */
+export function isPartialCache(cache: LocationCache | null): boolean {
+  return cache !== null && (!cache.address || !cache.coordinates);
+}
+
+/**
  * Update consent flag in cache
+ * Note: This may create a partial cache (consent only, no address/coordinates)
+ * when no existing cache exists. Use isCompleteCache() to check before accessing
+ * address or coordinates fields.
  */
 export function updateCacheConsent(consent: boolean, version: string): void {
   if (!isBrowser()) return;
@@ -175,7 +203,10 @@ export async function syncCacheToDatabase(
 
   try {
     const cache = loadLocationCache();
-    if (!cache || !cache.consentGiven) {
+
+    // Only sync if we have consent AND complete location data
+    if (!isCompleteCache(cache) || !cache.consentGiven) {
+      console.log('Skipping sync: incomplete cache or no consent');
       return;
     }
 
@@ -238,6 +269,25 @@ export async function syncCacheFromDatabase(
       return;
     }
 
+    // Validate that all required location fields exist
+    const hasCompleteData =
+      locationCache.street &&
+      locationCache.city &&
+      typeof locationCache.lat === 'number' &&
+      typeof locationCache.lng === 'number';
+
+    if (!hasCompleteData) {
+      console.warn('Database cache is incomplete, skipping sync');
+      return;
+    }
+
+    // Safe addressRaw construction with defaults
+    const street = locationCache.street || '';
+    const houseNumber = locationCache.house_number || '';
+    const zip = locationCache.zip || '';
+    const city = locationCache.city || '';
+    const addressRaw = `${street}${houseNumber ? ' ' + houseNumber : ''}, ${zip} ${city}`.trim();
+
     // Convert database format to localStorage format
     const cache: LocationCache = {
       consentGiven: locationCache.consent_given,
@@ -245,10 +295,10 @@ export async function syncCacheFromDatabase(
       consentVersion: locationCache.consent_version,
       address: {
         street: locationCache.street,
-        houseNumber: locationCache.house_number,
-        zip: locationCache.zip,
+        houseNumber: locationCache.house_number || '',
+        zip: locationCache.zip || '',
         city: locationCache.city,
-        addressRaw: `${locationCache.street} ${locationCache.house_number}, ${locationCache.zip} ${locationCache.city}`,
+        addressRaw,
       },
       coordinates: {
         lat: locationCache.lat,
@@ -271,5 +321,5 @@ export async function syncCacheFromDatabase(
  */
 export function hasValidCache(): boolean {
   const cache = loadLocationCache();
-  return cache !== null && cache.consentGiven === true;
+  return isCompleteCache(cache) && cache.consentGiven === true;
 }
