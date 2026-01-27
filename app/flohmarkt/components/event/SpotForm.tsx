@@ -287,7 +287,7 @@ export function SpotForm() {
   };
 
   const handlePinConfirm = async (lat: number, lng: number) => {
-    if (!currentTenantEvent || !currentTenant || !geocodeResult) {
+    if (!currentTenantEvent || !currentTenant) {
       return;
     }
 
