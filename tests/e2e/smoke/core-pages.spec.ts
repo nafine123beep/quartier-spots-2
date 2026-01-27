@@ -64,7 +64,7 @@ test.describe('Core Pages Smoke Tests', () => {
       await expect(page.getByText(/das formular öffnet sich automatisch/i)).toBeVisible();
 
       // Verify close button is present
-      const closeButton = page.locator('button[aria-label="Schließen"]');
+      const closeButton = page.getByRole('button', { name: /schließen/i });
       await expect(closeButton).toBeVisible();
 
       // Click close button to close modal and show form

@@ -46,15 +46,6 @@ export function RegistrationInfoModal({ isOpen, onClose, event, accessMode = 'pu
         <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           {/* Main Content */}
           <div className="p-6 sm:p-8 relative">
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-4xl leading-none transition-colors"
-              aria-label="Schließen"
-            >
-              ×
-            </button>
-
             {/* Header */}
             <div className="text-center mb-6">
               <div className="flex flex-col items-center gap-2 mb-3">
@@ -131,7 +122,7 @@ export function RegistrationInfoModal({ isOpen, onClose, event, accessMode = 'pu
                 onClick={onClose}
                 className="w-full bg-[#003366] text-white px-6 py-4 rounded-lg text-lg font-bold hover:bg-[#002244] transition-colors shadow-md"
               >
-                {terms.registerSpot}
+                Schließen
               </button>
             </div>
 
