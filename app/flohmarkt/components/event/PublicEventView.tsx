@@ -12,6 +12,7 @@ import { MapView } from "./MapView";
 import { SpotForm } from "./SpotForm";
 import { DeleteSpotForm } from "./DeleteSpotForm";
 import { CollapsibleHeader } from "../shared/CollapsibleHeader";
+import { RegistrationInfoModal } from "../shared/RegistrationInfoModal";
 
 interface PublicEventViewProps {
   accessMode?: AccessMode;
@@ -23,14 +24,22 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
   const searchParams = useSearchParams();
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [hasSeenModalForThisSession, setHasSeenModalForThisSession] = useState(false);
 
   // Check for tab query parameter and auto-select tab
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'form' || tabParam === 'list' || tabParam === 'map' || tabParam === 'delete') {
-      setCurrentTab(tabParam as AppTabType);
+      if (tabParam === 'form' && !hasSeenModalForThisSession) {
+        // Show registration modal first for form tab
+        setCurrentTab('form');
+        setShowRegistrationModal(true);
+      } else {
+        setCurrentTab(tabParam as AppTabType);
+      }
     }
-  }, [searchParams, setCurrentTab]);
+  }, [searchParams, setCurrentTab, hasSeenModalForThisSession]);
 
   // Update page title dynamically
   useEffect(() => {
@@ -84,12 +93,31 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
       case "map":
         return <MapView />;
       case "form":
-        return <SpotForm />;
+        // Don't show the form until modal has been seen
+        return showRegistrationModal ? null : <SpotForm />;
       case "delete":
         return <DeleteSpotForm />;
       default:
         return <ListView />;
     }
+  };
+
+  // Handle tab change to show registration modal when form tab is clicked
+  const handleTabClick = (tabId: AppTabType) => {
+    if (tabId === "form" && !hasSeenModalForThisSession) {
+      // Show the modal first, and set the tab so it appears active
+      setCurrentTab("form");
+      setShowRegistrationModal(true);
+    } else {
+      setCurrentTab(tabId);
+    }
+  };
+
+  // Handle modal close - proceed to form
+  const handleRegistrationModalClose = () => {
+    setShowRegistrationModal(false);
+    setHasSeenModalForThisSession(true);
+    setCurrentTab("form");
   };
 
   const tabButtons: { id: AppTabType; label: string; icon: string }[] = [
@@ -263,7 +291,7 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
           {tabButtons.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setCurrentTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`
                 flex-1 min-w-[120px] px-5 py-3 font-medium text-sm min-h-[44px]
                 transition-all duration-200 border-b-2
@@ -283,6 +311,14 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden">{renderContent()}</div>
+
+      {/* Registration Info Modal */}
+      <RegistrationInfoModal
+        isOpen={showRegistrationModal}
+        onClose={handleRegistrationModalClose}
+        event={currentTenantEvent}
+        accessMode={accessMode}
+      />
     </div>
   );
 }

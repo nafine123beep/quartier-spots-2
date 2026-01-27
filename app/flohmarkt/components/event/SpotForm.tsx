@@ -36,6 +36,7 @@ export function SpotForm() {
   const [addressPublic, setAddressPublic] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showContactFields, setShowContactFields] = useState(false);
   // Pin selector state
   const [showPinSelector, setShowPinSelector] = useState(false);
   const [geocodeResult, setGeocodeResult] = useState<GeocodeResult | null>(null);
@@ -536,54 +537,6 @@ export function SpotForm() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="contactName" className="block mb-1 font-bold text-gray-700 text-sm">
-              Dein Name (Optional)
-            </label>
-            <input
-              id="contactName"
-              type="text"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Name"
-              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="contactEmail" className="block mb-1 font-bold text-gray-700 text-sm">
-              E-Mail (Optional)
-            </label>
-            <input
-              id="contactEmail"
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              placeholder="E-Mail-Adresse"
-              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="contactPhone" className="block mb-1 font-bold text-gray-700 text-sm">
-              Telefon (Optional)
-            </label>
-            <input
-              id="contactPhone"
-              type="tel"
-              value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="Telefonnummer"
-              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400"
-            />
-          </div>
-
-          <div className="text-xs text-gray-600 -mt-2.5 mb-5 bg-gray-50 p-2.5 rounded leading-snug">
-            Hinweis: Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
-            Daten dienen lediglich der Kontaktaufnahme seitens der
-            Veranstalter:innen.
-          </div>
-
-          <div className="mb-4">
             <label htmlFor="publicNote" className="block mb-1 font-bold text-gray-700 text-sm">
               Was bietest du an?
             </label>
@@ -596,6 +549,70 @@ export function SpotForm() {
               required
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 resize-y"
             />
+          </div>
+
+          {/* Collapsible Contact Section */}
+          <div className="mb-5">
+            <button
+              type="button"
+              onClick={() => setShowContactFields(!showContactFields)}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
+            >
+              <span className="text-lg">{showContactFields ? '−' : '+'}</span>
+              <span>Meinen Kontakt hinzufügen (optional)</span>
+            </button>
+
+            {showContactFields && (
+              <div className="mt-4 space-y-4 pl-1">
+                <div>
+                  <label htmlFor="contactName" className="block mb-1 text-gray-600 text-sm">
+                    Dein Name (Optional)
+                  </label>
+                  <input
+                    id="contactName"
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Name"
+                    className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="contactEmail" className="block mb-1 text-gray-600 text-sm">
+                    E-Mail (Optional)
+                  </label>
+                  <input
+                    id="contactEmail"
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="E-Mail-Adresse"
+                    className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="contactPhone" className="block mb-1 text-gray-600 text-sm">
+                    Telefon (Optional)
+                  </label>
+                  <input
+                    id="contactPhone"
+                    type="tel"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                    placeholder="Telefonnummer"
+                    className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded leading-snug">
+                  Hinweis: Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
+                  Daten dienen lediglich der Kontaktaufnahme seitens der
+                  Veranstalter:innen.
+                </div>
+              </div>
+            )}
           </div>
 
           <button
