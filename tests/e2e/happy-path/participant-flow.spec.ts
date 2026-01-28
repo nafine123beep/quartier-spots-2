@@ -137,7 +137,9 @@ test.describe('Participant Happy Path', () => {
       // Wait for event page to load
       await page.waitForTimeout(2000);
 
-      // Step 8: Verify spot appears in list view
+      // Step 8: Verify spot appears in list view (map is now default, so switch to list)
+      await listTab.click();
+      await page.waitForTimeout(500);
       await expect(page.getByText('Domplatz 1')).toBeVisible({ timeout: 5000 });
       console.log('✓ Spot appears in list view');
 

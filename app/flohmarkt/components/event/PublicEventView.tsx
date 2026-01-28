@@ -38,6 +38,9 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
       } else {
         setCurrentTab(tabParam as AppTabType);
       }
+    } else {
+      // Default to map view when no tab parameter is specified
+      setCurrentTab('map');
     }
   }, [searchParams, setCurrentTab, hasSeenModalForThisSession]);
 

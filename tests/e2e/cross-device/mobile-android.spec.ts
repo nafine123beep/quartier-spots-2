@@ -26,8 +26,9 @@ test.describe('Android Chrome Tests', () => {
 
     await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
 
-    // Wait for page to load and ensure we're on list tab
+    // Wait for page to load and switch to list tab (map is now default)
     await expect(page.getByRole('button', { name: /liste/i })).toBeVisible();
+    await page.getByRole('button', { name: /liste/i }).click();
     await page.waitForLoadState('networkidle');
 
     // Find spot items to confirm list is rendered
