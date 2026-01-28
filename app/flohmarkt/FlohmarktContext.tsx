@@ -1123,9 +1123,9 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTenantEvent, loadCustomHighlightTypes]);
 
-  // Add highlight
+  // Add highlight (available to all members, not just admins)
   const addHighlight = useCallback(async (highlightData: Omit<Spot, "id">): Promise<string | null> => {
-    if (!currentTenant || !currentTenantEvent || !user || !isAdmin) {
+    if (!currentTenant || !currentTenantEvent || !user) {
       return null;
     }
 
@@ -1149,11 +1149,11 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     await loadSpots();
     return data.id;
-  }, [currentTenant, currentTenantEvent, user, isAdmin, loadSpots]);
+  }, [currentTenant, currentTenantEvent, user, loadSpots]);
 
-  // Update highlight
+  // Update highlight (available to all members, not just admins)
   const updateHighlight = useCallback(async (id: string, updates: Partial<Spot>): Promise<boolean> => {
-    if (!currentTenant || !isAdmin) return false;
+    if (!currentTenant) return false;
 
     const supabase = createClient();
     const { error } = await supabase
@@ -1170,11 +1170,11 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     await loadSpots();
     return true;
-  }, [currentTenant, isAdmin, loadSpots]);
+  }, [currentTenant, loadSpots]);
 
-  // Delete highlight
+  // Delete highlight (available to all members, not just admins)
   const deleteHighlight = useCallback(async (id: string): Promise<boolean> => {
-    if (!currentTenant || !isAdmin) return false;
+    if (!currentTenant) return false;
 
     const supabase = createClient();
     const { error } = await supabase
@@ -1191,11 +1191,11 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     await loadSpots();
     return true;
-  }, [currentTenant, isAdmin, loadSpots]);
+  }, [currentTenant, loadSpots]);
 
-  // Add custom highlight type
+  // Add custom highlight type (available to all members, not just admins)
   const addCustomHighlightType = useCallback(async (typeKey: string, label: string, icon: string): Promise<boolean> => {
-    if (!currentTenantEvent || !user || !isAdmin) return false;
+    if (!currentTenantEvent || !user) return false;
 
     const supabase = createClient();
     const { error } = await supabase
@@ -1215,11 +1215,11 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     await loadCustomHighlightTypes();
     return true;
-  }, [currentTenantEvent, user, isAdmin, loadCustomHighlightTypes]);
+  }, [currentTenantEvent, user, loadCustomHighlightTypes]);
 
-  // Delete custom highlight type
+  // Delete custom highlight type (available to all members, not just admins)
   const deleteCustomHighlightType = useCallback(async (id: string): Promise<boolean> => {
-    if (!currentTenantEvent || !isAdmin) return false;
+    if (!currentTenantEvent) return false;
 
     const supabase = createClient();
     const { error } = await supabase
@@ -1235,7 +1235,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
     await loadCustomHighlightTypes();
     return true;
-  }, [currentTenantEvent, isAdmin, loadCustomHighlightTypes]);
+  }, [currentTenantEvent, loadCustomHighlightTypes]);
 
   const deleteSpotByVerification = useCallback(
     async (

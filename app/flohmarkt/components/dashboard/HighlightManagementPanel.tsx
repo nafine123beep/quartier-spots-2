@@ -8,15 +8,16 @@ import { CustomTypeManager } from './CustomTypeManager';
 import { Spot } from '../../types';
 
 export function HighlightManagementPanel() {
-  const { spots, isAdmin } = useFlohmarkt();
+  const { spots, currentTenant } = useFlohmarkt();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingHighlight, setEditingHighlight] = useState<Spot | null>(null);
   const [showCustomTypes, setShowCustomTypes] = useState(false);
 
-  if (!isAdmin) {
+  // All members of the organization can manage highlights
+  if (!currentTenant) {
     return (
       <div className="p-8 text-center text-gray-700">
-        <p className="text-lg">Du benötigst Admin-Rechte, um Highlights zu verwalten.</p>
+        <p className="text-lg">Du musst Mitglied dieser Organisation sein, um Highlights zu verwalten.</p>
       </div>
     );
   }
