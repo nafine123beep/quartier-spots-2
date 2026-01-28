@@ -52,13 +52,14 @@ export function MapView() {
           ">${icon}</div>
           <div class="highlight-label" style="
             margin-top: 4px;
-            padding: 2px 6px;
-            background: rgba(255, 255, 255, 0.9);
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
             white-space: nowrap;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
             display: none;
           ">${label}</div>
         </div>

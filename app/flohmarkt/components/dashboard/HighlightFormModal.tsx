@@ -325,7 +325,7 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
                 disabled={geocoding || !street || !zip || !city}
                 className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {geocoding ? 'Wird gesucht...' : 'Adresse geocodieren und Pin setzen'}
+                {geocoding ? 'Wird gesucht...' : 'Adresse validieren und Pin setzen'}
               </button>
 
               {geocodeResult && (
@@ -344,14 +344,14 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
               )}
 
               {/* Address Public Checkbox */}
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
                   type="checkbox"
                   checked={addressPublic}
                   onChange={(e) => setAddressPublic(e.target.checked)}
                   className="rounded border-gray-300 text-[#003366] focus:ring-[#003366]"
                 />
-                <span>Adresse öffentlich anzeigen</span>
+                <span className="text-gray-900 font-medium">Adresse öffentlich anzeigen</span>
               </label>
             </div>
 

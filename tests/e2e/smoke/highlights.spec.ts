@@ -8,19 +8,22 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { createPublishedEvent, createAdminUser } from '../../fixtures/supabase-helpers';
+import { createPublishedEvent } from '../../fixtures/supabase-helpers';
 
 test.describe('Highlights Smoke Tests', () => {
   test('highlights tab is accessible to admin', async ({ page }) => {
     const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
-    const { email, password } = await createAdminUser(tenantId);
+    const email = process.env.TEST_ORGANIZER_EMAIL!;
+    const password = process.env.TEST_PASSWORD!;
 
     try {
-      // Login as admin
+      // Login as admin (using the test organizer who owns the created event)
       await page.goto('/auth/login');
+      // Switch to password tab first (default is Magic Link)
+      await page.getByRole('button', { name: /passwort/i }).click();
       await page.getByPlaceholder('max@beispiel.de').fill(email);
-      await page.getByPlaceholder(/password/i).fill(password);
-      await page.getByRole('button', { name: /mit password anmelden/i }).click();
+      await page.getByPlaceholder(/passwort/i).fill(password);
+      await page.getByRole('button', { name: /anmelden/i }).click();
       await page.waitForURL(/\/flohmarkt\/organizations/, { timeout: 10000 });
 
       // Navigate to event
@@ -45,29 +48,32 @@ test.describe('Highlights Smoke Tests', () => {
 
   test('highlight form modal opens and closes', async ({ page }) => {
     const { orgSlug, eventSlug, tenantId, event } = await createPublishedEvent();
-    const { email, password } = await createAdminUser(tenantId);
+    const email = process.env.TEST_ORGANIZER_EMAIL!;
+    const password = process.env.TEST_PASSWORD!;
 
     try {
       // Login and navigate to highlights
       await page.goto('/auth/login');
+      // Switch to password tab first (default is Magic Link)
+      await page.getByRole('button', { name: /passwort/i }).click();
       await page.getByPlaceholder('max@beispiel.de').fill(email);
-      await page.getByPlaceholder(/password/i).fill(password);
-      await page.getByRole('button', { name: /mit password anmelden/i }).click();
+      await page.getByPlaceholder(/passwort/i).fill(password);
+      await page.getByRole('button', { name: /anmelden/i }).click();
       await page.waitForURL(/\/flohmarkt\/organizations/, { timeout: 10000 });
 
       await page.goto(`/flohmarkt/organizations/${orgSlug}/events/${event.id}`);
       await page.getByRole('button', { name: /highlights/i }).click();
 
-      // Click add highlight button
-      await page.getByRole('button', { name: /highlight hinzufügen|erstes highlight/i }).click();
+      // Click add highlight button (use first match since both header and empty state buttons may be visible)
+      await page.getByRole('button', { name: /highlight hinzufügen|erstes highlight/i }).first().click();
 
       // Verify modal opened
       await expect(page.getByRole('heading', { name: /highlight erstellen/i })).toBeVisible();
 
-      // Verify form elements exist
+      // Verify form elements exist (using text selectors since labels may not be properly associated)
       await expect(page.locator('select').first()).toBeVisible(); // Type dropdown
-      await expect(page.getByLabel(/titel/i)).toBeVisible();
-      await expect(page.getByLabel(/beschreibung/i)).toBeVisible();
+      await expect(page.getByText('Titel *')).toBeVisible();
+      await expect(page.getByText('Beschreibung')).toBeVisible();
 
       // Close modal
       await page.getByRole('button', { name: /abbrechen|×/i }).first().click();

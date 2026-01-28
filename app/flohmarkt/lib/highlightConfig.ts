@@ -16,20 +16,23 @@ export const BASE_HIGHLIGHT_TYPES: HighlightTypeDefinition[] = [
 ];
 
 /**
- * Available emoji icons for highlight types
- * Organizers can choose from these when creating custom highlight types
+ * Available icons for custom highlight types
+ * Organized by category: Info, Star, and Pin variants with color options
  */
 export const AVAILABLE_HIGHLIGHT_ICONS = [
-  '📋', // Registration
-  '🚻', // Toilets
-  '🍽️', // Food & Drinks
-  '🚩', // Start
-  '🏁', // Finish
-  '🛡️', // Awareness Team
-  'ℹ️', // Info Point
-  '🅿️', // Parking
-  '⚕️', // Medical
-  '📍', // Custom/General
+  // Info variants
+  'ℹ️',   // Info (blue)
+  '❓',   // Question (purple)
+  // Star variants
+  '⭐',   // Yellow star
+  '🌟',   // Glowing star
+  '✨',   // Sparkles
+  // Pin/Location variants with colors
+  '📍',   // Red pin
+  '🔴',   // Red circle
+  '🟠',   // Orange circle
+  '🟢',   // Green circle
+  '🔵',   // Blue circle
 ];
 
 /**

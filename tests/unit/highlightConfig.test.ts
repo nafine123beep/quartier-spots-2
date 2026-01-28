@@ -100,8 +100,8 @@ test('getHighlightTypeLabel returns label for base type', () => {
 });
 
 test('getHighlightTypeLabel returns label for custom type', () => {
-  const customTypes: HighlightTypeDefinition[] = [
-    { key: 'first_aid', label: 'First Aid', icon: '⚕️' }
+  const customTypes: CustomHighlightType[] = [
+    { id: '1', event_id: 'event1', type_key: 'first_aid', label: 'First Aid', icon: '⚕️', created_at: '2024-01-01T00:00:00Z' }
   ];
   const label = getHighlightTypeLabel('first_aid', customTypes);
   assert(label === 'First Aid', `Expected "First Aid", got "${label}"`);
@@ -113,8 +113,8 @@ test('getHighlightTypeLabel returns key if type not found', () => {
 });
 
 test('getHighlightTypeLabel prioritizes base types over custom types', () => {
-  const customTypes: HighlightTypeDefinition[] = [
-    { key: 'registration', label: 'Custom Registration', icon: '📝' }
+  const customTypes: CustomHighlightType[] = [
+    { id: '1', event_id: 'event1', type_key: 'registration', label: 'Custom Registration', icon: '📝', created_at: '2024-01-01T00:00:00Z' }
   ];
   const label = getHighlightTypeLabel('registration', customTypes);
   assert(label === 'Registration / Check-in', `Base type should win, got "${label}"`);
@@ -126,8 +126,8 @@ test('getHighlightIcon returns icon for base type', () => {
 });
 
 test('getHighlightIcon returns icon for custom type', () => {
-  const customTypes: HighlightTypeDefinition[] = [
-    { key: 'bike_repair', label: 'Bike Repair', icon: '🚲' }
+  const customTypes: CustomHighlightType[] = [
+    { id: '1', event_id: 'event1', type_key: 'bike_repair', label: 'Bike Repair', icon: '🚲', created_at: '2024-01-01T00:00:00Z' }
   ];
   const icon = getHighlightIcon('bike_repair', customTypes);
   assert(icon === '🚲', `Expected "🚲", got "${icon}"`);
@@ -139,8 +139,8 @@ test('getHighlightIcon returns default icon if type not found', () => {
 });
 
 test('getHighlightIcon prioritizes base types over custom types', () => {
-  const customTypes: HighlightTypeDefinition[] = [
-    { key: 'parking', label: 'Custom Parking', icon: '🚗' }
+  const customTypes: CustomHighlightType[] = [
+    { id: '1', event_id: 'event1', type_key: 'parking', label: 'Custom Parking', icon: '🚗', created_at: '2024-01-01T00:00:00Z' }
   ];
   const icon = getHighlightIcon('parking', customTypes);
   assert(icon === '🅿️', `Base type icon should win, got "${icon}"`);

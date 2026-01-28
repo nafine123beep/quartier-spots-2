@@ -8,43 +8,61 @@ interface CustomTypeManagerProps {
   onClose: () => void;
 }
 
+/**
+ * Generate a unique type_key from a label
+ * Converts to lowercase, replaces spaces/special chars with underscores
+ */
+function generateTypeKey(label: string, existingKeys: string[]): string {
+  // Convert to lowercase, replace spaces and special chars with underscores
+  let baseKey = label
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/[^a-z0-9]+/g, '_')     // Replace non-alphanumeric with underscore
+    .replace(/^_+|_+$/g, '')         // Trim leading/trailing underscores
+    .replace(/_+/g, '_');            // Collapse multiple underscores
+
+  // Ensure it starts with a letter
+  if (!/^[a-z]/.test(baseKey)) {
+    baseKey = 'type_' + baseKey;
+  }
+
+  // Ensure uniqueness by appending a number if needed
+  let key = baseKey;
+  let counter = 1;
+  while (existingKeys.includes(key)) {
+    key = `${baseKey}_${counter}`;
+    counter++;
+  }
+
+  return key;
+}
+
 export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
   const { customHighlightTypes, addCustomHighlightType, deleteCustomHighlightType } = useFlohmarkt();
-  const [typeKey, setTypeKey] = useState('');
   const [label, setLabel] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState(AVAILABLE_HIGHLIGHT_ICONS[9]); // Default to 📍
+  const [selectedIcon, setSelectedIcon] = useState(AVAILABLE_HIGHLIGHT_ICONS[5]); // Default to 📍
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!typeKey || !label || !selectedIcon) {
+    if (!label || !selectedIcon) {
       alert('Bitte fülle alle Felder aus');
       return;
     }
 
-    // Validate type_key format (lowercase, underscores only)
-    const validKeyRegex = /^[a-z][a-z0-9_]*$/;
-    if (!validKeyRegex.test(typeKey)) {
-      alert('Der Typ-Key darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten und muss mit einem Buchstaben beginnen.');
-      return;
-    }
-
-    // Check for duplicate keys
-    const isDuplicate = customHighlightTypes.some(t => t.type_key === typeKey);
-    if (isDuplicate) {
-      alert('Ein Typ mit diesem Key existiert bereits');
-      return;
-    }
+    // Auto-generate type_key from label
+    const existingKeys = customHighlightTypes.map(t => t.type_key);
+    const typeKey = generateTypeKey(label, existingKeys);
 
     setIsSubmitting(true);
     const success = await addCustomHighlightType(typeKey, label, selectedIcon);
 
     if (success) {
-      setTypeKey('');
       setLabel('');
-      setSelectedIcon(AVAILABLE_HIGHLIGHT_ICONS[9]);
+      setSelectedIcon(AVAILABLE_HIGHLIGHT_ICONS[5]);
     } else {
       alert('Fehler beim Erstellen des Typs');
     }
@@ -93,17 +111,15 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{type.icon}</span>
-                      <div>
-                        <div className="font-medium text-gray-900">{type.label}</div>
-                        <div className="text-xs text-gray-600">Key: {type.type_key}</div>
-                      </div>
+                      <span className="font-medium text-gray-900">{type.label}</span>
                     </div>
                     <button
                       onClick={() => handleDelete(type.id)}
-                      className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 font-medium text-sm disabled:opacity-50 transition-colors"
+                      title="Löschen"
+                      className="bg-red-50 border border-red-200 text-red-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-red-100 disabled:opacity-50 transition-colors"
                       disabled={deletingId === type.id}
                     >
-                      {deletingId === type.id ? 'Wird gelöscht...' : '🗑️ Löschen'}
+                      {deletingId === type.id ? '...' : '🗑️'}
                     </button>
                   </div>
                 ))}
@@ -118,26 +134,7 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Typ-Key (eindeutig) *
-                </label>
-                <input
-                  type="text"
-                  value={typeKey}
-                  onChange={(e) => setTypeKey(e.target.value.toLowerCase())}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#003366] focus:border-transparent"
-                  placeholder="z.B. first_aid_station"
-                  required
-                  pattern="[a-z][a-z0-9_]*"
-                  title="Nur Kleinbuchstaben, Zahlen und Unterstriche. Muss mit einem Buchstaben beginnen."
-                />
-                <p className="text-xs text-gray-600 mt-1">
-                  Nur Kleinbuchstaben, Zahlen und Unterstriche. Muss mit einem Buchstaben beginnen.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Anzeigename *
                 </label>
                 <input
@@ -152,7 +149,7 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
                   Icon auswählen *
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -178,7 +175,7 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !label}
                   className="flex-1 px-4 py-2 bg-[#003366] text-white rounded-lg hover:bg-[#002244] transition-colors font-medium disabled:opacity-50"
                 >
                   {isSubmitting ? 'Wird erstellt...' : 'Typ hinzufügen'}
