@@ -95,12 +95,12 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
                       <span className="text-2xl">{type.icon}</span>
                       <div>
                         <div className="font-medium text-gray-900">{type.label}</div>
-                        <div className="text-xs text-gray-500">Key: {type.type_key}</div>
+                        <div className="text-xs text-gray-600">Key: {type.type_key}</div>
                       </div>
                     </div>
                     <button
                       onClick={() => handleDelete(type.id)}
-                      className="text-red-600 hover:text-red-800 font-medium text-sm disabled:opacity-50"
+                      className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 font-medium text-sm disabled:opacity-50 transition-colors"
                       disabled={deletingId === type.id}
                     >
                       {deletingId === type.id ? 'Wird gelöscht...' : '🗑️ Löschen'}
@@ -131,7 +131,7 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
                   pattern="[a-z][a-z0-9_]*"
                   title="Nur Kleinbuchstaben, Zahlen und Unterstriche. Muss mit einem Buchstaben beginnen."
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Nur Kleinbuchstaben, Zahlen und Unterstriche. Muss mit einem Buchstaben beginnen.
                 </p>
               </div>

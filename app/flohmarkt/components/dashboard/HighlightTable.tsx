@@ -79,27 +79,27 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-600 max-w-xs truncate">
+                  <div className="text-sm text-gray-700 max-w-xs truncate">
                     {highlight.public_note || '-'}
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-600 max-w-xs truncate">
+                  <div className="text-sm text-gray-700 max-w-xs truncate">
                     {formatLocation(highlight)}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-3">
                     <button
                       onClick={() => onEdit(highlight)}
-                      className="text-[#003366] hover:text-[#002244] font-medium"
+                      className="px-3 py-1.5 bg-[#003366] text-white rounded hover:bg-[#002244] font-medium disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
                       Bearbeiten
                     </button>
                     <button
                       onClick={() => handleDelete(highlight)}
-                      className="text-red-600 hover:text-red-800 font-medium disabled:opacity-50"
+                      className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 font-medium disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
                       {deletingId === highlight.id ? 'Wird gelöscht...' : 'Löschen'}

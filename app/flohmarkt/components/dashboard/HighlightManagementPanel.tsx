@@ -15,7 +15,7 @@ export function HighlightManagementPanel() {
 
   if (!isAdmin) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="p-8 text-center text-gray-700">
         <p className="text-lg">Du benötigst Admin-Rechte, um Highlights zu verwalten.</p>
       </div>
     );
@@ -69,7 +69,7 @@ export function HighlightManagementPanel() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Noch keine Highlights vorhanden
           </h3>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+          <p className="text-gray-700 mb-6 max-w-md mx-auto">
             Füge wichtige Punkte wie Registrierung, Toiletten oder Info-Stands hinzu,
             damit Teilnehmer:innen sich besser orientieren können.
           </p>
