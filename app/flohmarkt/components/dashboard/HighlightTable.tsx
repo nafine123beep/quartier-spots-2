@@ -39,7 +39,7 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -55,7 +55,7 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Standort
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-60">
               Aktionen
             </th>
           </tr>
@@ -89,20 +89,20 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end gap-3">
+                  <div className="flex justify-end gap-2">
                     <button
                       onClick={() => onEdit(highlight)}
-                      className="px-3 py-1.5 bg-[#003366] text-white rounded hover:bg-[#002244] font-medium disabled:opacity-50 transition-colors"
+                      className="px-2.5 py-1.5 bg-[#003366] text-white rounded hover:bg-[#002244] font-medium text-sm disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
-                      Bearbeiten
+                      ✏️ Edit
                     </button>
                     <button
                       onClick={() => handleDelete(highlight)}
-                      className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 font-medium disabled:opacity-50 transition-colors"
+                      className="px-2.5 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 font-medium text-sm disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
-                      {deletingId === highlight.id ? 'Wird gelöscht...' : 'Löschen'}
+                      {deletingId === highlight.id ? '...' : '🗑️'}
                     </button>
                   </div>
                 </td>
