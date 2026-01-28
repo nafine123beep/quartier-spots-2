@@ -36,7 +36,7 @@ export function MapView() {
   const createHighlightIcon = useCallback((L: any, icon: string, label: string) => {
     return L.divIcon({
       html: `
-        <div style="text-align: center;">
+        <div style="text-align: center; position: relative;">
           <div style="
             width: 48px;
             height: 48px;
@@ -48,18 +48,23 @@ export function MapView() {
             justify-content: center;
             font-size: 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            margin: 0 auto;
           ">${icon}</div>
           <div class="highlight-label" style="
             margin-top: 4px;
-            padding: 3px 8px;
+            padding: 4px 10px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 4px;
-            font-size: 12px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 700;
             color: #1f2937;
             white-space: nowrap;
             box-shadow: 0 2px 6px rgba(0,0,0,0.25);
             display: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: max-content;
           ">${label}</div>
         </div>
       `,
