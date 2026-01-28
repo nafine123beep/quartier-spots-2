@@ -22,7 +22,6 @@ export const BASE_HIGHLIGHT_TYPES: HighlightTypeDefinition[] = [
 export const AVAILABLE_HIGHLIGHT_ICONS = [
   // Info variants
   'ℹ️',   // Info (blue)
-  '❓',   // Question (purple)
   // Star variants
   '⭐',   // Yellow star
   '🌟',   // Glowing star
@@ -31,6 +30,7 @@ export const AVAILABLE_HIGHLIGHT_ICONS = [
   '📍',   // Red pin
   '🔴',   // Red circle
   '🟠',   // Orange circle
+  '🟡',   // Yellow circle
   '🟢',   // Green circle
   '🔵',   // Blue circle
 ];

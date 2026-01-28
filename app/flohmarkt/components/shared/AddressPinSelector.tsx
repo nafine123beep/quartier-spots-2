@@ -211,7 +211,7 @@ export function AddressPinSelector({
       />
 
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4 md:p-0">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-auto overflow-hidden flex flex-col max-h-[90vh] md:max-h-[90vh]">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl mx-auto overflow-y-auto flex flex-col max-h-[90vh] md:max-h-[90vh]">
           {/* Header */}
           <div className="bg-[#003366] text-white p-4 md:p-6">
             <h2 className="text-xl md:text-2xl font-bold mb-2">Position bestätigen</h2>
@@ -264,6 +264,16 @@ export function AddressPinSelector({
                 )}
               </div>
             )}
+          </div>
+
+          {/* Scroll Indicator - visible on mobile */}
+          <div className="md:hidden flex justify-center py-2 bg-gradient-to-b from-transparent to-gray-50 -mt-8 relative z-[1001]">
+            <div className="animate-bounce text-gray-400 flex flex-col items-center">
+              <span className="text-xs text-gray-500 mb-1">Weiter scrollen</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              </svg>
+            </div>
           </div>
 
           {/* Instructions and Actions */}
