@@ -92,14 +92,16 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => onEdit(highlight)}
-                      className="px-2.5 py-1.5 bg-[#003366] text-white rounded hover:bg-[#002244] font-medium text-sm disabled:opacity-50 transition-colors"
+                      title="Bearbeiten"
+                      className="bg-blue-50 border border-blue-200 text-blue-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-blue-100 disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
-                      ✏️ Edit
+                      ✏️
                     </button>
                     <button
                       onClick={() => handleDelete(highlight)}
-                      className="px-2.5 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 font-medium text-sm disabled:opacity-50 transition-colors"
+                      title="Löschen"
+                      className="bg-red-50 border border-red-200 text-red-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-red-100 disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
                       {deletingId === highlight.id ? '...' : '🗑️'}
