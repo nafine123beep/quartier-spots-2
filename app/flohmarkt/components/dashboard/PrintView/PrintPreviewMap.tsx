@@ -302,52 +302,124 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           throw new Error('Map not ready for capture');
         }
 
+        const map = mapRef.current;
+
         // Wait for tiles to fully load
         await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Invalidate map size to ensure proper rendering
-        mapRef.current.invalidateSize();
+        map.invalidateSize();
         await new Promise(resolve => setTimeout(resolve, 500));
 
         const html2canvas = (await import('html2canvas')).default;
+        const scale = 2.5;
 
-        // Parse translate values from transform strings.
-        // Handles both translate3d(Xpx, Ypx, Zpx) and matrix(a,b,c,d,tx,ty)
-        const parseTranslate = (transform: string): [number, number] | null => {
-          const t3d = transform.match(/translate3d\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px/);
-          if (t3d) return [parseFloat(t3d[1]), parseFloat(t3d[2])];
-          const matrix = transform.match(/matrix\(\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*(-?[\d.]+),\s*(-?[\d.]+)/);
-          if (matrix) return [parseFloat(matrix[1]), parseFloat(matrix[2])];
-          return null;
-        };
-
-        // Convert CSS transforms to top/left in the cloned DOM.
-        // html2canvas doesn't reliably handle translate3d which Leaflet
-        // uses to position all panes and markers.
-        const fixTransforms = (clonedElement: HTMLElement) => {
-          const selectors = '.leaflet-pane, .leaflet-tile-container, .leaflet-marker-icon, .leaflet-marker-shadow';
-          clonedElement.querySelectorAll<HTMLElement>(selectors).forEach(el => {
-            const transform = el.style.transform;
-            if (!transform || transform === 'none') return;
-            const xy = parseTranslate(transform);
-            if (xy) {
-              el.style.transform = 'none';
-              el.style.left = (parseFloat(el.style.left || '0') + xy[0]) + 'px';
-              el.style.top = (parseFloat(el.style.top || '0') + xy[1]) + 'px';
-            }
-          });
-        };
-
+        // Capture just the base map (tiles). html2canvas can't reliably
+        // render Leaflet divIcon markers, so we skip them and draw manually.
         const canvas = await html2canvas(mapContainerRef.current, {
           useCORS: true,
           allowTaint: false,
-          scale: 2.5,
+          scale,
           logging: false,
           backgroundColor: '#ffffff',
           removeContainer: false,
-          onclone: (_doc: Document, clonedElement: HTMLElement) => {
-            fixTransforms(clonedElement);
+          ignoreElements: (el: Element) => {
+            return el.classList?.contains('leaflet-marker-pane') === true;
           },
+        });
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Could not get canvas context');
+
+        // Helper: draw a rounded rectangle (polyfill for older browsers)
+        const drawRoundedRect = (
+          x: number, y: number, w: number, h: number, r: number
+        ) => {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.lineTo(x + w - r, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+          ctx.lineTo(x + w, y + h - r);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+          ctx.lineTo(x + r, y + h);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+          ctx.lineTo(x, y + r);
+          ctx.quadraticCurveTo(x, y, x + r, y);
+          ctx.closePath();
+        };
+
+        // Draw numbered spot markers
+        sortedSpots.forEach((spot, index) => {
+          if (spot.lat == null || spot.lng == null) return;
+
+          const point = map.latLngToContainerPoint([spot.lat, spot.lng]);
+          const x = point.x * scale;
+          const y = point.y * scale;
+          const r = 18 * scale;
+          const number = index + 1;
+
+          // White border + shadow effect
+          ctx.beginPath();
+          ctx.arc(x, y - r, r + 2 * scale, 0, Math.PI * 2);
+          ctx.fillStyle = 'white';
+          ctx.fill();
+
+          // Dark blue circle
+          ctx.beginPath();
+          ctx.arc(x, y - r, r, 0, Math.PI * 2);
+          ctx.fillStyle = '#003366';
+          ctx.fill();
+
+          // Outer ring
+          ctx.strokeStyle = '#003366';
+          ctx.lineWidth = 2 * scale;
+          ctx.beginPath();
+          ctx.arc(x, y - r, r + 2 * scale, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Number text
+          const fontSize = (number > 99 ? 12 : number > 9 ? 14 : 16) * scale;
+          ctx.font = `900 ${fontSize}px Arial, Helvetica, sans-serif`;
+          ctx.fillStyle = 'white';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(number), x, y - r);
+        });
+
+        // Draw highlight markers
+        highlights.forEach((highlight) => {
+          if (highlight.lat == null || highlight.lng == null) return;
+
+          const point = map.latLngToContainerPoint([highlight.lat, highlight.lng]);
+          const x = point.x * scale;
+          const y = point.y * scale;
+          const label = highlight.title || getHighlightTypeLabel(
+            highlight.highlight_type || '', customHighlightTypes
+          );
+
+          // Measure text for box sizing
+          const fontSize = 11 * scale;
+          ctx.font = `900 ${fontSize}px Arial, Helvetica, sans-serif`;
+          const textWidth = ctx.measureText(label).width;
+          const padX = 12 * scale;
+          const padY = 8 * scale;
+          const boxW = textWidth + padX * 2;
+          const boxH = fontSize + padY * 2;
+          const bx = x - boxW / 2;
+          const by = y - boxH;
+          const borderR = 8 * scale;
+
+          // Amber filled box
+          drawRoundedRect(bx, by, boxW, boxH, borderR);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fill();
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 3 * scale;
+          ctx.stroke();
+
+          // Label text
+          ctx.fillStyle = '#1f2937';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, x, by + boxH / 2);
         });
 
         return canvas.toDataURL('image/png', 1.0);
