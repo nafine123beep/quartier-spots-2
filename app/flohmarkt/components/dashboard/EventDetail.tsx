@@ -9,6 +9,7 @@ import { AdminSpotTable } from "./AdminSpotTable";
 import { EventEditForm } from "./EventEditForm";
 import { PendingDeletionRequests } from "./PendingDeletionRequests";
 import { HighlightManagementPanel } from "./HighlightManagementPanel";
+import { PrintViewModal } from "./PrintView";
 import { getSpotTerms } from "../../lib/spotTerms";
 
 export function EventDetail() {
@@ -28,6 +29,7 @@ export function EventDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "spots" | "highlights" | "deletion-requests">("overview");
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
@@ -241,6 +243,15 @@ export function EventDetail() {
                       )}
 
                       <button
+                        onClick={() => setIsPrintModalOpen(true)}
+                        disabled={isProcessing}
+                        className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
+                        title="PDF mit Spots, Highlights und Karte erstellen"
+                      >
+                        🖨️ PDF erstellen
+                      </button>
+
+                      <button
                         onClick={handleDelete}
                         disabled={isProcessing}
                         className="bg-red-600 text-white px-4 py-2 rounded-md font-bold hover:bg-red-700 disabled:opacity-50 ml-auto"
@@ -266,6 +277,12 @@ export function EventDetail() {
           </div>
         </div>
       </div>
+
+      {/* Print View Modal */}
+      <PrintViewModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+      />
     </div>
   );
 }

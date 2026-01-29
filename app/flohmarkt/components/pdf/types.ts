@@ -1,0 +1,51 @@
+import { Spot, TenantEvent, CustomHighlightType } from '../../types';
+
+/**
+ * Input data for PDF generation
+ */
+export interface PDFGeneratorInput {
+  event: TenantEvent;
+  spots: Spot[];
+  highlights: Spot[];
+  customHighlightTypes: CustomHighlightType[];
+  mapImageDataUrl: string;
+}
+
+/**
+ * Processed spot entry for PDF rendering
+ */
+export interface PDFSpotEntry {
+  number: number;
+  address: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string;
+  publicNote: string;
+  internalNote: string;
+  hasCoordinates: boolean;
+}
+
+/**
+ * Processed highlight entry for PDF rendering
+ */
+export interface PDFHighlightEntry {
+  icon: string;
+  label: string;
+  address: string;
+  note: string;
+}
+
+/**
+ * Map viewport bounds
+ */
+export interface MapBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
+/**
+ * State for PDF generation process
+ */
+export type PDFGenerationState = 'idle' | 'capturing' | 'generating' | 'complete' | 'error';
