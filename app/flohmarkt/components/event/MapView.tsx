@@ -9,6 +9,9 @@ import { SpotCarousel } from "../shared/SpotCarousel";
 import { Spot } from "../../types";
 import { getSpotTerms } from "../../lib/spotTerms";
 import { getHighlightIcon, getHighlightTypeLabel } from "../../lib/highlightConfig";
+import { iconToSvgString } from "../../lib/iconResolver";
+import { Trash2 } from "@/app/flohmarkt/components/icons";
+import { renderToStaticMarkup } from 'react-dom/server';
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
 export function MapView() {
@@ -33,7 +36,7 @@ export function MapView() {
   }, [setDeletePreFill, setCurrentTab]);
 
   // Function to create custom divIcon for highlights
-  const createHighlightIcon = useCallback((L: any, icon: string, label: string) => {
+  const createHighlightIcon = useCallback((L: any, iconSvg: string, label: string) => {
     return L.divIcon({
       html: `
         <div style="text-align: center; position: relative;">
@@ -46,10 +49,9 @@ export function MapView() {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             margin: 0 auto;
-          ">${icon}</div>
+          ">${iconSvg}</div>
           <div class="highlight-label" style="
             margin-top: 4px;
             padding: 4px 10px;
@@ -174,15 +176,19 @@ export function MapView() {
       regularSpots.forEach((spot) => {
         if (spot.lat == null || spot.lng == null) return;
 
+        const deleteIconSvg = renderToStaticMarkup(
+          Trash2({ size: 14, color: '#dc3545', 'aria-label': 'Löschen' } as any)
+        );
+
         const popupContent = `
           <div>
             <b>${spot.address_raw || "-"}</b><br/>
             ${spot.public_note || "-"}<br/>
             <button
               onclick="window.dispatchEvent(new CustomEvent('deleteSpot', { detail: '${spot.address_raw || ""}' }))"
-              style="margin-top: 8px; color: #dc3545; border: 1px solid #dc3545; background: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
+              style="margin-top: 8px; color: #dc3545; border: 1px solid #dc3545; background: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
             >
-              🗑️ ${terms.deleteSpot}
+              ${deleteIconSvg} ${terms.deleteSpot}
             </button>
           </div>
         `;
@@ -198,12 +204,14 @@ export function MapView() {
       highlights.forEach((highlight) => {
         if (highlight.lat == null || highlight.lng == null) return;
 
-        const icon = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
+        const iconValue = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
         const label = highlight.title || getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
+        const iconSvg = iconToSvgString(iconValue, 20);
+        const markerIconSvg = iconToSvgString(iconValue, 24);
 
         const popupContent = `
           <div>
-            <div style="font-size: 20px; text-align: center;">${icon}</div>
+            <div style="text-align: center; margin-bottom: 8px;">${iconSvg}</div>
             <b>${label}</b><br/>
             ${highlight.public_note ? `<p style="margin: 4px 0;">${highlight.public_note}</p>` : ''}
           </div>
@@ -212,7 +220,7 @@ export function MapView() {
         const marker = L.marker(
           [highlight.lat, highlight.lng],
           {
-            icon: createHighlightIcon(L, icon, label),
+            icon: createHighlightIcon(L, markerIconSvg, label),
             zIndexOffset: 1000  // Render above regular spots
           }
         )

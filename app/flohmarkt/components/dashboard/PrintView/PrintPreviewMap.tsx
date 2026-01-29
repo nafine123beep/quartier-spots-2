@@ -3,8 +3,9 @@
 import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Spot, CustomHighlightType } from '../../../types';
 import { sortSpotsForPrint } from '../../../lib/printUtils';
-import { getHighlightTypeLabel } from '../../../lib/highlightConfig';
-import { getHighlightMarker } from '../../pdf/pdfStyles';
+import { getHighlightIcon, getHighlightTypeLabel } from '../../../lib/highlightConfig';
+import { iconToSvgString } from '../../../lib/iconResolver';
+import { Star } from '@/app/flohmarkt/components/icons';
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle, LatLngBounds } from 'leaflet';
 
 interface PrintPreviewMapProps {
@@ -72,17 +73,15 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
       });
     }, []);
 
-    // Create highlight icon - use text marker for better PDF rendering
+    // Create highlight icon with SVG for better rendering
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const createHighlightIcon = useCallback((L: any, typeKey: string, label: string) => {
-      const marker = getHighlightMarker(typeKey);
-
+    const createHighlightIcon = useCallback((L: any, iconSvg: string, label: string) => {
       return L.divIcon({
         html: `
           <div style="text-align: center;">
             <div style="
               min-width: 50px;
-              padding: 6px 10px;
+              padding: 8px 12px;
               background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
               border: 3px solid #d97706;
               border-radius: 8px;
@@ -92,14 +91,17 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
               font-family: Arial, Helvetica, sans-serif;
               box-shadow: 0 4px 12px rgba(0,0,0,0.4);
               white-space: nowrap;
-              text-transform: uppercase;
               letter-spacing: 0.5px;
-            ">${marker}</div>
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+            ">${iconSvg}</div>
           </div>
         `,
         className: 'highlight-marker-print',
-        iconSize: [60, 32],
-        iconAnchor: [30, 32],
+        iconSize: [60, 40],
+        iconAnchor: [30, 40],
       });
     }, []);
 
@@ -261,9 +263,11 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
 
           const typeKey = highlight.highlight_type || '';
           const label = highlight.title || getHighlightTypeLabel(typeKey, customHighlightTypes);
+          const iconValue = getHighlightIcon(typeKey, customHighlightTypes);
+          const iconSvg = iconToSvgString(iconValue, 20, '#1f2937');
 
           const marker = L.marker([highlight.lat, highlight.lng], {
-            icon: createHighlightIcon(L, typeKey, label),
+            icon: createHighlightIcon(L, iconSvg, label),
             zIndexOffset: 1000, // Render above regular spots
           }).addTo(map);
 
@@ -388,7 +392,9 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
             )}
             {highlights.length > 0 && (
               <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded px-1.5 py-0.5 text-[9px] font-bold text-gray-800 border border-amber-600">[R]</div>
+                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded p-1 flex items-center justify-center border border-amber-600">
+                  <Star size={12} fill="#1f2937" color="#1f2937" aria-label="Highlight" />
+                </div>
                 <span className="text-gray-600">= Highlight</span>
               </div>
             )}
