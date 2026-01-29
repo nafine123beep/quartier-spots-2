@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import { PDFGeneratorInput } from './types';
-import { PDF_STYLES, getContentWidth, getHighlightMarker } from './pdfStyles';
+import { PDF_STYLES, getContentWidth } from './pdfStyles';
 import {
   sortSpotsForPrint,
   formatAddressForPrint,
@@ -8,6 +8,23 @@ import {
 } from '../../lib/printUtils';
 import { getHighlightTypeLabel } from '../../lib/highlightConfig';
 import { Spot, TenantEvent, CustomHighlightType } from '../../types';
+
+/**
+ * Draw a small amber highlight marker shape in the PDF
+ * Matches the visual style of highlight markers on the Leaflet map
+ */
+function drawHighlightMarker(doc: jsPDF, x: number, y: number): void {
+  // Draw amber/yellow rounded rectangle
+  doc.setFillColor('#f59e0b');
+  doc.roundedRect(x, y - 4, 12, 6, 1, 1, 'F');
+  // Draw border
+  doc.setDrawColor('#d97706');
+  doc.setLineWidth(0.3);
+  doc.roundedRect(x, y - 4, 12, 6, 1, 1, 'S');
+  // Draw a small star/dot inside
+  doc.setFillColor('#1f2937');
+  doc.circle(x + 6, y - 1, 1.2, 'F');
+}
 
 /**
  * Generate a PDF document for an event with all spots, highlights, and a map.
@@ -181,15 +198,13 @@ function renderHighlightsSection(
       y = PDF_STYLES.marginTop;
     }
 
-    // Get text marker and label
-    const marker = getHighlightMarker(highlight.highlight_type || '');
+    // Get label
     const label = highlight.title || getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
 
-    // Marker + Label line
+    // Draw highlight marker shape + Label
+    drawHighlightMarker(doc, marginLeft, y);
     doc.setFontSize(fonts.body.size);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(colors.secondary);
-    doc.text(marker, marginLeft, y);
     doc.setTextColor(colors.text);
     doc.text(label, marginLeft + 20, y);
     y += spacing.md;
@@ -524,24 +539,21 @@ function renderMapSection(
     y += spacing.md;
 
     // Group highlights by type to avoid duplicates
-    const uniqueTypes = new Map<string, { marker: string; label: string }>();
+    const uniqueTypes = new Map<string, { label: string }>();
     for (const highlight of highlights) {
       const typeKey = highlight.highlight_type || 'unknown';
       if (!uniqueTypes.has(typeKey)) {
-        const marker = getHighlightMarker(typeKey);
         const label = highlight.title || getHighlightTypeLabel(typeKey, customHighlightTypes);
-        uniqueTypes.set(typeKey, { marker, label });
+        uniqueTypes.set(typeKey, { label });
       }
     }
 
     // Render in columns if many types
     let col = 0;
     const colWidth = contentWidth / 2 - spacing.md;
-    for (const [, { marker, label }] of uniqueTypes) {
+    for (const [, { label }] of uniqueTypes) {
       const xOffset = col * colWidth;
-      doc.setTextColor(colors.secondary);
-      doc.setFont('helvetica', 'bold');
-      doc.text(marker, marginLeft + spacing.md + xOffset, y);
+      drawHighlightMarker(doc, marginLeft + spacing.md + xOffset, y);
       doc.setTextColor(colors.text);
       doc.setFont('helvetica', 'normal');
       doc.text(label, marginLeft + spacing.md + xOffset + 18, y);

@@ -73,19 +73,6 @@ export const PDF_STYLES = {
     height: 120,
   },
 
-  // Highlight type markers (simple text symbols for PDF compatibility)
-  // jsPDF doesn't support emojis with default fonts
-  highlightMarkers: {
-    registration: '[R]',
-    toilets: '[WC]',
-    food_drinks: '[F&D]',
-    start: '[START]',
-    finish: '[FINISH]',
-    awareness_team: '[HELP]',
-    info_point: '[i]',
-    parking: '[P]',
-    default: '[*]',
-  } as Record<string, string>,
 } as const;
 
 /**
@@ -102,9 +89,3 @@ export function getUsableHeight(): number {
   return PDF_STYLES.pageHeight - PDF_STYLES.marginTop - PDF_STYLES.marginBottom;
 }
 
-/**
- * Get a simple text marker for highlight type (PDF-safe, no emojis)
- */
-export function getHighlightMarker(typeKey: string): string {
-  return PDF_STYLES.highlightMarkers[typeKey] || PDF_STYLES.highlightMarkers.default;
-}
