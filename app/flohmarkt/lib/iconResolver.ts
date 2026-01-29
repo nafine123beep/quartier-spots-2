@@ -182,18 +182,24 @@ export function getIconColorStyle(iconValue: string): string {
  * @returns SVG string
  */
 export function iconToSvgString(iconValue: string, size: number = 24, color?: string): string {
-  const IconComponent = resolveIcon(iconValue);
-  const iconColor = color || getIconColorStyle(iconValue) || 'currentColor';
+  try {
+    const IconComponent = resolveIcon(iconValue);
+    const iconColor = color || getIconColorStyle(iconValue) || 'currentColor';
 
-  // Render the React component to static HTML
-  const svgString = renderToStaticMarkup(
-    React.createElement(IconComponent, {
-      size,
-      strokeWidth: 2,
-      color: iconColor,
-      'aria-label': iconValue,
-    })
-  );
+    // Render the React component to static HTML
+    const svgString = renderToStaticMarkup(
+      React.createElement(IconComponent, {
+        size,
+        strokeWidth: 2,
+        color: iconColor,
+        'aria-label': iconValue,
+      })
+    );
 
-  return svgString;
+    return svgString;
+  } catch (error) {
+    console.error('Error in iconToSvgString:', error, 'iconValue:', iconValue);
+    // Return a fallback SVG circle
+    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/></svg>';
+  }
 }
