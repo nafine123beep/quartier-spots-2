@@ -305,9 +305,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         const map = mapRef.current;
 
         // Wait for tiles to fully load
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        map.invalidateSize();
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const html2canvas = (await import('html2canvas')).default;
         const scale = 2.5;
