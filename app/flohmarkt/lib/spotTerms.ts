@@ -40,7 +40,7 @@ export function getSpotTerms(singular?: string | null, plural?: string | null) {
     // Admin/Dashboard
     registeredSpots: `Angemeldete ${pluralTerm}`,
     managementRegisteredSpots: `Verwaltung: Angemeldete ${pluralTerm}`,
-    contactAllSpots: `Alle ${pluralTerm} kontaktieren`,
+    contactAllSpots: `Email an alle ${singularTerm}-Verantwortlichen`,
     allSpotsDeleted: `Alle ${pluralTerm} werden ebenfalls gelöscht!`,
     addressSlashSpot: `Adresse / ${singularTerm}`,
     spotsAwaitingDeletion: `Folgende ${pluralTerm} haben eine Löschanfrage von Besucher:innen erhalten`,
