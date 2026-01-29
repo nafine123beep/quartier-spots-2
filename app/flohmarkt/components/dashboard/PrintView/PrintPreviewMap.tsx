@@ -329,6 +329,21 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error('Could not get canvas context');
 
+        // Convert lat/lng to container pixel coordinates using pure math.
+        // Avoids latLngToContainerPoint which depends on _leaflet_pos DOM state.
+        const zoom = map.getZoom();
+        const center = map.getCenter();
+        const size = map.getSize(); // container size in CSS pixels
+        const centerPixel = map.project(center, zoom);
+
+        const toContainerXY = (lat: number, lng: number): { x: number; y: number } => {
+          const pixel = map.project([lat, lng], zoom);
+          return {
+            x: (pixel.x - centerPixel.x + size.x / 2) * scale,
+            y: (pixel.y - centerPixel.y + size.y / 2) * scale,
+          };
+        };
+
         // Helper: draw a rounded rectangle (polyfill for older browsers)
         const drawRoundedRect = (
           x: number, y: number, w: number, h: number, r: number
@@ -350,9 +365,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         sortedSpots.forEach((spot, index) => {
           if (spot.lat == null || spot.lng == null) return;
 
-          const point = map.latLngToContainerPoint([spot.lat, spot.lng]);
-          const x = point.x * scale;
-          const y = point.y * scale;
+          const { x, y } = toContainerXY(spot.lat, spot.lng);
           const r = 18 * scale;
           const number = index + 1;
 
@@ -388,9 +401,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         highlights.forEach((highlight) => {
           if (highlight.lat == null || highlight.lng == null) return;
 
-          const point = map.latLngToContainerPoint([highlight.lat, highlight.lng]);
-          const x = point.x * scale;
-          const y = point.y * scale;
+          const { x, y } = toContainerXY(highlight.lat, highlight.lng);
           const label = highlight.title || getHighlightTypeLabel(
             highlight.highlight_type || '', customHighlightTypes
           );
