@@ -286,7 +286,7 @@ export async function generatePosterPDF(input: PosterPDFInput): Promise<Blob> {
     format: 'a4',
   });
 
-  let y = marginTop;
+  let y: number = marginTop;
 
   // 1. Title
   y = renderPosterTitle(doc, event.title, y, contentWidth);

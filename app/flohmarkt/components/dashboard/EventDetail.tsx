@@ -10,6 +10,9 @@ import { EventEditForm } from "./EventEditForm";
 import { PendingDeletionRequests } from "./PendingDeletionRequests";
 import { HighlightManagementPanel } from "./HighlightManagementPanel";
 import { PrintViewModal } from "./PrintView";
+import { generatePosterPDF } from "../pdf/PosterPDFGenerator";
+import { downloadPDF } from "../pdf/PDFGenerator";
+import { getPublicImageUrl } from "../../lib/imageUpload";
 import { getSpotTerms } from "../../lib/spotTerms";
 
 export function EventDetail() {
@@ -30,6 +33,7 @@ export function EventDetail() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "spots" | "highlights" | "deletion-requests">("overview");
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isPosterGenerating, setIsPosterGenerating] = useState(false);
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
@@ -76,6 +80,38 @@ export function EventDetail() {
       router.push(`/flohmarkt/organizations/${currentTenant.slug}`);
     } else {
       alert(`Fehler: ${result.error}`);
+    }
+  };
+
+  const handleGeneratePoster = async () => {
+    if (!currentTenantEvent || !currentTenant) return;
+
+    setIsPosterGenerating(true);
+    try {
+      const baseUrl = window.location.origin;
+      const registrationUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?tab=form`;
+
+      let coverImageUrl: string | undefined;
+      if (currentTenantEvent.images && currentTenantEvent.images.length > 0) {
+        const coverImage = currentTenantEvent.images.find(img => img.is_cover)
+          || currentTenantEvent.images[0];
+        coverImageUrl = getPublicImageUrl(coverImage.storage_path);
+      }
+
+      const blob = await generatePosterPDF({
+        event: currentTenantEvent,
+        organizationSlug: currentTenant.slug,
+        coverImageUrl,
+        registrationUrl,
+      });
+
+      const filename = `${currentTenantEvent.slug}-poster-${new Date().toISOString().split('T')[0]}.pdf`;
+      downloadPDF(blob, filename);
+    } catch (error) {
+      console.error('Poster generation failed:', error);
+      alert('Fehler beim Erstellen des Posters. Bitte versuchen Sie es erneut.');
+    } finally {
+      setIsPosterGenerating(false);
     }
   };
 
@@ -249,6 +285,15 @@ export function EventDetail() {
                         title="PDF mit Spots, Highlights und Karte erstellen"
                       >
                         🖨️ PDF erstellen
+                      </button>
+
+                      <button
+                        onClick={handleGeneratePoster}
+                        disabled={isProcessing || isPosterGenerating}
+                        className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
+                        title="Werbeposter als PDF erstellen (mit QR-Code)"
+                      >
+                        {isPosterGenerating ? '⏳ Poster wird erstellt...' : '📋 Poster erstellen'}
                       </button>
 
                       <button
