@@ -3,8 +3,9 @@
 import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { Spot, CustomHighlightType } from '../../../types';
 import { sortSpotsForPrint } from '../../../lib/printUtils';
-import { getHighlightIcon, getHighlightTypeLabel } from '../../../lib/highlightConfig';
-import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from 'leaflet';
+import { getHighlightTypeLabel } from '../../../lib/highlightConfig';
+import { getHighlightMarker } from '../../pdf/pdfStyles';
+import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle, LatLngBounds } from 'leaflet';
 
 interface PrintPreviewMapProps {
   spots: Spot[];
@@ -18,6 +19,7 @@ interface PrintPreviewMapProps {
 export interface PrintPreviewMapRef {
   getMapInstance: () => LeafletMap | null;
   captureAsImage: () => Promise<string>;
+  fitToMarkers: () => void;
 }
 
 export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapProps>(
@@ -39,62 +41,98 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
     // Sort spots consistently for numbering
     const sortedSpots = sortSpotsForPrint(spots);
 
-    // Create numbered marker icon for spots
+    // Create numbered marker icon for spots - larger and more visible
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createNumberedIcon = useCallback((L: any, number: number) => {
       // Adjust font size based on number of digits
-      const fontSize = number > 99 ? '10' : number > 9 ? '12' : '14';
+      const fontSize = number > 99 ? '12' : number > 9 ? '14' : '16';
 
       return L.divIcon({
         html: `
           <div style="
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background: #003366;
-            border: 3px solid white;
+            border: 4px solid white;
             border-radius: 50%;
             color: white;
-            font-weight: bold;
+            font-weight: 900;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: ${fontSize}px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 0 2px #003366;
+            font-family: Arial, Helvetica, sans-serif;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
           ">${number}</div>
         `,
         className: 'numbered-marker-print',
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
       });
     }, []);
 
-    // Create highlight icon (emoji in yellow circle)
+    // Create highlight icon - use text marker for better PDF rendering
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const createHighlightIcon = useCallback((L: any, icon: string, label: string) => {
+    const createHighlightIcon = useCallback((L: any, typeKey: string, label: string) => {
+      const marker = getHighlightMarker(typeKey);
+
       return L.divIcon({
         html: `
           <div style="text-align: center;">
             <div style="
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              background-color: #FFC107;
-              border: 3px solid #FF9800;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 22px;
-              box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-              margin: 0 auto;
-            ">${icon}</div>
+              min-width: 50px;
+              padding: 6px 10px;
+              background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+              border: 3px solid #d97706;
+              border-radius: 8px;
+              color: #1f2937;
+              font-weight: 900;
+              font-size: 11px;
+              font-family: Arial, Helvetica, sans-serif;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+              white-space: nowrap;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            ">${marker}</div>
           </div>
         `,
         className: 'highlight-marker-print',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
+        iconSize: [60, 32],
+        iconAnchor: [30, 32],
       });
     }, []);
+
+    // Fit map to show all markers
+    const fitToMarkers = useCallback(() => {
+      if (!mapRef.current) return;
+
+      const allCoords: [number, number][] = [];
+
+      // Collect all spot coordinates
+      sortedSpots.forEach(spot => {
+        if (spot.lat != null && spot.lng != null) {
+          allCoords.push([spot.lat, spot.lng]);
+        }
+      });
+
+      // Collect all highlight coordinates
+      highlights.forEach(highlight => {
+        if (highlight.lat != null && highlight.lng != null) {
+          allCoords.push([highlight.lat, highlight.lng]);
+        }
+      });
+
+      if (allCoords.length > 0) {
+        import('leaflet').then(L => {
+          const bounds = L.default.latLngBounds(allCoords);
+          mapRef.current?.fitBounds(bounds, {
+            padding: [50, 50],
+            maxZoom: 16,
+          });
+        });
+      }
+    }, [sortedSpots, highlights]);
 
     // Initialize map
     useEffect(() => {
@@ -109,6 +147,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
 
       // Check if container already has Leaflet attached
       const container = mapContainerRef.current;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((container as any)._leaflet_id) {
         return;
       }
@@ -117,6 +156,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         try {
           const L = (await import('leaflet')).default;
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if (!mapContainerRef.current || (mapContainerRef.current as any)._leaflet_id) {
             return;
           }
@@ -129,10 +169,14 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
             shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
           });
 
-          const map = L.map(mapContainerRef.current).setView(initialCenter, initialZoom);
+          const map = L.map(mapContainerRef.current, {
+            zoomControl: true,
+            attributionControl: false, // Hide attribution for cleaner print
+          }).setView(initialCenter, initialZoom);
 
+          // Use a cleaner tile layer for print
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap',
+            attribution: '',
           }).addTo(map);
 
           // Add boundary circle if configured
@@ -150,6 +194,11 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
 
           mapRef.current = map;
           setIsReady(true);
+
+          // Auto-fit to markers after a short delay
+          setTimeout(() => {
+            fitToMarkers();
+          }, 500);
         } catch (error) {
           console.error('Error initializing print preview map:', error);
         }
@@ -170,7 +219,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           setIsReady(false);
         }
       };
-    }, [initialCenter, initialZoom, boundaryRadius]);
+    }, [initialCenter, initialZoom, boundaryRadius, fitToMarkers]);
 
     // Update markers when spots/highlights change
     useEffect(() => {
@@ -199,7 +248,8 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           marker.bindTooltip(`#${number}: ${spot.address_raw || spot.street || 'Spot'}`, {
             permanent: false,
             direction: 'top',
-            offset: [0, -20],
+            offset: [0, -25],
+            className: 'print-tooltip',
           });
 
           markersRef.current.push(marker);
@@ -209,11 +259,11 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         highlights.forEach((highlight) => {
           if (highlight.lat == null || highlight.lng == null) return;
 
-          const icon = highlight.highlight_icon || getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
-          const label = highlight.title || getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
+          const typeKey = highlight.highlight_type || '';
+          const label = highlight.title || getHighlightTypeLabel(typeKey, customHighlightTypes);
 
           const marker = L.marker([highlight.lat, highlight.lng], {
-            icon: createHighlightIcon(L, icon, label),
+            icon: createHighlightIcon(L, typeKey, label),
             zIndexOffset: 1000, // Render above regular spots
           }).addTo(map);
 
@@ -222,6 +272,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
             permanent: false,
             direction: 'top',
             offset: [0, -20],
+            className: 'print-tooltip',
           });
 
           highlightMarkersRef.current.push(marker);
@@ -235,29 +286,32 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
     useImperativeHandle(ref, () => ({
       getMapInstance: () => mapRef.current,
 
+      fitToMarkers,
+
       captureAsImage: async () => {
         if (!mapRef.current || !mapContainerRef.current) {
           throw new Error('Map not ready for capture');
         }
 
-        // Wait a bit for tiles to load
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Wait for tiles to fully load
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Invalidate map size to ensure proper rendering
         mapRef.current.invalidateSize();
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         const html2canvas = (await import('html2canvas')).default;
 
         const canvas = await html2canvas(mapContainerRef.current, {
           useCORS: true,
           allowTaint: false,
-          scale: 2, // Higher resolution for print
+          scale: 2.5, // Higher resolution for better print quality
           logging: false,
-          backgroundColor: '#f3f4f6',
+          backgroundColor: '#ffffff',
+          removeContainer: false,
         });
 
-        return canvas.toDataURL('image/png');
+        return canvas.toDataURL('image/png', 1.0);
       },
     }));
 
@@ -271,11 +325,27 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           crossOrigin=""
         />
 
+        {/* Custom styles for print markers */}
+        <style>{`
+          .numbered-marker-print,
+          .highlight-marker-print {
+            background: transparent !important;
+            border: none !important;
+          }
+          .print-tooltip {
+            font-weight: bold;
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          }
+        `}</style>
+
         {/* Map Container */}
         <div
           ref={mapContainerRef}
           className="w-full h-full"
-          style={{ minHeight: '400px' }}
+          style={{ minHeight: '400px', background: '#f3f4f6' }}
         />
 
         {/* Loading state */}
@@ -288,12 +358,40 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           </div>
         )}
 
-        {/* Instructions overlay */}
+        {/* Instructions and controls overlay */}
         {isReady && (
-          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md text-sm text-gray-700 max-w-xs">
-            <p className="m-0">
-              <span className="font-bold text-[#003366]">Tipp:</span> Verschieben und zoomen Sie die Karte, um den gewünschten Ausschnitt für das PDF zu wählen.
-            </p>
+          <div className="absolute top-3 left-3 right-3 flex justify-between items-start pointer-events-none">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md text-sm text-gray-700 max-w-xs pointer-events-auto">
+              <p className="m-0">
+                <span className="font-bold text-[#003366]">Tipp:</span> Verschieben und zoomen Sie die Karte.
+              </p>
+            </div>
+
+            <button
+              onClick={fitToMarkers}
+              className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md text-sm font-medium text-[#003366] hover:bg-gray-50 pointer-events-auto transition-colors"
+            >
+              Alle anzeigen
+            </button>
+          </div>
+        )}
+
+        {/* Legend overlay */}
+        {isReady && (sortedSpots.length > 0 || highlights.length > 0) && (
+          <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md text-xs">
+            <div className="font-bold text-gray-700 mb-1">Legende:</div>
+            {sortedSpots.length > 0 && (
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-5 h-5 bg-[#003366] rounded-full flex items-center justify-center text-white text-[10px] font-bold border-2 border-white shadow">1</div>
+                <span className="text-gray-600">= Spot (nummeriert)</span>
+              </div>
+            )}
+            {highlights.length > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded px-1.5 py-0.5 text-[9px] font-bold text-gray-800 border border-amber-600">[R]</div>
+                <span className="text-gray-600">= Highlight</span>
+              </div>
+            )}
           </div>
         )}
       </div>
