@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { MapDrawer } from "../shared/MapDrawer";
 import { SpotItem } from "../shared/SpotItem";
@@ -177,7 +177,7 @@ export function MapView() {
         if (spot.lat == null || spot.lng == null) return;
 
         const deleteIconSvg = renderToStaticMarkup(
-          Trash2({ size: 14, color: '#dc3545', 'aria-label': 'Löschen' } as any)
+          React.createElement(Trash2, { size: 14, color: '#dc3545', 'aria-label': 'Löschen' })
         );
 
         const popupContent = `
