@@ -49,3 +49,13 @@ export interface MapBounds {
  * State for PDF generation process
  */
 export type PDFGenerationState = 'idle' | 'capturing' | 'generating' | 'complete' | 'error';
+
+/**
+ * Input data for promotional poster PDF generation
+ */
+export interface PosterPDFInput {
+  event: TenantEvent;
+  organizationSlug: string;
+  coverImageUrl?: string;
+  registrationUrl: string;
+}

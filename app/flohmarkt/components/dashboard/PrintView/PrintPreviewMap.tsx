@@ -309,71 +309,48 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
         mapRef.current.invalidateSize();
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // html2canvas doesn't handle CSS transform: translate3d() correctly,
-        // which Leaflet uses to position markers. Convert transforms to
-        // top/left positioning temporarily for capture.
-        const container = mapContainerRef.current;
-        const transformedElements: { el: HTMLElement; origTransform: string; origTop: string; origLeft: string }[] = [];
+        const html2canvas = (await import('html2canvas')).default;
 
-        container.querySelectorAll<HTMLElement>('.leaflet-marker-icon, .leaflet-marker-shadow').forEach(el => {
-          const transform = el.style.transform || window.getComputedStyle(el).transform;
-          if (transform && transform !== 'none') {
-            // Parse translate3d(Xpx, Ypx, Zpx) or translate(Xpx, Ypx)
-            const match = transform.match(/translate3d\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px/);
-            if (match) {
-              transformedElements.push({
-                el,
-                origTransform: el.style.transform,
-                origTop: el.style.top,
-                origLeft: el.style.left,
-              });
+        // Parse translate values from transform strings.
+        // Handles both translate3d(Xpx, Ypx, Zpx) and matrix(a,b,c,d,tx,ty)
+        const parseTranslate = (transform: string): [number, number] | null => {
+          const t3d = transform.match(/translate3d\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px/);
+          if (t3d) return [parseFloat(t3d[1]), parseFloat(t3d[2])];
+          const matrix = transform.match(/matrix\(\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*[^,]+,\s*(-?[\d.]+),\s*(-?[\d.]+)/);
+          if (matrix) return [parseFloat(matrix[1]), parseFloat(matrix[2])];
+          return null;
+        };
+
+        // Convert CSS transforms to top/left in the cloned DOM.
+        // html2canvas doesn't reliably handle translate3d which Leaflet
+        // uses to position all panes and markers.
+        const fixTransforms = (clonedElement: HTMLElement) => {
+          const selectors = '.leaflet-pane, .leaflet-tile-container, .leaflet-marker-icon, .leaflet-marker-shadow';
+          clonedElement.querySelectorAll<HTMLElement>(selectors).forEach(el => {
+            const transform = el.style.transform;
+            if (!transform || transform === 'none') return;
+            const xy = parseTranslate(transform);
+            if (xy) {
               el.style.transform = 'none';
-              el.style.left = `${match[1]}px`;
-              el.style.top = `${match[2]}px`;
+              el.style.left = (parseFloat(el.style.left || '0') + xy[0]) + 'px';
+              el.style.top = (parseFloat(el.style.top || '0') + xy[1]) + 'px';
             }
-          }
+          });
+        };
+
+        const canvas = await html2canvas(mapContainerRef.current, {
+          useCORS: true,
+          allowTaint: false,
+          scale: 2.5,
+          logging: false,
+          backgroundColor: '#ffffff',
+          removeContainer: false,
+          onclone: (_doc: Document, clonedElement: HTMLElement) => {
+            fixTransforms(clonedElement);
+          },
         });
 
-        // Also fix the marker pane and other Leaflet panes that use transforms
-        container.querySelectorAll<HTMLElement>('.leaflet-pane').forEach(el => {
-          const transform = el.style.transform || window.getComputedStyle(el).transform;
-          if (transform && transform !== 'none') {
-            const match = transform.match(/translate3d\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px/);
-            if (match) {
-              transformedElements.push({
-                el,
-                origTransform: el.style.transform,
-                origTop: el.style.top,
-                origLeft: el.style.left,
-              });
-              el.style.transform = 'none';
-              el.style.left = `${match[1]}px`;
-              el.style.top = `${match[2]}px`;
-            }
-          }
-        });
-
-        try {
-          const html2canvas = (await import('html2canvas')).default;
-
-          const canvas = await html2canvas(container, {
-            useCORS: true,
-            allowTaint: false,
-            scale: 2.5, // Higher resolution for better print quality
-            logging: false,
-            backgroundColor: '#ffffff',
-            removeContainer: false,
-          });
-
-          return canvas.toDataURL('image/png', 1.0);
-        } finally {
-          // Restore original transforms
-          transformedElements.forEach(({ el, origTransform, origTop, origLeft }) => {
-            el.style.transform = origTransform;
-            el.style.top = origTop;
-            el.style.left = origLeft;
-          });
-        }
+        return canvas.toDataURL('image/png', 1.0);
       },
     }));
 
