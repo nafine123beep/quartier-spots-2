@@ -5,6 +5,7 @@
  * Supports backward compatibility with emoji strings during migration.
  */
 
+import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
@@ -186,12 +187,12 @@ export function iconToSvgString(iconValue: string, size: number = 24, color?: st
 
   // Render the React component to static HTML
   const svgString = renderToStaticMarkup(
-    IconComponent({
+    React.createElement(IconComponent, {
       size,
       strokeWidth: 2,
       color: iconColor,
       'aria-label': iconValue,
-    } as any)
+    })
   );
 
   return svgString;
