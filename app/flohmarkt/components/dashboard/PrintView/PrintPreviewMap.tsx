@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Spot, CustomHighlightType } from '../../../types';
 import { sortSpotsForPrint } from '../../../lib/printUtils';
 import { getHighlightIcon, getHighlightTypeLabel } from '../../../lib/highlightConfig';
@@ -39,8 +39,8 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
     const boundaryCircleRef = useRef<LeafletCircle | null>(null);
     const [isReady, setIsReady] = useState(false);
 
-    // Sort spots consistently for numbering
-    const sortedSpots = sortSpotsForPrint(spots);
+    // Sort spots consistently for numbering (memoized to prevent render loops)
+    const sortedSpots = useMemo(() => sortSpotsForPrint(spots), [spots]);
 
     // Create numbered marker icon for spots - larger and more visible
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,6 +136,10 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
       }
     }, [sortedSpots, highlights]);
 
+    // Ref to call fitToMarkers from init effect without it being a dependency
+    const fitToMarkersRef = useRef(fitToMarkers);
+    fitToMarkersRef.current = fitToMarkers;
+
     // Initialize map
     useEffect(() => {
       if (typeof window === 'undefined' || !mapContainerRef.current) {
@@ -199,7 +203,7 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
 
           // Auto-fit to markers after a short delay
           setTimeout(() => {
-            fitToMarkers();
+            fitToMarkersRef.current();
           }, 500);
         } catch (error) {
           console.error('Error initializing print preview map:', error);
@@ -221,7 +225,8 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           setIsReady(false);
         }
       };
-    }, [initialCenter, initialZoom, boundaryRadius, fitToMarkers]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialCenter, initialZoom, boundaryRadius]);
 
     // Update markers when spots/highlights change
     useEffect(() => {
