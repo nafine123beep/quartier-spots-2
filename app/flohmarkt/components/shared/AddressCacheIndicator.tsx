@@ -1,5 +1,7 @@
 "use client";
 
+import { MapPin } from '@/app/flohmarkt/components/icons';
+
 interface AddressCacheIndicatorProps {
   onClear: () => void;
   onDismiss: () => void;
@@ -12,7 +14,9 @@ export function AddressCacheIndicator({
   return (
     <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg shadow-sm">
       <div className="flex items-start gap-3 p-4">
-        <div className="flex-shrink-0 text-2xl">📍</div>
+        <div className="flex-shrink-0">
+          <MapPin size={24} className="text-blue-600" aria-label="Standort" />
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-900 mb-1">
             Adresse wurde automatisch ausgefüllt

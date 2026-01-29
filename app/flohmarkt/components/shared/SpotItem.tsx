@@ -1,6 +1,7 @@
 "use client";
 
 import { Spot } from "../../types";
+import { Trash2 } from '@/app/flohmarkt/components/icons';
 
 interface SpotItemProps {
   spot: Spot;
@@ -49,11 +50,11 @@ export function SpotItem({
             absolute top-4 right-4 w-11 h-11
             bg-red-50 border border-red-200 text-red-500
             rounded-full flex items-center justify-center
-            hover:bg-red-500 hover:text-white
+            hover:bg-red-500 hover:text-white hover:[&>svg]:text-white
             transition-colors z-10
           "
         >
-          🗑️
+          <Trash2 size={20} aria-label="Löschen" />
         </button>
       )}
 

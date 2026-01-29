@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useFlohmarkt } from '../../FlohmarktContext';
 import { AVAILABLE_HIGHLIGHT_ICONS } from '../../lib/highlightConfig';
+import { resolveIcon, getIconColorClass } from '../../lib/iconResolver';
+import { Trash2, Loader2 } from '@/app/flohmarkt/components/icons';
 
 interface CustomTypeManagerProps {
   onClose: () => void;
@@ -41,7 +43,7 @@ function generateTypeKey(label: string, existingKeys: string[]): string {
 export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
   const { customHighlightTypes, addCustomHighlightType, deleteCustomHighlightType } = useFlohmarkt();
   const [label, setLabel] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState(AVAILABLE_HIGHLIGHT_ICONS[5]); // Default to 📍
+  const [selectedIcon, setSelectedIcon] = useState(AVAILABLE_HIGHLIGHT_ICONS[3]); // Default to map-pin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -62,7 +64,7 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
 
     if (success) {
       setLabel('');
-      setSelectedIcon(AVAILABLE_HIGHLIGHT_ICONS[5]);
+      setSelectedIcon(AVAILABLE_HIGHLIGHT_ICONS[3]);
     } else {
       alert('Fehler beim Erstellen des Typs');
     }
@@ -104,25 +106,38 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
                 Vorhandene benutzerdefinierte Typen
               </h3>
               <div className="space-y-2">
-                {customHighlightTypes.map((type) => (
-                  <div
-                    key={type.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{type.icon}</span>
-                      <span className="font-medium text-gray-900">{type.label}</span>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(type.id)}
-                      title="Löschen"
-                      className="bg-red-50 border border-red-200 text-red-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-red-100 disabled:opacity-50 transition-colors"
-                      disabled={deletingId === type.id}
+                {customHighlightTypes.map((type) => {
+                  const IconComponent = resolveIcon(type.icon);
+                  const colorClass = getIconColorClass(type.icon);
+
+                  return (
+                    <div
+                      key={type.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                     >
-                      {deletingId === type.id ? '...' : '🗑️'}
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3">
+                        <IconComponent
+                          size={24}
+                          className={colorClass || 'text-gray-700'}
+                          aria-label={type.label}
+                        />
+                        <span className="font-medium text-gray-900">{type.label}</span>
+                      </div>
+                      <button
+                        onClick={() => handleDelete(type.id)}
+                        title="Löschen"
+                        className="bg-red-50 border border-red-200 text-red-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-red-100 disabled:opacity-50 transition-colors"
+                        disabled={deletingId === type.id}
+                      >
+                        {deletingId === type.id ? (
+                          <Loader2 size={16} className="animate-spin" aria-label="Lädt..." />
+                        ) : (
+                          <Trash2 size={16} aria-label="Löschen" />
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -153,22 +168,32 @@ export function CustomTypeManager({ onClose }: CustomTypeManagerProps) {
                   Icon auswählen *
                 </label>
                 <div className="grid grid-cols-5 gap-2">
-                  {AVAILABLE_HIGHLIGHT_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      type="button"
-                      onClick={() => setSelectedIcon(icon)}
-                      className={`
-                        p-3 text-2xl rounded-lg border-2 transition-all
-                        ${selectedIcon === icon
-                          ? 'border-[#003366] bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-400'
-                        }
-                      `}
-                    >
-                      {icon}
-                    </button>
-                  ))}
+                  {AVAILABLE_HIGHLIGHT_ICONS.map((iconName) => {
+                    const IconComponent = resolveIcon(iconName);
+                    const colorClass = getIconColorClass(iconName);
+
+                    return (
+                      <button
+                        key={iconName}
+                        type="button"
+                        onClick={() => setSelectedIcon(iconName)}
+                        className={`
+                          p-3 rounded-lg border-2 transition-all flex items-center justify-center
+                          ${selectedIcon === iconName
+                            ? 'border-[#003366] bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-400'
+                          }
+                        `}
+                        title={iconName}
+                      >
+                        <IconComponent
+                          size={24}
+                          className={colorClass || 'text-gray-700'}
+                          aria-label={iconName}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

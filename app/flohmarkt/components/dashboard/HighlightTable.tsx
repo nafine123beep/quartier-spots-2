@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useFlohmarkt } from '../../FlohmarktContext';
 import { Spot } from '../../types';
 import { getHighlightIcon, getHighlightTypeLabel } from '../../lib/highlightConfig';
+import { resolveIcon, getIconColorClass } from '../../lib/iconResolver';
+import { Pencil, Trash2, Loader2 } from '@/app/flohmarkt/components/icons';
 
 interface HighlightTableProps {
   highlights: Spot[];
@@ -62,14 +64,20 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {highlights.map((highlight) => {
-            const icon = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
+            const iconValue = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
             const label = getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
+            const IconComponent = resolveIcon(iconValue);
+            const colorClass = getIconColorClass(iconValue);
 
             return (
               <tr key={highlight.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">{icon}</span>
+                    <IconComponent
+                      size={24}
+                      className={colorClass || 'text-gray-700'}
+                      aria-label={label}
+                    />
                     <span className="text-sm font-medium text-gray-900">{label}</span>
                   </div>
                 </td>
@@ -96,7 +104,7 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
                       className="bg-blue-50 border border-blue-200 text-blue-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-blue-100 disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
-                      ✏️
+                      <Pencil size={16} aria-label="Bearbeiten" />
                     </button>
                     <button
                       onClick={() => handleDelete(highlight)}
@@ -104,7 +112,11 @@ export function HighlightTable({ highlights, onEdit }: HighlightTableProps) {
                       className="bg-red-50 border border-red-200 text-red-600 w-8 h-8 rounded inline-flex items-center justify-center hover:bg-red-100 disabled:opacity-50 transition-colors"
                       disabled={deletingId === highlight.id}
                     >
-                      {deletingId === highlight.id ? '...' : '🗑️'}
+                      {deletingId === highlight.id ? (
+                        <Loader2 size={16} className="animate-spin" aria-label="Lädt..." />
+                      ) : (
+                        <Trash2 size={16} aria-label="Löschen" />
+                      )}
                     </button>
                   </div>
                 </td>

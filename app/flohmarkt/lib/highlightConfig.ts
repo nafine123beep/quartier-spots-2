@@ -3,36 +3,40 @@ import { HighlightTypeDefinition, CustomHighlightType } from '../types';
 /**
  * Base highlight types predefined in the system
  * These are the standard infrastructure points available for all events
+ *
+ * NOTE: Icon values are now icon names (e.g., 'clipboard-list') instead of emojis.
+ * The iconResolver utility handles conversion to Lucide components.
  */
 export const BASE_HIGHLIGHT_TYPES: HighlightTypeDefinition[] = [
-  { key: 'registration', label: 'Registration / Check-in', icon: '📋' },
-  { key: 'toilets', label: 'Toilets', icon: '🚻' },
-  { key: 'food_drinks', label: 'Food & Drinks', icon: '🍽️' },
-  { key: 'start', label: 'Start', icon: '🚩' },
-  { key: 'finish', label: 'Finish', icon: '🏁' },
-  { key: 'awareness_team', label: 'Awareness Team', icon: '🛡️' },
-  { key: 'info_point', label: 'Info Point', icon: 'ℹ️' },
-  { key: 'parking', label: 'Parking', icon: '🅿️' },
+  { key: 'registration', label: 'Registration / Check-in', icon: 'clipboard-list' },
+  { key: 'toilets', label: 'Toilets', icon: 'door-open' },
+  { key: 'food_drinks', label: 'Food & Drinks', icon: 'utensils' },
+  { key: 'start', label: 'Start', icon: 'flag' },
+  { key: 'finish', label: 'Finish', icon: 'flag-triangle-right' },
+  { key: 'awareness_team', label: 'Awareness Team', icon: 'shield-check' },
+  { key: 'info_point', label: 'Info Point', icon: 'info' },
+  { key: 'parking', label: 'Parking', icon: 'circle-parking' },
 ];
 
 /**
  * Available icons for custom highlight types
  * Organized by category: Info, Star, and Pin variants with color options
+ *
+ * NOTE: Values are now icon names instead of emojis for better compatibility.
  */
 export const AVAILABLE_HIGHLIGHT_ICONS = [
-  // Info variants
-  'ℹ️',   // Info (blue)
+  // Info variant
+  'info',       // Info (blue)
   // Star variants
-  '⭐',   // Yellow star
-  '🌟',   // Glowing star
-  '✨',   // Sparkles
+  'star',       // Star
+  'sparkles',   // Sparkles/glowing
   // Pin/Location variants with colors
-  '📍',   // Red pin
-  '🔴',   // Red circle
-  '🟠',   // Orange circle
-  '🟡',   // Yellow circle
-  '🟢',   // Green circle
-  '🔵',   // Blue circle
+  'map-pin',    // Map pin (red)
+  'circle-red',     // Red circle
+  'circle-orange',  // Orange circle
+  'circle-yellow',  // Yellow circle
+  'circle-green',   // Green circle
+  'circle-blue',    // Blue circle
 ];
 
 /**
@@ -60,12 +64,15 @@ export function getHighlightTypeLabel(
 }
 
 /**
- * Get the emoji icon for a highlight type
+ * Get the icon value for a highlight type
  * Searches base types first, then custom types, falls back to default icon
+ *
+ * NOTE: Returns icon name (e.g., 'clipboard-list') or emoji for backward compatibility.
+ * Use iconResolver.resolveIcon() to convert to Lucide component.
  *
  * @param typeKey - The highlight type key (e.g., 'registration', 'toilets')
  * @param customTypes - Array of custom highlight types for the current event
- * @returns The emoji icon for the type
+ * @returns The icon value (icon name or emoji) for the type
  */
 export function getHighlightIcon(
   typeKey: string,
@@ -80,7 +87,7 @@ export function getHighlightIcon(
   if (customType) return customType.icon;
 
   // Fallback to default icon if not found
-  return '📍';
+  return 'map-pin';
 }
 
 /**

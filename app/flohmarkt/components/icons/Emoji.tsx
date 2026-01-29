@@ -1,3 +1,8 @@
+/**
+ * @deprecated This component is deprecated. Use Lucide icons from '@/app/flohmarkt/components/icons' instead.
+ * Example: Replace <Emoji symbol={EMOJIS.DELETE} label="Delete" /> with <Trash2 size={20} aria-label="Delete" />
+ * See IconConstants.tsx for icon mappings.
+ */
 interface EmojiProps {
   symbol: string;
   label?: string;
@@ -11,6 +16,9 @@ const sizeClasses = {
   lg: 'text-lg'
 };
 
+/**
+ * @deprecated This component is deprecated. Use Lucide icons instead.
+ */
 export function Emoji({
   symbol,
   label,
@@ -28,7 +36,15 @@ export function Emoji({
   );
 }
 
-// Emoji constants for consistent usage across the app
+/**
+ * @deprecated These emoji constants are deprecated. Use ICONS from IconConstants.tsx instead.
+ * The ICONS object provides Lucide React components with better styling and accessibility.
+ *
+ * Migration examples:
+ * - EMOJIS.DELETE → ICONS.DELETE (Trash2)
+ * - EMOJIS.ADD → ICONS.ADD (Plus)
+ * - EMOJIS.HOME → ICONS.HOME (Home)
+ */
 export const EMOJIS = {
   // Actions
   DELETE: '🗑️',

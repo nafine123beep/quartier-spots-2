@@ -6,6 +6,7 @@ import { HighlightTable } from './HighlightTable';
 import { HighlightFormModal } from './HighlightFormModal';
 import { CustomTypeManager } from './CustomTypeManager';
 import { Spot } from '../../types';
+import { Plus, MapPin } from '@/app/flohmarkt/components/icons';
 
 export function HighlightManagementPanel() {
   const { spots, currentTenant } = useFlohmarkt();
@@ -59,14 +60,16 @@ export function HighlightManagementPanel() {
             onClick={handleAddClick}
             className="px-4 py-2 bg-[#003366] text-white rounded-lg hover:bg-[#002244] transition-colors font-medium flex items-center gap-2"
           >
-            <span>➕</span> Highlight hinzufügen
+            <Plus size={16} aria-label="Hinzufügen" /> Highlight hinzufügen
           </button>
         </div>
       </div>
 
       {highlights.length === 0 ? (
         <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-          <div className="text-4xl mb-4">📍</div>
+          <div className="flex justify-center mb-4">
+            <MapPin size={48} className="text-gray-400" aria-label="Highlight Icon" />
+          </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Noch keine Highlights vorhanden
           </h3>

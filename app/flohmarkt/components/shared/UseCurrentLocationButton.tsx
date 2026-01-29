@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getCurrentPosition } from "../../lib/geolocation";
 import { reverseGeocodeCoordinates } from "../../lib/geocoding";
+import { MapPin, Loader2 } from '@/app/flohmarkt/components/icons';
 
 interface UseCurrentLocationButtonProps {
   onLocationDetected: (address: {
@@ -70,12 +71,12 @@ export function UseCurrentLocationButton({
       >
         {detecting ? (
           <>
-            <span className="animate-spin">⏳</span>
+            <Loader2 size={16} className="animate-spin" aria-label="Lädt" />
             Standort wird ermittelt...
           </>
         ) : (
           <>
-            <span>📍</span>
+            <MapPin size={16} aria-label="Standort" />
             Meinen Standort verwenden
           </>
         )}

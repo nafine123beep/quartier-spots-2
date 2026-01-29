@@ -7,6 +7,7 @@ import { geocodeAddress, GeocodeResult } from "../../lib/geocoding";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { BASE_HIGHLIGHT_TYPES, getAllHighlightTypes } from "../../lib/highlightConfig";
 import { isWithinBoundary } from "../../lib/geoUtils";
+import { Check } from '@/app/flohmarkt/components/icons';
 
 interface HighlightFormModalProps {
   highlight: Spot | null;
@@ -330,8 +331,9 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
 
               {geocodeResult && (
                 <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                  <p className="text-sm text-green-800">
-                    ✓ Standort gefunden: {finalLat?.toFixed(6)}, {finalLng?.toFixed(6)}
+                  <p className="text-sm text-green-800 flex items-center gap-2">
+                    <Check size={16} className="flex-shrink-0" aria-label="Erfolg" />
+                    Standort gefunden: {finalLat?.toFixed(6)}, {finalLng?.toFixed(6)}
                   </p>
                   <button
                     type="button"

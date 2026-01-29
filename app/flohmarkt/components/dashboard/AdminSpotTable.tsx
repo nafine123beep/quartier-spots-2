@@ -2,6 +2,7 @@
 
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { getSpotTerms } from "../../lib/spotTerms";
+import { Trash2, Mail } from '@/app/flohmarkt/components/icons';
 
 export function AdminSpotTable() {
   const { spots, deleteSpot, getAllEmails, currentTenantEvent } = useFlohmarkt();
@@ -78,10 +79,10 @@ export function AdminSpotTable() {
                     className="
                       bg-red-50 border border-red-200 text-red-600
                       w-8 h-8 rounded inline-flex items-center justify-center
-                      cursor-pointer hover:bg-red-500 hover:text-white
+                      cursor-pointer hover:bg-red-500 hover:text-white hover:[&>svg]:text-white
                     "
                   >
-                    🗑️
+                    <Trash2 size={16} aria-label="Löschen" />
                   </button>
                 </td>
               </tr>
@@ -93,9 +94,9 @@ export function AdminSpotTable() {
       <div className="mt-5 text-right">
         <button
           onClick={emailAllSpots}
-          className="inline-block bg-[#003366] text-white px-4 py-2.5 rounded-md font-bold cursor-pointer hover:bg-[#002244]"
+          className="inline-flex items-center gap-2 bg-[#003366] text-white px-4 py-2.5 rounded-md font-bold cursor-pointer hover:bg-[#002244]"
         >
-          📧 {terms.contactAllSpots}
+          <Mail size={18} aria-label="E-Mail" /> {terms.contactAllSpots}
         </button>
       </div>
     </div>

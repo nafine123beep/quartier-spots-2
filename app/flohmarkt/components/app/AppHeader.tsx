@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { Home } from '@/app/flohmarkt/components/icons';
 
 export function AppHeader() {
   const { currentEvent } = useFlohmarkt();
@@ -13,9 +14,9 @@ export function AppHeader() {
       </div>
       <Link
         href="/flohmarkt"
-        className="text-[#FFCC00] font-bold cursor-pointer no-underline hover:underline"
+        className="text-[#FFCC00] font-bold cursor-pointer no-underline hover:underline flex items-center gap-1.5"
       >
-        🏠 Start
+        <Home size={18} aria-label="Startseite" /> Start
       </Link>
     </header>
   );
