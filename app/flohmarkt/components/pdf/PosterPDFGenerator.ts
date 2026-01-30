@@ -1,90 +1,17 @@
 import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
 import { PosterPDFInput } from './types';
 import {
   POSTER_STYLES,
   getPosterContentWidth,
-  DEFAULT_POSTER_DESCRIPTION,
-  MIN_DESCRIPTION_LENGTH
 } from './posterStyles';
 import { TenantEvent } from '../../types';
-
-/**
- * Fetch an image URL and convert it to a base64 data URL for PDF embedding.
- */
-async function fetchImageAsDataUrl(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Generate a high-resolution QR code as a base64 data URL.
- */
-async function generateQRCodeDataUrl(url: string): Promise<string> {
-  return QRCode.toDataURL(url, {
-    width: 400,
-    margin: 1,
-    color: {
-      dark: '#003366',
-      light: '#ffffff',
-    },
-    errorCorrectionLevel: 'M',
-  });
-}
-
-/**
- * Get image dimensions from a data URL by loading it into an Image element.
- */
-function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
-}
-
-/**
- * Format event date and time in German locale.
- */
-function formatPosterDateTime(event: TenantEvent): string {
-  if (!event.starts_at) return '';
-
-  const start = new Date(event.starts_at);
-  const dateStr = start.toLocaleDateString('de-DE', {
-    weekday: 'long',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-
-  const startTime = start.toLocaleTimeString('de-DE', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  if (event.ends_at) {
-    const end = new Date(event.ends_at);
-    const endTime = end.toLocaleTimeString('de-DE', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    return `${dateStr} | ${startTime} – ${endTime} Uhr`;
-  }
-
-  return `${dateStr} | ${startTime} Uhr`;
-}
+import {
+  fetchImageAsDataUrl,
+  generateQRCodeDataUrl,
+  getImageDimensions,
+  formatPosterDateTime,
+  getPrintDescription,
+} from './printContentPrep';
 
 /**
  * Render the event title (large, centered, multi-line).
@@ -293,24 +220,6 @@ function renderQRCodeSection(
 }
 
 /**
- * Get the description to use for the poster (custom, event, or fallback).
- */
-function getPosterDescription(event: TenantEvent, customDescription?: string): string {
-  // 1. Use custom description if provided (from preview modal)
-  if (customDescription && customDescription.trim().length >= MIN_DESCRIPTION_LENGTH) {
-    return customDescription.trim();
-  }
-
-  // 2. Use event description if it's long enough
-  if (event.description && event.description.trim().length >= MIN_DESCRIPTION_LENGTH) {
-    return event.description.trim();
-  }
-
-  // 3. Fall back to default promotional text
-  return DEFAULT_POSTER_DESCRIPTION;
-}
-
-/**
  * Generate a single-page A4 promotional poster PDF for an event.
  */
 export async function generatePosterPDF(input: PosterPDFInput): Promise<Blob> {
@@ -352,7 +261,7 @@ export async function generatePosterPDF(input: PosterPDFInput): Promise<Blob> {
   const qrSectionHeight = qrCode.size + spacing.md + 8 + spacing.xl;
   const maxDescriptionY = pageHeight - marginBottom - qrSectionHeight - contactBlockHeight;
 
-  const description = getPosterDescription(event, customDescription);
+  const description = getPrintDescription(event, customDescription);
   y = renderDescription(doc, description, y, contentWidth, maxDescriptionY);
 
   // 5. Contact Block (optional, if email provided)

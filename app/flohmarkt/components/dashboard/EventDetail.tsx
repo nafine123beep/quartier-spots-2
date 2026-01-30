@@ -11,6 +11,7 @@ import { PendingDeletionRequests } from "./PendingDeletionRequests";
 import { HighlightManagementPanel } from "./HighlightManagementPanel";
 import { PrintViewModal } from "./PrintView";
 import { PosterPreviewModal } from "./PosterPreviewModal";
+import { PrintMaterialsModal } from "./PrintMaterialsModal";
 import { generatePosterPDF } from "../pdf/PosterPDFGenerator";
 import { downloadPDF } from "../pdf/PDFGenerator";
 import { getPublicImageUrl } from "../../lib/imageUpload";
@@ -35,6 +36,7 @@ export function EventDetail() {
   const [activeTab, setActiveTab] = useState<"overview" | "spots" | "highlights" | "deletion-requests">("overview");
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isPosterPreviewOpen, setIsPosterPreviewOpen] = useState(false);
+  const [isPrintMaterialsOpen, setIsPrintMaterialsOpen] = useState(false);
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
@@ -283,12 +285,12 @@ export function EventDetail() {
                       </button>
 
                       <button
-                        onClick={() => setIsPosterPreviewOpen(true)}
+                        onClick={() => setIsPrintMaterialsOpen(true)}
                         disabled={isProcessing}
                         className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
-                        title="Werbeposter als PDF erstellen (mit QR-Code)"
+                        title="Poster und Flyer als PDF erstellen (A4 und A6 Formate)"
                       >
-                        📋 Poster erstellen
+                        Poster & Flyer erstellen
                       </button>
 
                       <button
@@ -331,6 +333,23 @@ export function EventDetail() {
         event={currentTenantEvent}
         userEmail={user?.email}
         onGenerate={handleGeneratePoster}
+      />
+
+      {/* Print Materials Modal (A4 Poster + A6 Flyer) */}
+      <PrintMaterialsModal
+        isOpen={isPrintMaterialsOpen}
+        onClose={() => setIsPrintMaterialsOpen(false)}
+        event={currentTenantEvent}
+        userEmail={user?.email}
+        coverImageUrl={(() => {
+          if (currentTenantEvent.images && currentTenantEvent.images.length > 0) {
+            const coverImage = currentTenantEvent.images.find(img => img.is_cover)
+              || currentTenantEvent.images[0];
+            return getPublicImageUrl(coverImage.storage_path);
+          }
+          return undefined;
+        })()}
+        registrationUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?tab=form`}
       />
     </div>
   );

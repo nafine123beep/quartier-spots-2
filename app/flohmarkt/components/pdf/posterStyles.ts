@@ -1,3 +1,5 @@
+import { SHARED_PRINT_STYLES } from './sharedPrintStyles';
+
 /**
  * PDF layout constants for the promotional event poster (A4 portrait).
  * All measurements in millimeters.
@@ -9,6 +11,9 @@
  * - Single-page layout optimized for conversion (QR code + CTA)
  */
 export const POSTER_STYLES = {
+  // Inherit shared print styles
+  ...SHARED_PRINT_STYLES,
+
   // Page settings (A4: 210mm x 297mm)
   pageWidth: 210,
   pageHeight: 297,
@@ -24,16 +29,6 @@ export const POSTER_STYLES = {
     body: { size: 12, style: 'normal' as const },
     cta: { size: 14, style: 'bold' as const },
     small: { size: 10, style: 'normal' as const },
-  },
-
-  // Colors — high contrast for print
-  colors: {
-    primary: '#003366',
-    text: '#000000',
-    muted: '#4b5563',
-    lightGray: '#9ca3af',
-    accent: '#FFCC00',
-    background: '#f8fafc',
   },
 
   // Spacing (mm)

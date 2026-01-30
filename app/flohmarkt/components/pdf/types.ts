@@ -40,7 +40,7 @@ export interface PDFHighlightEntry {
 export type PDFGenerationState = 'idle' | 'capturing' | 'generating' | 'complete' | 'error';
 
 /**
- * Input data for promotional poster PDF generation
+ * Input data for promotional poster PDF generation (A4 format)
  */
 export interface PosterPDFInput {
   event: TenantEvent;
@@ -50,3 +50,19 @@ export interface PosterPDFInput {
   contactEmail?: string;
   customDescription?: string; // User-edited description for this poster (overrides event.description)
 }
+
+/**
+ * Input data for flyer PDF generation (A6 format)
+ */
+export interface FlyerPDFInput {
+  event: TenantEvent;
+  coverImageUrl?: string;
+  registrationUrl: string;
+  contactEmail?: string;
+  customDescription?: string; // User-edited description for this flyer (overrides event.description)
+}
+
+/**
+ * Print format type (A4 poster or A6 flyer)
+ */
+export type PrintFormat = 'a4' | 'a6';
