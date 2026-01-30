@@ -58,4 +58,6 @@ export interface PosterPDFInput {
   organizationSlug: string;
   coverImageUrl?: string;
   registrationUrl: string;
+  contactEmail?: string;
+  customDescription?: string; // User-edited description for this poster (overrides event.description)
 }

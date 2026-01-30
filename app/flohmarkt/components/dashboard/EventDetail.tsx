@@ -10,6 +10,7 @@ import { EventEditForm } from "./EventEditForm";
 import { PendingDeletionRequests } from "./PendingDeletionRequests";
 import { HighlightManagementPanel } from "./HighlightManagementPanel";
 import { PrintViewModal } from "./PrintView";
+import { PosterPreviewModal } from "./PosterPreviewModal";
 import { generatePosterPDF } from "../pdf/PosterPDFGenerator";
 import { downloadPDF } from "../pdf/PDFGenerator";
 import { getPublicImageUrl } from "../../lib/imageUpload";
@@ -33,7 +34,7 @@ export function EventDetail() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "spots" | "highlights" | "deletion-requests">("overview");
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
-  const [isPosterGenerating, setIsPosterGenerating] = useState(false);
+  const [isPosterPreviewOpen, setIsPosterPreviewOpen] = useState(false);
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
@@ -83,36 +84,30 @@ export function EventDetail() {
     }
   };
 
-  const handleGeneratePoster = async () => {
+  const handleGeneratePoster = async (customDescription: string, contactEmail: string) => {
     if (!currentTenantEvent || !currentTenant) return;
 
-    setIsPosterGenerating(true);
-    try {
-      const baseUrl = window.location.origin;
-      const registrationUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?tab=form`;
+    const baseUrl = window.location.origin;
+    const registrationUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?tab=form`;
 
-      let coverImageUrl: string | undefined;
-      if (currentTenantEvent.images && currentTenantEvent.images.length > 0) {
-        const coverImage = currentTenantEvent.images.find(img => img.is_cover)
-          || currentTenantEvent.images[0];
-        coverImageUrl = getPublicImageUrl(coverImage.storage_path);
-      }
-
-      const blob = await generatePosterPDF({
-        event: currentTenantEvent,
-        organizationSlug: currentTenant.slug,
-        coverImageUrl,
-        registrationUrl,
-      });
-
-      const filename = `${currentTenantEvent.slug}-poster-${new Date().toISOString().split('T')[0]}.pdf`;
-      downloadPDF(blob, filename);
-    } catch (error) {
-      console.error('Poster generation failed:', error);
-      alert('Fehler beim Erstellen des Posters. Bitte versuchen Sie es erneut.');
-    } finally {
-      setIsPosterGenerating(false);
+    let coverImageUrl: string | undefined;
+    if (currentTenantEvent.images && currentTenantEvent.images.length > 0) {
+      const coverImage = currentTenantEvent.images.find(img => img.is_cover)
+        || currentTenantEvent.images[0];
+      coverImageUrl = getPublicImageUrl(coverImage.storage_path);
     }
+
+    const blob = await generatePosterPDF({
+      event: currentTenantEvent,
+      organizationSlug: currentTenant.slug,
+      coverImageUrl,
+      registrationUrl,
+      contactEmail: contactEmail || undefined,
+      customDescription,
+    });
+
+    const filename = `${currentTenantEvent.slug}-poster-${new Date().toISOString().split('T')[0]}.pdf`;
+    downloadPDF(blob, filename);
   };
 
   const statusConfig = {
@@ -288,12 +283,12 @@ export function EventDetail() {
                       </button>
 
                       <button
-                        onClick={handleGeneratePoster}
-                        disabled={isProcessing || isPosterGenerating}
+                        onClick={() => setIsPosterPreviewOpen(true)}
+                        disabled={isProcessing}
                         className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
                         title="Werbeposter als PDF erstellen (mit QR-Code)"
                       >
-                        {isPosterGenerating ? '⏳ Poster wird erstellt...' : '📋 Poster erstellen'}
+                        📋 Poster erstellen
                       </button>
 
                       <button
@@ -327,6 +322,15 @@ export function EventDetail() {
       <PrintViewModal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
+      />
+
+      {/* Poster Preview Modal */}
+      <PosterPreviewModal
+        isOpen={isPosterPreviewOpen}
+        onClose={() => setIsPosterPreviewOpen(false)}
+        event={currentTenantEvent}
+        userEmail={user?.email}
+        onGenerate={handleGeneratePoster}
       />
     </div>
   );

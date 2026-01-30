@@ -1,7 +1,12 @@
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import { PosterPDFInput } from './types';
-import { POSTER_STYLES, getPosterContentWidth } from './posterStyles';
+import {
+  POSTER_STYLES,
+  getPosterContentWidth,
+  DEFAULT_POSTER_DESCRIPTION,
+  MIN_DESCRIPTION_LENGTH
+} from './posterStyles';
 import { TenantEvent } from '../../types';
 
 /**
@@ -141,14 +146,8 @@ function renderDateAndLocation(
     y += 8;
   }
 
-  y += spacing.lg;
-
-  // Separator line
-  doc.setDrawColor(colors.primary);
-  doc.setLineWidth(0.8);
-  const lineHalfWidth = 30;
-  doc.line(centerX - lineHalfWidth, y, centerX + lineHalfWidth, y);
-  y += spacing.lg;
+  // More generous spacing (no separator bar)
+  y += spacing.xl;
 
   return y;
 }
@@ -224,12 +223,39 @@ function renderDescription(
 }
 
 /**
+ * Render contact block (if contact email is provided).
+ */
+function renderContactBlock(
+  doc: jsPDF,
+  contactEmail: string,
+  y: number,
+  contentWidth: number
+): number {
+  const { marginLeft, fonts, colors, spacing } = POSTER_STYLES;
+  const centerX = marginLeft + contentWidth / 2;
+
+  // "Questions about the event?" heading
+  doc.setFontSize(fonts.body.size);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(colors.text);
+  doc.text('Fragen zur Veranstaltung?', centerX, y, { align: 'center' });
+  y += 6;
+
+  // Contact email
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(colors.muted);
+  doc.text(`Gerne an ${contactEmail}`, centerX, y, { align: 'center' });
+
+  return y + spacing.lg;
+}
+
+/**
  * Render the QR code and call-to-action text (centered, anchored near bottom).
+ * This section is treated as an inseparable layout unit: QR + CTA + notice.
  */
 function renderQRCodeSection(
   doc: jsPDF,
   qrCodeDataUrl: string,
-  registrationUrl: string,
   y: number,
   contentWidth: number
 ): void {
@@ -237,7 +263,8 @@ function renderQRCodeSection(
   const centerX = marginLeft + contentWidth / 2;
 
   // Position QR section: use provided y or anchor near bottom, whichever is lower
-  const qrSectionHeight = qrCode.size + 8 + 8 + 6 + spacing.md; // QR + CTA + URL + spacing
+  // QR + CTA text (no URL display)
+  const qrSectionHeight = qrCode.size + spacing.md + 8; // QR + spacing + CTA
   const minQRY = pageHeight - marginBottom - qrSectionHeight;
   const qrY = Math.max(y, minQRY);
 
@@ -256,29 +283,40 @@ function renderQRCodeSection(
 
   let ctaY = qrY + qrCode.size + spacing.md;
 
-  // CTA text
+  // CTA text (combined with "no login required" notice)
   doc.setFontSize(fonts.cta.size);
   doc.setFont('helvetica', fonts.cta.style);
   doc.setTextColor(colors.primary);
   doc.text('Scanne den QR-Code und mach mit – keine Anmeldung nötig', centerX, ctaY, {
     align: 'center',
   });
-  ctaY += 8;
+}
 
-  // URL as fallback
-  doc.setFontSize(fonts.small.size);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(colors.lightGray);
-  doc.text(registrationUrl, centerX, ctaY, { align: 'center' });
+/**
+ * Get the description to use for the poster (custom, event, or fallback).
+ */
+function getPosterDescription(event: TenantEvent, customDescription?: string): string {
+  // 1. Use custom description if provided (from preview modal)
+  if (customDescription && customDescription.trim().length >= MIN_DESCRIPTION_LENGTH) {
+    return customDescription.trim();
+  }
+
+  // 2. Use event description if it's long enough
+  if (event.description && event.description.trim().length >= MIN_DESCRIPTION_LENGTH) {
+    return event.description.trim();
+  }
+
+  // 3. Fall back to default promotional text
+  return DEFAULT_POSTER_DESCRIPTION;
 }
 
 /**
  * Generate a single-page A4 promotional poster PDF for an event.
  */
 export async function generatePosterPDF(input: PosterPDFInput): Promise<Blob> {
-  const { event, coverImageUrl, registrationUrl } = input;
+  const { event, coverImageUrl, registrationUrl, contactEmail, customDescription } = input;
   const contentWidth = getPosterContentWidth();
-  const { marginTop, marginLeft, pageHeight, marginBottom, spacing, qrCode } = POSTER_STYLES;
+  const { marginTop, pageHeight, marginBottom, spacing, qrCode } = POSTER_STYLES;
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -308,30 +346,23 @@ export async function generatePosterPDF(input: PosterPDFInput): Promise<Blob> {
     }
   }
 
-  // 4. Description
-  // Calculate where QR section starts to cap description
-  const qrSectionHeight = qrCode.size + 8 + 8 + 6 + spacing.md + spacing.xl;
-  const maxDescriptionY = pageHeight - marginBottom - qrSectionHeight;
+  // 4. Description (use custom, event, or fallback)
+  // Calculate where contact/QR section starts to cap description
+  const contactBlockHeight = contactEmail ? 12 + spacing.lg : 0;
+  const qrSectionHeight = qrCode.size + spacing.md + 8 + spacing.xl;
+  const maxDescriptionY = pageHeight - marginBottom - qrSectionHeight - contactBlockHeight;
 
-  if (event.description) {
-    y = renderDescription(doc, event.description, y, contentWidth, maxDescriptionY);
+  const description = getPosterDescription(event, customDescription);
+  y = renderDescription(doc, description, y, contentWidth, maxDescriptionY);
+
+  // 5. Contact Block (optional, if email provided)
+  if (contactEmail) {
+    y = renderContactBlock(doc, contactEmail, y, contentWidth);
   }
 
-  // 5. QR Code + CTA
+  // 6. QR Code + CTA (inseparable unit: QR + text + notice)
   const qrCodeDataUrl = await generateQRCodeDataUrl(registrationUrl);
-  renderQRCodeSection(doc, qrCodeDataUrl, registrationUrl, y, contentWidth);
-
-  // Footer
-  const footerY = pageHeight - marginBottom + 2;
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(POSTER_STYLES.colors.lightGray);
-  const genDate = new Date().toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-  doc.text(`Erstellt am ${genDate}`, marginLeft, footerY);
+  renderQRCodeSection(doc, qrCodeDataUrl, y, contentWidth);
 
   return doc.output('blob');
 }

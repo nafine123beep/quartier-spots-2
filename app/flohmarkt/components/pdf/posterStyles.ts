@@ -58,6 +58,18 @@ export const POSTER_STYLES = {
 } as const;
 
 /**
+ * Default promotional text used when event has no description
+ */
+export const DEFAULT_POSTER_DESCRIPTION = `Hausanwohner*innen verkaufen in ihrem eigenen Hof, Garten oder ihrer Garage – und das ganze Quartier macht mit.
+
+Ein Mitmach-Projekt für Nachbarschaft, Nachhaltigkeit und gelebte Quartierliebe.`;
+
+/**
+ * Minimum description length to avoid using fallback (in characters)
+ */
+export const MIN_DESCRIPTION_LENGTH = 30;
+
+/**
  * Calculate content width based on margins
  */
 export function getPosterContentWidth(): number {
