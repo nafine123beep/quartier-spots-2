@@ -304,8 +304,11 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
 
         const map = mapRef.current;
 
-        // Wait for tiles to fully load
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Force map to recalculate positions
+        map.invalidateSize();
+
+        // Wait longer for tiles and markers to fully settle
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         const html2canvas = (await import('html2canvas')).default;
         const scale = 2.5;
@@ -320,7 +323,14 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           backgroundColor: '#ffffff',
           removeContainer: false,
           ignoreElements: (el: Element) => {
-            return el.classList?.contains('leaflet-marker-pane') === true;
+            // Ignore ALL marker-related elements to avoid _leaflet_pos errors
+            const className = el.className || '';
+            return (
+              className.includes('leaflet-marker') ||
+              className.includes('leaflet-shadow') ||
+              className.includes('leaflet-popup') ||
+              className.includes('leaflet-tooltip')
+            );
           },
         });
 
