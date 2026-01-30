@@ -324,7 +324,11 @@ export const PrintPreviewMap = forwardRef<PrintPreviewMapRef, PrintPreviewMapPro
           removeContainer: false,
           ignoreElements: (el: Element) => {
             // Ignore ALL marker-related elements to avoid _leaflet_pos errors
-            const className = el.className || '';
+            // Convert className to string (handles both string and SVGAnimatedString)
+            const className = typeof el.className === 'string'
+              ? el.className
+              : el.className?.baseVal || '';
+
             return (
               className.includes('leaflet-marker') ||
               className.includes('leaflet-shadow') ||
