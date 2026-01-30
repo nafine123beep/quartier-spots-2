@@ -267,6 +267,38 @@ Events have three states:
 - Draft events can be previewed using `preview_token` query parameter
 - Token stored in events table, visible only to tenant members
 
+### Icon Usage
+
+**ALWAYS use Lucide React icons** for all icon needs in the application:
+
+```typescript
+import { IconName } from 'lucide-react';
+
+// Example usage
+import { MapPin, Calendar, Users, Trash2 } from 'lucide-react';
+
+<MapPin className="h-5 w-5" />
+```
+
+**Key points:**
+- Never use other icon libraries (no Font Awesome, Material Icons, etc.)
+- Lucide provides consistent, high-quality icons with tree-shaking
+- Use semantic icon names that match their purpose
+- Apply size via Tailwind classes (`h-4 w-4`, `h-5 w-5`, etc.)
+- Browse available icons at [lucide.dev](https://lucide.dev)
+
+**Common icons in this project:**
+- `MapPin` - Location markers, addresses
+- `Calendar` - Dates, events
+- `Users` - Organizations, memberships
+- `Trash2` - Delete actions
+- `Edit` - Edit actions
+- `Plus` - Add/create actions
+- `X` - Close/cancel actions
+- `ChevronRight`, `ChevronLeft` - Navigation
+- `Settings` - Settings/configuration
+- `Mail` - Email/contact
+
 ## Environment Variables
 
 **Required Variables:**
