@@ -8,6 +8,7 @@ import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { BASE_HIGHLIGHT_TYPES, getAllHighlightTypes } from "../../lib/highlightConfig";
 import { isWithinBoundary } from "../../lib/geoUtils";
 import { Check } from '@/app/flohmarkt/components/icons';
+import { resolveIcon, getIconColorClass } from "../../lib/iconResolver";
 
 interface HighlightFormModalProps {
   highlight: Spot | null;
@@ -205,30 +206,42 @@ export function HighlightFormModal({ highlight, onClose }: HighlightFormModalPro
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Highlight-Typ *
               </label>
-              <select
-                value={highlightType}
-                onChange={(e) => setHighlightType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#003366] focus:border-transparent"
-                required
-              >
-                <option value="">Typ auswählen...</option>
-                <optgroup label="Standard-Typen">
-                  {BASE_HIGHLIGHT_TYPES.map((type) => (
-                    <option key={type.key} value={type.key}>
-                      {type.icon} {type.label}
-                    </option>
-                  ))}
-                </optgroup>
-                {customHighlightTypes.length > 0 && (
-                  <optgroup label="Benutzerdefinierte Typen">
-                    {customHighlightTypes.map((type) => (
-                      <option key={type.id} value={type.type_key}>
-                        {type.icon} {type.label}
+              <div className="flex gap-3 items-start">
+                <select
+                  value={highlightType}
+                  onChange={(e) => setHighlightType(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#003366] focus:border-transparent"
+                  required
+                >
+                  <option value="">Typ auswählen...</option>
+                  <optgroup label="Standard-Typen">
+                    {BASE_HIGHLIGHT_TYPES.map((type) => (
+                      <option key={type.key} value={type.key}>
+                        {type.label}
                       </option>
                     ))}
                   </optgroup>
-                )}
-              </select>
+                  {customHighlightTypes.length > 0 && (
+                    <optgroup label="Benutzerdefinierte Typen">
+                      {customHighlightTypes.map((type) => (
+                        <option key={type.id} value={type.type_key}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+                {/* Icon Preview */}
+                {highlightType && (() => {
+                  const IconComponent = resolveIcon(selectedTypeIcon);
+                  const colorClass = getIconColorClass(selectedTypeIcon);
+                  return (
+                    <div className="flex items-center justify-center w-12 h-10 border border-gray-300 rounded-lg bg-gray-50">
+                      <IconComponent className={`w-6 h-6 ${colorClass || 'text-gray-700'}`} />
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
 
             {/* Title */}

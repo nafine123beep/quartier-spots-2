@@ -8,6 +8,9 @@ export function AdminSpotTable() {
   const { spots, deleteSpot, getAllEmails, currentTenantEvent } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
 
+  // Filter out highlights - only show regular spots
+  const regularSpots = spots.filter(spot => !spot.is_highlight);
+
   const handleDelete = (id: string) => {
     if (confirm(terms.deleteThisSpotConfirm)) {
       deleteSpot(id);
@@ -30,7 +33,7 @@ export function AdminSpotTable() {
         {terms.managementRegisteredSpots}
       </h3>
 
-      {spots.length === 0 ? (
+      {regularSpots.length === 0 ? (
         <p className="text-gray-600 py-4">{terms.noSpotsRegistered}</p>
       ) : (
         <table className="w-full border-collapse min-w-[600px]">
@@ -51,7 +54,7 @@ export function AdminSpotTable() {
             </tr>
           </thead>
           <tbody>
-            {spots.map((spot) => (
+            {regularSpots.map((spot) => (
               <tr key={spot.id} className="hover:bg-gray-50">
                 <td className="p-2.5 border-b border-gray-100 align-top text-gray-900">
                   <strong>{spot.address_raw || "-"}</strong>
