@@ -5,6 +5,7 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 import { SpotItem } from "../shared/SpotItem";
 import { getSpotTerms } from "../../lib/spotTerms";
 import { getHighlightIcon, getHighlightTypeLabel } from "../../lib/highlightConfig";
+import { resolveIcon, getIconColorClass } from "../../lib/iconResolver";
 
 export function ListView() {
   const { spots, setCurrentTab, setDeletePreFill, highlightedSpotId, currentTenantEvent, setSelectedSpotId, customHighlightTypes } = useFlohmarkt();
@@ -46,8 +47,10 @@ export function ListView() {
             <h2 className="text-[#003366] mt-0 mb-4">Event Highlights</h2>
             <div className="space-y-3">
               {highlights.map((highlight) => {
-                const icon = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
+                const iconValue = getHighlightIcon(highlight.highlight_type || '', customHighlightTypes);
                 const label = highlight.title || getHighlightTypeLabel(highlight.highlight_type || '', customHighlightTypes);
+                const IconComponent = resolveIcon(iconValue);
+                const colorClass = getIconColorClass(iconValue);
 
                 return (
                   <div
@@ -56,7 +59,13 @@ export function ListView() {
                     className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="text-3xl flex-shrink-0">{icon}</div>
+                      <div className="flex-shrink-0">
+                        <IconComponent
+                          size={32}
+                          className={colorClass || 'text-gray-700'}
+                          aria-label={label}
+                        />
+                      </div>
                       <div className="flex-grow">
                         <h4 className="font-semibold text-gray-900 m-0">{label}</h4>
                         {highlight.public_note && (
