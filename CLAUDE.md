@@ -363,6 +363,74 @@ SUPABASE_SERVICE_ROLE_KEY=          # Service role key (server-only, sensitive)
 - `TESTING_SETUP_GUIDE.md` - E2E testing setup instructions
 - `lib/supabase/server.ts` & `lib/supabase/client.ts` - Supabase client factories
 
+## Accessibility & Contrast Requirements
+
+**CRITICAL: All implementations must adhere to WCAG 2.1 AA accessibility standards.**
+
+### Contrast Guidelines
+
+**Text Contrast Ratios:**
+- Normal text (< 18pt): Minimum 4.5:1
+- Large text (≥ 18pt or 14pt bold): Minimum 3:1
+- UI components and graphics: Minimum 3:1
+
+**Button Contrast Requirements:**
+- Primary buttons: High contrast background with white text (e.g., `bg-[#003366] text-white`)
+- Secondary/Cancel buttons: Must have visible borders and sufficient text contrast
+  - ✅ Good: `border-2 border-gray-400 text-gray-700` (contrast ratio > 4.5:1)
+  - ❌ Bad: `border border-gray-300` (insufficient contrast)
+- Hover states must maintain or improve contrast
+- Disabled states should use `disabled:opacity-50 disabled:cursor-not-allowed`
+
+**Common Patterns:**
+```tsx
+// Primary button
+<button className="bg-[#003366] text-white hover:bg-[#002244] disabled:opacity-50">
+  Bestätigen
+</button>
+
+// Secondary button (good contrast)
+<button className="border-2 border-gray-400 text-gray-700 hover:bg-gray-100 hover:border-gray-500">
+  Abbrechen
+</button>
+
+// Destructive button
+<button className="bg-red-600 text-white hover:bg-red-700">
+  Löschen
+</button>
+```
+
+### Testing for Accessibility
+
+**Before committing UI changes:**
+1. Test with browser DevTools Accessibility Inspector
+2. Verify color contrast ratios meet WCAG AA standards
+3. Test keyboard navigation (Tab, Enter, Escape)
+4. Run `npm run test:a11y` to execute automated accessibility tests
+5. Test with screen reader if implementing complex interactions
+
+**Focus States:**
+- All interactive elements must have visible focus indicators
+- Use Tailwind's `focus:ring-2 focus:ring-[#003366]` or similar
+- Never use `outline-none` without providing an alternative focus indicator
+
+**Form Accessibility:**
+- All form inputs must have associated `<label>` elements
+- Use `htmlFor` on labels to link with input `id`
+- Required fields should be indicated visually and programmatically
+- Error messages must be associated with inputs using `aria-describedby`
+
+**Icon Accessibility:**
+- Decorative icons: Use `aria-hidden="true"`
+- Functional icons without text: Provide `aria-label`
+- Icon buttons: Include accessible text via `aria-label` or visually hidden text
+
+### Color Usage Beyond Contrast
+
+- Never rely on color alone to convey information
+- Always pair color with text, icons, or patterns
+- Status indicators should use icon + color + text when possible
+
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)

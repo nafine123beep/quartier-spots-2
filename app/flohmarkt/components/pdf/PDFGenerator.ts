@@ -27,10 +27,10 @@ function drawHighlightMarker(doc: jsPDF, x: number, y: number): void {
 }
 
 /**
- * Generate a PDF document for an event with all spots, highlights, and a map.
+ * Generate a PDF document for an event with all spots, highlights, and contact info.
  */
 export async function generateEventPDF(input: PDFGeneratorInput): Promise<Blob> {
-  const { event, spots, highlights, customHighlightTypes, mapImageDataUrl } = input;
+  const { event, spots, highlights, customHighlightTypes } = input;
   const { marginTop } = PDF_STYLES;
   const contentWidth = getContentWidth();
 
@@ -57,11 +57,6 @@ export async function generateEventPDF(input: PDFGeneratorInput): Promise<Blob> 
   } else {
     yPosition = renderEmptySpotsMessage(doc, event, yPosition, contentWidth);
   }
-
-  // ============ SECTION 3: Map + Legend ============
-  doc.addPage();
-  yPosition = marginTop;
-  renderMapSection(doc, mapImageDataUrl, sortedSpots, highlights, customHighlightTypes, yPosition, contentWidth);
 
   return doc.output('blob');
 }
@@ -441,149 +436,6 @@ function renderEmptySpotsMessage(
   doc.text(`${spotTermPlural} werden hier aufgelistet, sobald sie registriert sind.`, marginLeft + spacing.md, y + 17);
 
   return y + 30 + spacing.lg;
-}
-
-/**
- * Section 3: Map + Legend
- */
-function renderMapSection(
-  doc: jsPDF,
-  mapImageDataUrl: string,
-  sortedSpots: Spot[],
-  highlights: Spot[],
-  customHighlightTypes: CustomHighlightType[],
-  startY: number,
-  contentWidth: number
-): number {
-  let y = startY;
-  const { marginLeft, fonts, colors, spacing, map } = PDF_STYLES;
-
-  // Section header with underline
-  doc.setFontSize(fonts.sectionHeader.size);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(colors.primary);
-  doc.text('Kartenansicht', marginLeft, y);
-  y += spacing.xs;
-  doc.setDrawColor(colors.primary);
-  doc.setLineWidth(0.5);
-  doc.line(marginLeft, y, marginLeft + 35, y);
-  y += spacing.md;
-
-  // Map image (centered)
-  const mapX = marginLeft + (contentWidth - map.width) / 2;
-
-  try {
-    // Add border around map
-    doc.setDrawColor(colors.tableBorder);
-    doc.setLineWidth(0.5);
-    doc.rect(mapX - 1, y - 1, map.width + 2, map.height + 2, 'S');
-    doc.addImage(mapImageDataUrl, 'PNG', mapX, y, map.width, map.height);
-  } catch {
-    // If image fails to load, show placeholder
-    doc.setFillColor('#f3f4f6');
-    doc.rect(mapX, y, map.width, map.height, 'F');
-    doc.setTextColor(colors.muted);
-    doc.setFontSize(fonts.body.size);
-    doc.text('Karte konnte nicht geladen werden', mapX + map.width / 2 - 35, y + map.height / 2);
-  }
-
-  y += map.height + spacing.lg;
-
-  // Legend box
-  doc.setFillColor('#f8fafc');
-  doc.roundedRect(marginLeft, y, contentWidth, highlights.length > 0 ? 50 : 30, 2, 2, 'F');
-  y += spacing.md;
-
-  doc.setFontSize(fonts.body.size);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(colors.primary);
-  doc.text('Legende', marginLeft + spacing.md, y);
-  y += spacing.md;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(fonts.small.size);
-  doc.setTextColor(colors.text);
-
-  // Spots legend
-  const spotsWithCoords = sortedSpots.filter(s => s.lat != null && s.lng != null);
-  if (spotsWithCoords.length > 0) {
-    // Draw sample numbered marker
-    doc.setFillColor(colors.primary);
-    doc.circle(marginLeft + spacing.md + 4, y - 1, 3, 'F');
-    doc.setTextColor('#ffffff');
-    doc.setFontSize(7);
-    doc.text('1', marginLeft + spacing.md + 2.5, y);
-    doc.setTextColor(colors.text);
-    doc.setFontSize(fonts.small.size);
-    doc.text('Nummerierter Spot (entspricht der Liste oben)', marginLeft + spacing.md + 12, y);
-    y += spacing.md;
-  }
-
-  // Spots without coordinates note
-  const spotsWithoutCoords = sortedSpots.filter(s => s.lat == null || s.lng == null);
-  if (spotsWithoutCoords.length > 0) {
-    doc.setTextColor(colors.lightGray);
-    doc.setFontSize(fonts.tiny.size);
-    doc.text(`Hinweis: ${spotsWithoutCoords.length} Spot(s) ohne Koordinaten sind nicht auf der Karte.`, marginLeft + spacing.md, y);
-    doc.setFontSize(fonts.small.size);
-    y += spacing.sm;
-  }
-
-  // Highlights legend
-  if (highlights.length > 0) {
-    y += spacing.sm;
-    doc.setTextColor(colors.text);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Highlights:', marginLeft + spacing.md, y);
-    doc.setFont('helvetica', 'normal');
-    y += spacing.md;
-
-    // Group highlights by type to avoid duplicates
-    const uniqueTypes = new Map<string, { label: string }>();
-    for (const highlight of highlights) {
-      const typeKey = highlight.highlight_type || 'unknown';
-      if (!uniqueTypes.has(typeKey)) {
-        const label = highlight.title || getHighlightTypeLabel(typeKey, customHighlightTypes);
-        uniqueTypes.set(typeKey, { label });
-      }
-    }
-
-    // Render in columns if many types
-    let col = 0;
-    const colWidth = contentWidth / 2 - spacing.md;
-    for (const [, { label }] of uniqueTypes) {
-      const xOffset = col * colWidth;
-      drawHighlightMarker(doc, marginLeft + spacing.md + xOffset, y);
-      doc.setTextColor(colors.text);
-      doc.setFont('helvetica', 'normal');
-      doc.text(label, marginLeft + spacing.md + xOffset + 18, y);
-
-      col++;
-      if (col >= 2) {
-        col = 0;
-        y += spacing.md;
-      }
-    }
-    if (col !== 0) y += spacing.md;
-  }
-
-  // Footer with generation date
-  y = PDF_STYLES.pageHeight - PDF_STYLES.marginBottom;
-  doc.setFontSize(fonts.tiny.size);
-  doc.setTextColor(colors.lightGray);
-  const genDate = new Date().toLocaleDateString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  doc.text(`Erstellt am ${genDate}`, marginLeft, y);
-
-  // Page indicator
-  doc.text('Seite 2/2', marginLeft + contentWidth - 15, y);
-
-  return y;
 }
 
 /**

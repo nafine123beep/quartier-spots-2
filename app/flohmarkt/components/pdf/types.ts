@@ -8,7 +8,6 @@ export interface PDFGeneratorInput {
   spots: Spot[];
   highlights: Spot[];
   customHighlightTypes: CustomHighlightType[];
-  mapImageDataUrl: string;
 }
 
 /**
@@ -33,16 +32,6 @@ export interface PDFHighlightEntry {
   label: string;
   address: string;
   note: string;
-}
-
-/**
- * Map viewport bounds
- */
-export interface MapBounds {
-  north: number;
-  south: number;
-  east: number;
-  west: number;
 }
 
 /**

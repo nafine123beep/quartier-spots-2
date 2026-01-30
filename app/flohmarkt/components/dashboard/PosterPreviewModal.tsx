@@ -174,14 +174,14 @@ export function PosterPreviewModal({
           <button
             onClick={onClose}
             disabled={isGenerating}
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            className="px-4 py-2 border-2 border-gray-400 text-gray-700 rounded-md font-medium hover:bg-gray-100 hover:border-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Abbrechen
           </button>
           <button
             onClick={handleGenerate}
             disabled={isGenerating || description.trim().length < MIN_DESCRIPTION_LENGTH}
-            className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50"
+            className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? "⏳ Poster wird erstellt..." : "📋 Poster erstellen"}
           </button>

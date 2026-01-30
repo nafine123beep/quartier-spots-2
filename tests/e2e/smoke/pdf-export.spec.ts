@@ -3,7 +3,7 @@
  *
  * Basic smoke tests to verify PDF export feature is functional:
  * - PDF button is accessible to admin users
- * - PDF modal opens and shows map preview
+ * - PDF modal opens and shows content preview
  * - PDF generation completes successfully
  *
  * Note: These tests require a configured test environment with Supabase.
@@ -59,7 +59,7 @@ test.describe('PDF Export Smoke Tests', () => {
     }
   });
 
-  test('PDF modal opens and shows map preview', async ({ page }) => {
+  test('PDF modal opens and shows preview', async ({ page }) => {
     test.setTimeout(45000);
 
     let tenantId: string | null = null;
@@ -79,13 +79,8 @@ test.describe('PDF Export Smoke Tests', () => {
       // Verify modal opened
       await expect(page.getByRole('heading', { name: /pdf erstellen/i })).toBeVisible({ timeout: 5000 });
 
-      // Verify instructions are shown
-      await expect(page.getByText(/schritt 1/i)).toBeVisible();
-      await expect(page.getByText(/schritt 2/i)).toBeVisible();
-
-      // Verify map is loading or loaded
-      const mapContainer = page.locator('.leaflet-container');
-      await expect(mapContainer).toBeVisible({ timeout: 10000 });
+      // Verify PDF content info is shown
+      await expect(page.getByText(/pdf-inhalt/i)).toBeVisible();
 
       // Verify the generate button is visible
       await expect(page.getByRole('button', { name: /pdf erstellen/i }).last()).toBeVisible();
@@ -157,7 +152,7 @@ test.describe('PDF Export Smoke Tests', () => {
   });
 
   test('PDF download triggers on generate', async ({ page }) => {
-    test.setTimeout(90000); // Allow more time for PDF generation
+    test.setTimeout(60000); // Allow time for PDF generation
 
     let tenantId: string | null = null;
 
@@ -173,12 +168,11 @@ test.describe('PDF Export Smoke Tests', () => {
       // Open PDF modal
       await page.getByRole('button', { name: /pdf erstellen/i }).click();
 
-      // Wait for map to load
-      await page.waitForSelector('.leaflet-container', { timeout: 15000 });
-      await page.waitForTimeout(3000); // Wait for tiles to load
+      // Wait for modal to be visible
+      await expect(page.getByRole('heading', { name: /pdf erstellen/i })).toBeVisible({ timeout: 5000 });
 
       // Set up download listener
-      const downloadPromise = page.waitForEvent('download', { timeout: 45000 });
+      const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
 
       // Click generate PDF button (the one inside the modal)
       const generateButton = page.locator('button').filter({ hasText: /pdf erstellen/i }).last();
