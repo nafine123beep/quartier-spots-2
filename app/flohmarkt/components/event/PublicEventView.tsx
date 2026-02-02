@@ -12,6 +12,7 @@ import { MapView } from "./MapView";
 import { SpotForm } from "./SpotForm";
 import { DeleteSpotForm } from "./DeleteSpotForm";
 import { CollapsibleHeader } from "../shared/CollapsibleHeader";
+import { MobileEventHeaderDrawer } from "../shared/MobileEventHeaderDrawer";
 import { RegistrationInfoModal } from "../shared/RegistrationInfoModal";
 
 interface PublicEventViewProps {
@@ -182,111 +183,134 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
         </div>
       )}
 
-      <CollapsibleHeader>
-        {/* Draft Banner - Only shown when event is in draft status */}
-        {currentTenantEvent.status === 'draft' && (
-          <div className={`${accessMode === 'preview' ? 'bg-purple-500 border-purple-600' : 'bg-yellow-500 border-yellow-600'} text-gray-900 px-4 py-3 shadow-md border-b-2`}>
-            <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
-              <span className="text-2xl">{accessMode === 'preview' ? '👁️' : '⚠️'}</span>
-              <div className="flex-1 text-center sm:text-left">
-                <p className={`font-bold text-sm sm:text-base m-0 ${accessMode === 'preview' ? 'text-white' : ''}`}>
-                  {accessMode === 'preview'
-                    ? 'VORSCHAU-LINK: Du siehst eine Vorabversion dieses Events'
-                    : 'VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht'
-                  }
-                </p>
-                <p className={`text-xs sm:text-sm m-0 mt-1 ${accessMode === 'preview' ? 'text-purple-100' : ''}`}>
-                  {accessMode === 'preview'
-                    ? 'Diese Ansicht ist nur über den Vorschau-Link zugänglich. Das Event ist noch nicht öffentlich.'
-                    : 'Nur Organisatoren können diese Seite sehen. Veröffentliche das Event, damit Teilnehmer es sehen können.'
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Hero Image Gallery */}
-        {hasImages && (
-          <div className="relative bg-gray-900">
-            {/* Main Cover Image */}
-            <div
-              className="relative h-48 sm:h-64 cursor-pointer"
-              onClick={() => openLightbox(images.indexOf(coverImage))}
+      {/* Mobile Header with Drawer - Only on mobile */}
+      <MobileEventHeaderDrawer
+        event={currentTenantEvent}
+        coverImage={coverImage}
+        accessMode={accessMode}
+        onImageClick={openLightbox}
+        formatDate={formatDate}
+        managementButton={
+          user && currentTenant ? (
+            <button
+              onClick={handleBackToAdmin}
+              className="w-full flex items-center justify-center gap-2 bg-[#003366] hover:bg-[#002244] text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
             >
-              <img
-                src={getPublicImageUrl(coverImage.storage_path)}
-                alt={currentTenantEvent.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+              <span>⚙️</span>
+              <span>Event verwalten</span>
+            </button>
+          ) : undefined
+        }
+      />
 
-              {/* View all images button */}
-              {images.length > 1 && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); openLightbox(0); }}
-                  className="absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 transition-colors shadow-lg"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Alle {images.length} Fotos ansehen
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="bg-[#003366] text-white p-4 shadow-lg">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl font-bold m-0">{currentTenantEvent.title}</h1>
-                  {/* Draft Badge in Header */}
-                  {currentTenantEvent.status === 'draft' && (
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                      accessMode === 'preview'
-                        ? 'bg-purple-500 text-white border-2 border-purple-600'
-                        : 'bg-yellow-500 text-gray-900 border-2 border-yellow-600'
-                    }`}>
-                      <span className="mr-1">{accessMode === 'preview' ? '👁️' : '📝'}</span>
-                      {accessMode === 'preview' ? 'VORSCHAU' : 'ENTWURF'}
-                    </span>
-                  )}
-                </div>
-                {currentTenantEvent.description && (
-                  <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
-                )}
-                <div className="text-sm opacity-80 flex flex-col md:flex-row md:gap-4">
-                  {currentTenantEvent.starts_at && (
-                    <span>
-                      Start: {formatDate(currentTenantEvent.starts_at)}
-                    </span>
-                  )}
-                  {currentTenantEvent.ends_at && (
-                    <span>Ende: {formatDate(currentTenantEvent.ends_at)}</span>
-                  )}
+      {/* Desktop Header - Hidden on mobile */}
+      <div className="hidden md:block">
+        <CollapsibleHeader>
+          {/* Draft Banner - Only shown when event is in draft status */}
+          {currentTenantEvent.status === 'draft' && (
+            <div className={`${accessMode === 'preview' ? 'bg-purple-500 border-purple-600' : 'bg-yellow-500 border-yellow-600'} text-gray-900 px-4 py-3 shadow-md border-b-2`}>
+              <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
+                <span className="text-2xl">{accessMode === 'preview' ? '👁️' : '⚠️'}</span>
+                <div className="flex-1 text-center sm:text-left">
+                  <p className={`font-bold text-sm sm:text-base m-0 ${accessMode === 'preview' ? 'text-white' : ''}`}>
+                    {accessMode === 'preview'
+                      ? 'VORSCHAU-LINK: Du siehst eine Vorabversion dieses Events'
+                      : 'VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht'
+                    }
+                  </p>
+                  <p className={`text-xs sm:text-sm m-0 mt-1 ${accessMode === 'preview' ? 'text-purple-100' : ''}`}>
+                    {accessMode === 'preview'
+                      ? 'Diese Ansicht ist nur über den Vorschau-Link zugänglich. Das Event ist noch nicht öffentlich.'
+                      : 'Nur Organisatoren können diese Seite sehen. Veröffentliche das Event, damit Teilnehmer es sehen können.'
+                    }
+                  </p>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Management Button - Only visible for authenticated tenant members */}
-              {user && currentTenant && (
-                <button
-                  onClick={handleBackToAdmin}
-                  className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap backdrop-blur-sm border border-white/30"
-                  title="Zurück zur Event-Verwaltung"
-                >
-                  <span>⚙️</span>
-                  <span className="hidden sm:inline">Event verwalten</span>
-                  <span className="sm:hidden">Verwalten</span>
-                </button>
-              )}
+          {/* Hero Image Gallery */}
+          {hasImages && (
+            <div className="relative bg-gray-900">
+              {/* Main Cover Image */}
+              <div
+                className="relative h-48 sm:h-64 cursor-pointer"
+                onClick={() => openLightbox(images.indexOf(coverImage))}
+              >
+                <img
+                  src={getPublicImageUrl(coverImage.storage_path)}
+                  alt={currentTenantEvent.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+                {/* View all images button */}
+                {images.length > 1 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openLightbox(0); }}
+                    className="absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 transition-colors shadow-lg"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Alle {images.length} Fotos ansehen
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Header */}
+          <div className="bg-[#003366] text-white p-4 shadow-lg">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-2xl font-bold m-0">{currentTenantEvent.title}</h1>
+                    {/* Draft Badge in Header */}
+                    {currentTenantEvent.status === 'draft' && (
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                        accessMode === 'preview'
+                          ? 'bg-purple-500 text-white border-2 border-purple-600'
+                          : 'bg-yellow-500 text-gray-900 border-2 border-yellow-600'
+                      }`}>
+                        <span className="mr-1">{accessMode === 'preview' ? '👁️' : '📝'}</span>
+                        {accessMode === 'preview' ? 'VORSCHAU' : 'ENTWURF'}
+                      </span>
+                    )}
+                  </div>
+                  {currentTenantEvent.description && (
+                    <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
+                  )}
+                  <div className="text-sm opacity-80 flex flex-col md:flex-row md:gap-4">
+                    {currentTenantEvent.starts_at && (
+                      <span>
+                        Start: {formatDate(currentTenantEvent.starts_at)}
+                      </span>
+                    )}
+                    {currentTenantEvent.ends_at && (
+                      <span>Ende: {formatDate(currentTenantEvent.ends_at)}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Management Button - Only visible for authenticated tenant members */}
+                {user && currentTenant && (
+                  <button
+                    onClick={handleBackToAdmin}
+                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap backdrop-blur-sm border border-white/30"
+                    title="Zurück zur Event-Verwaltung"
+                  >
+                    <span>⚙️</span>
+                    <span className="hidden sm:inline">Event verwalten</span>
+                    <span className="sm:hidden">Verwalten</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </CollapsibleHeader>
+        </CollapsibleHeader>
+      </div>
 
       {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
