@@ -14,15 +14,27 @@ interface EventEditFormProps {
   onCancel: () => void;
 }
 
+// Helper to convert UTC timestamp to local datetime-local format
+const toLocalDatetimeString = (utcString: string): string => {
+  const date = new Date(utcString);
+  // Format as YYYY-MM-DDTHH:mm in local timezone
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
   const { updateEvent } = useFlohmarkt();
   const [title, setTitle] = useState(event.title);
   const [description, setDescription] = useState(event.description || "");
   const [startsAt, setStartsAt] = useState(
-    event.starts_at ? new Date(event.starts_at).toISOString().slice(0, 16) : ""
+    event.starts_at ? toLocalDatetimeString(event.starts_at) : ""
   );
   const [endsAt, setEndsAt] = useState(
-    event.ends_at ? new Date(event.ends_at).toISOString().slice(0, 16) : ""
+    event.ends_at ? toLocalDatetimeString(event.ends_at) : ""
   );
   const [mapCenterAddress, setMapCenterAddress] = useState(event.map_center_address || "");
   const [enableBoundary, setEnableBoundary] = useState(!!event.boundary_radius_meters);

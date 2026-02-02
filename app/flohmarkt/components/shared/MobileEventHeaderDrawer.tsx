@@ -228,16 +228,10 @@ export function MobileEventHeaderDrawer({
 
                 <div className="space-y-1 text-sm text-gray-500">
                   {event.starts_at && (
-                    <div className="flex items-center gap-2">
-                      <span>📅</span>
-                      <span>Start: {formatDate(event.starts_at)}</span>
-                    </div>
+                    <span>Start: {formatDate(event.starts_at)}</span>
                   )}
                   {event.ends_at && (
-                    <div className="flex items-center gap-2">
-                      <span>🏁</span>
-                      <span>Ende: {formatDate(event.ends_at)}</span>
-                    </div>
+                    <span className="block">Ende: {formatDate(event.ends_at)}</span>
                   )}
                 </div>
               </div>
