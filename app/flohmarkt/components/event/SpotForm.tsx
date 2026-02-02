@@ -7,15 +7,13 @@ import { normalizeAddress } from "../../lib/addressNormalization";
 import { validateHouseNumber, isPartialHouseNumber } from "../../lib/houseNumberValidation";
 import { AddressPinSelector } from "../shared/AddressPinSelector";
 import { getSpotTerms } from "../../lib/spotTerms";
-import { LocationCacheConsentModal } from "../shared/LocationCacheConsentModal";
-import { AddressCacheIndicator } from "../shared/AddressCacheIndicator";
 import { UseCurrentLocationButton } from "../shared/UseCurrentLocationButton";
 import {
   loadLocationCache,
   saveLocationToCache,
-  updateCacheConsent,
   isCompleteCache,
 } from "../../lib/locationCache";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 const FORM_STORAGE_KEY = "spotFormData";
 
@@ -43,8 +41,6 @@ export function SpotForm() {
   const [finalLat, setFinalLat] = useState<number | null>(null);
   const [finalLng, setFinalLng] = useState<number | null>(null);
   // Location cache state
-  const [showConsentModal, setShowConsentModal] = useState(false);
-  const [showCacheIndicator, setShowCacheIndicator] = useState(false);
   const [cacheLoaded, setCacheLoaded] = useState(false);
 
   // Load saved form data on mount
@@ -139,80 +135,6 @@ export function SpotForm() {
     } else {
       setHouseNumberError(undefined);
     }
-  };
-
-  // Handle consent acceptance
-  const handleConsentAccept = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('locationCacheAsked', 'true');
-
-      // Save the pending address that was just created
-      const pendingStr = localStorage.getItem('pendingAddressCache');
-      if (pendingStr) {
-        try {
-          const pending = JSON.parse(pendingStr);
-          saveLocationToCache(
-            {
-              street: pending.street,
-              houseNumber: pending.houseNumber,
-              zip: pending.zip,
-              city: pending.city,
-              addressRaw: pending.addressRaw,
-            },
-            {
-              lat: pending.lat,
-              lng: pending.lng,
-              geoPrecision: 'exact',
-            },
-            true
-          );
-          localStorage.removeItem('pendingAddressCache');
-
-          // Immediately pre-fill the form with the saved address
-          setStreet(pending.street);
-          setHouseNumber(pending.houseNumber);
-          setZip(pending.zip);
-          setCity(pending.city);
-          setFinalLat(pending.lat);
-          setFinalLng(pending.lng);
-          setShowCacheIndicator(true);
-        } catch (error) {
-          console.error('Error saving pending address:', error);
-        }
-      } else {
-        // No pending address, just update consent
-        updateCacheConsent(true, '1.0');
-      }
-    }
-    setShowConsentModal(false);
-    // Stay on form tab with pre-filled address (don't redirect to list)
-  };
-
-  // Handle consent decline
-  const handleConsentDecline = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('locationCacheAsked', 'true');
-      updateCacheConsent(false, '1.0');
-      localStorage.removeItem('pendingAddressCache');
-    }
-    setShowConsentModal(false);
-    // Stay on form tab (don't redirect)
-  };
-
-  // Handle clearing cached address
-  const handleClearCache = () => {
-    setStreet('');
-    setHouseNumber('');
-    setZip('');
-    setCity('');
-    setFinalLat(null);
-    setFinalLng(null);
-    setShowCacheIndicator(false);
-  };
-
-  // Handle dismissing cache indicator
-  const handleDismissIndicator = () => {
-    setShowCacheIndicator(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -353,65 +275,13 @@ export function SpotForm() {
       setGeocodeResult(null);
       setFinalLat(null);
       setFinalLng(null);
-      setShowCacheIndicator(false);
 
-      // Check if we should ask for consent to cache location
-      const cache = loadLocationCache();
-      const askedBefore = typeof window !== 'undefined' ? localStorage.getItem('locationCacheAsked') : null;
-
-      if (cache?.consentGiven) {
-        // Already have consent, just save the address
-        const addressRawForCache = `${normalized.street}${normalized.houseNumber ? ' ' + normalized.houseNumber : ''}, ${normalized.zip} ${normalized.city}`;
-        saveLocationToCache(
-          {
-            street: normalized.street,
-            houseNumber: normalized.houseNumber,
-            zip: normalized.zip,
-            city: normalized.city,
-            addressRaw: addressRawForCache,
-          },
-          {
-            lat,
-            lng,
-            geoPrecision: 'exact',
-          },
-          true
-        );
-        // Show success modal normally
-        setShowSuccessModal(true);
-        setTimeout(() => {
-          setShowSuccessModal(false);
-          setCurrentTab("list");
-        }, 3000);
-      } else if (!askedBefore) {
-        // First time - ask for consent to save this address
-        // Store the address temporarily so we can save it after consent
-        if (typeof window !== 'undefined') {
-          const addressRawForCache = `${normalized.street}${normalized.houseNumber ? ' ' + normalized.houseNumber : ''}, ${normalized.zip} ${normalized.city}`;
-          localStorage.setItem('pendingAddressCache', JSON.stringify({
-            street: normalized.street,
-            houseNumber: normalized.houseNumber,
-            zip: normalized.zip,
-            city: normalized.city,
-            addressRaw: addressRawForCache,
-            lat,
-            lng,
-          }));
-        }
-        // Show success modal then consent modal
-        setShowSuccessModal(true);
-        setTimeout(() => {
-          setShowSuccessModal(false);
-          setShowConsentModal(true);
-        }, 3000);
-      } else {
-        // User previously declined, don't ask again
-        setShowSuccessModal(true);
-        setTimeout(() => {
-          setShowSuccessModal(false);
-          setCurrentTab("list");
-        }, 3000);
-      }
+      // Show success modal and redirect to list
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        setCurrentTab("list");
+      }, 3000);
     } else {
       alert(terms.errorCreatingSpot);
     }
@@ -435,14 +305,6 @@ export function SpotForm() {
         <h3 className="mt-0 text-[#003366]">{terms.yourSpot}</h3>
 
         <form onSubmit={handleSubmit}>
-          {/* Cache Indicator */}
-          {showCacheIndicator && (
-            <AddressCacheIndicator
-              onClear={handleClearCache}
-              onDismiss={handleDismissIndicator}
-            />
-          )}
-
           <div className="mb-4">
             <label htmlFor="street" className="block mb-1 font-bold text-gray-700 text-sm">
               Straße *
@@ -494,7 +356,7 @@ export function SpotForm() {
 
           <div className="mb-4">
             <label htmlFor="city" className="block mb-1 font-bold text-gray-700 text-sm">
-              Stadt *
+              Ort *
             </label>
             <input
               id="city"
@@ -539,7 +401,7 @@ export function SpotForm() {
 
           <div className="mb-4">
             <label htmlFor="publicNote" className="block mb-1 font-bold text-gray-700 text-sm">
-              Was bietest du an?
+              Was bietest du an? *
             </label>
             <textarea
               id="publicNote"
@@ -553,37 +415,37 @@ export function SpotForm() {
           </div>
 
           {/* Collapsible Contact Section */}
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-4">
-              <input
-                type="checkbox"
-                id="showContactFields"
-                checked={showContactFields}
-                onChange={(e) => setShowContactFields(e.target.checked)}
-                className="w-5 h-5"
-              />
-              <label htmlFor="showContactFields" className="text-sm font-medium text-gray-700 cursor-pointer">
-                Meinen Kontakt hinzufügen (optional)
-              </label>
+          <div className="mb-5 border border-gray-300 rounded-lg overflow-hidden">
+            {/* Clickable Header */}
+            <button
+              type="button"
+              onClick={() => setShowContactFields(!showContactFields)}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+            >
+              <span className="text-sm font-medium text-gray-700">
+                Name, E-Mail oder Telefon angeben (optional)
+              </span>
+              {showContactFields ? (
+                <ChevronDown className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-gray-500" aria-hidden="true" />
+              )}
+            </button>
+
+            {/* Data Security Notice - Always visible */}
+            <div className="flex items-start gap-2 px-3 py-2 bg-blue-50 border-t border-blue-200">
+              <span className="text-lg flex-shrink-0">🔒</span>
+              <p className="text-xs text-gray-600 m-0">
+                Name, E-Mail und Telefon werden nicht öffentlich angezeigt und dienen nur der Kontaktaufnahme durch Veranstalter:innen.
+              </p>
             </div>
 
-            {/* Data Security Notice */}
-            <div className="mb-4 flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <span className="text-2xl flex-shrink-0">🔒</span>
-              <div className="text-sm text-gray-700 leading-relaxed">
-                <p className="font-semibold mb-1 mt-0">Datenschutz-Hinweis</p>
-                <p className="m-0">
-                  Name, E-Mail und Telefon werden nicht öffentlich angezeigt.
-                  Daten dienen lediglich der Kontaktaufnahme seitens der Veranstalter:innen.
-                </p>
-              </div>
-            </div>
-
+            {/* Contact Fields */}
             {showContactFields && (
-              <div className="space-y-4 pl-7">
+              <div className="space-y-3 p-3 border-t border-gray-200">
                 <div>
                   <label htmlFor="contactName" className="block mb-1 text-gray-600 text-sm">
-                    Dein Name (Optional)
+                    Dein Name
                   </label>
                   <input
                     id="contactName"
@@ -597,7 +459,7 @@ export function SpotForm() {
 
                 <div>
                   <label htmlFor="contactEmail" className="block mb-1 text-gray-600 text-sm">
-                    E-Mail (Optional)
+                    E-Mail
                   </label>
                   <input
                     id="contactEmail"
@@ -611,7 +473,7 @@ export function SpotForm() {
 
                 <div>
                   <label htmlFor="contactPhone" className="block mb-1 text-gray-600 text-sm">
-                    Telefon (Optional)
+                    Telefon
                   </label>
                   <input
                     id="contactPhone"
@@ -692,13 +554,6 @@ export function SpotForm() {
         </div>
       )}
 
-      {/* Consent Modal */}
-      <LocationCacheConsentModal
-        isOpen={showConsentModal}
-        onAccept={handleConsentAccept}
-        onDecline={handleConsentDecline}
-        onClose={() => setShowConsentModal(false)}
-      />
     </div>
   );
 }
