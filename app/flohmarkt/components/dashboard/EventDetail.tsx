@@ -340,6 +340,7 @@ export function EventDetail() {
         isOpen={isPrintMaterialsOpen}
         onClose={() => setIsPrintMaterialsOpen(false)}
         event={currentTenantEvent}
+        organizationSlug={currentTenant.slug}
         userEmail={user?.email}
         coverImageUrl={(() => {
           if (currentTenantEvent.images && currentTenantEvent.images.length > 0) {

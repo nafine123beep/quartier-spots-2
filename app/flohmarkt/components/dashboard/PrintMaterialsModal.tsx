@@ -11,6 +11,7 @@ interface PrintMaterialsModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: TenantEvent;
+  organizationSlug: string;
   userEmail?: string;
   coverImageUrl?: string;
   registrationUrl: string;
@@ -23,6 +24,7 @@ export function PrintMaterialsModal({
   isOpen,
   onClose,
   event,
+  organizationSlug,
   userEmail,
   coverImageUrl,
   registrationUrl,
@@ -82,7 +84,7 @@ export function PrintMaterialsModal({
     try {
       const blob = await generatePosterPDF({
         event,
-        organizationSlug: event.tenant?.slug || '',
+        organizationSlug,
         coverImageUrl,
         registrationUrl,
         contactEmail: contactEmail.trim() || undefined,
