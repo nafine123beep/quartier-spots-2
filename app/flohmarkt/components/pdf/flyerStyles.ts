@@ -1,15 +1,15 @@
 import { SHARED_PRINT_STYLES } from './sharedPrintStyles';
 
 /**
- * PDF layout constants for the A6 flyer (compact format).
+ * PDF layout constants for the A6 flyer (redesigned distinct layout).
  * All measurements in millimeters.
  *
  * Design principles:
- * - Compact layout for handouts (cafés, counters, doors)
- * - High information density without clutter
- * - Quick scan, minimal reading
- * - Banner-style header image
- * - Smaller fonts but still readable
+ * - Distinct A6 layout (NOT a scaled A4)
+ * - Strong visual hierarchy with dominant title
+ * - Boxed QR action block for clear CTA
+ * - No text truncation - full description displayed
+ * - Compact but readable
  */
 export const FLYER_STYLES = {
   // Inherit shared print styles
@@ -23,33 +23,39 @@ export const FLYER_STYLES = {
   marginLeft: 8,
   marginRight: 8,
 
-  // Typography (sizes in points) — smaller than A4 for compact layout
+  // Typography (sizes in points) — strong hierarchy for A6
   fonts: {
-    title: { size: 18, style: 'bold' as const },      // Half of A4 (36pt → 18pt)
-    subtitle: { size: 10, style: 'bold' as const },   // Smaller than A4 (16pt → 10pt)
-    body: { size: 9, style: 'normal' as const },      // Smaller than A4 (12pt → 9pt)
-    cta: { size: 10, style: 'bold' as const },        // Smaller than A4 (14pt → 10pt)
-    small: { size: 8, style: 'normal' as const },     // Smaller than A4 (10pt → 8pt)
+    title: { size: 24, style: 'bold' as const },      // INCREASED: dominant title (was 18pt)
+    subtitle: { size: 9, style: 'normal' as const },  // Compact metadata
+    body: { size: 9, style: 'normal' as const },      // Description text
+    cta: { size: 10, style: 'bold' as const },        // CTA text
+    small: { size: 8, style: 'normal' as const },     // Footer text
   },
 
   // Spacing (mm) — tighter than A4
   spacing: {
-    xs: 1,   // A4: 2mm
-    sm: 2,   // A4: 4mm
-    md: 4,   // A4: 8mm
-    lg: 6,   // A4: 12mm
-    xl: 8,   // A4: 18mm
+    xs: 1,
+    sm: 2,
+    md: 4,
+    lg: 6,
+    xl: 8,
   },
 
-  // Cover image constraints — banner style for compact header
+  // Cover image constraints — banner style header
   image: {
-    maxWidth: 140,   // Almost full width (148mm - 8mm margins)
-    maxHeight: 35,   // Banner aspect ratio (4:1)
+    maxWidth: 132,   // Full content width
+    maxHeight: 30,   // Reduced height for banner style
   },
 
-  // QR code size (mm) — slightly smaller than A4 but still scannable
+  // QR code size (mm) — REDUCED for better proportions
   qrCode: {
-    size: 40,   // A4: 45mm
+    size: 28,   // Was 40mm, now more proportional to A6
+  },
+
+  // QR action block settings (boxed unit)
+  qrBlock: {
+    padding: 4,        // 4mm padding all sides
+    borderRadius: 2,   // Slight rounding
   },
 } as const;
 

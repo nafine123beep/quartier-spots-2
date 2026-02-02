@@ -13,6 +13,7 @@ export const SHARED_PRINT_STYLES = {
     lightGray: '#9ca3af',    // Light gray for borders/backgrounds
     accent: '#FFCC00',       // Yellow accent (reserved for highlights)
     background: '#f8fafc',   // Light background (used sparingly)
+    qrBlockBg: '#f0f4f8',    // Light background for QR action block (A6 flyer)
   },
 
   // Base font family

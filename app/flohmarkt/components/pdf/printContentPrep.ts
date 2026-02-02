@@ -108,26 +108,6 @@ export function getPrintDescription(event: TenantEvent, customDescription?: stri
 }
 
 /**
- * Truncate description text for A6 flyer format (max 120 characters).
- * Uses intelligent word-boundary truncation with ellipsis.
- */
-export function truncateForFlyer(description: string, maxChars: number = 120): string {
-  if (description.length <= maxChars) return description;
-
-  // Truncate at word boundary to avoid cutting words in half
-  const truncated = description.slice(0, maxChars);
-  const lastSpace = truncated.lastIndexOf(' ');
-
-  if (lastSpace > maxChars * 0.8) {
-    // If last space is reasonably close to the end, use it
-    return truncated.slice(0, lastSpace) + '...';
-  }
-
-  // Otherwise, hard truncate with ellipsis
-  return truncated + '...';
-}
-
-/**
  * Calculate scaled image dimensions for a specific print format (A4 or A6).
  * Preserves aspect ratio while respecting format-specific max dimensions.
  */
@@ -140,7 +120,7 @@ export function scaleImageForFormat(
   const constraints =
     format === 'a4'
       ? { maxWidth: 180, maxHeight: 90 } // A4: square/landscape image
-      : { maxWidth: 140, maxHeight: 35 }; // A6: banner-style header
+      : { maxWidth: 132, maxHeight: 30 }; // A6: banner-style header (updated)
 
   const aspectRatio = naturalWidth / naturalHeight;
   let width = Math.min(constraints.maxWidth, naturalWidth);

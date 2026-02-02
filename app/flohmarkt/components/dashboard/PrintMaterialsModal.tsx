@@ -117,7 +117,6 @@ export function PrintMaterialsModal({
   };
 
   const isDescriptionValid = description.trim().length >= MIN_DESCRIPTION_LENGTH;
-  const isTruncatedForFlyer = description.length > 120;
   const isUsingFallback =
     !event.description || event.description.trim().length < MIN_DESCRIPTION_LENGTH;
 
@@ -221,9 +220,8 @@ export function PrintMaterialsModal({
                   <p className="text-xs text-gray-500">
                     Mindestens {MIN_DESCRIPTION_LENGTH} Zeichen erforderlich
                   </p>
-                  <p className={`text-xs ${description.length > 120 ? 'text-amber-600 font-medium' : 'text-gray-500'}`}>
+                  <p className="text-xs text-gray-500">
                     {description.length} Zeichen
-                    {description.length > 120 && ' (wird auf Flyer gekürzt)'}
                   </p>
                 </div>
               </div>
@@ -307,17 +305,12 @@ export function PrintMaterialsModal({
                       <strong>Kompakt für Handzettel</strong>
                     </p>
                     <ul className="text-xs text-gray-600 space-y-1">
-                      <li>✓ Kompakte Schrift (hohe Dichte)</li>
-                      <li>✓ Gekürzter Text (max 120 Zeichen)</li>
-                      <li>✓ QR-Code zur Anmeldung</li>
+                      <li>✓ Dominanter Titel (24pt)</li>
+                      <li>✓ Vollständiger Text (keine Kürzung)</li>
+                      <li>✓ QR-Code im hervorgehobenen Block</li>
                       {coverImageUrl && <li>✓ Banner-Bild</li>}
                       {contactEmail && <li>✓ Kontakt im Footer</li>}
                     </ul>
-                    {isTruncatedForFlyer && (
-                      <div className="mt-3 text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                        ⚠️ Beschreibung wird gekürzt
-                      </div>
-                    )}
                   </div>
 
                   {/* Download Button */}

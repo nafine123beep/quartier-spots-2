@@ -6,13 +6,11 @@ import {
   fetchImageAsDataUrl,
   generateQRCodeDataUrl,
   getImageDimensions,
-  formatPosterDateTime,
   getPrintDescription,
-  truncateForFlyer,
 } from './printContentPrep';
 
 /**
- * Render the event title (compact, centered, max 2 lines).
+ * Render the event title (24pt bold, very dominant, max 2 lines).
  */
 function renderFlyerTitle(
   doc: jsPDF,
@@ -35,15 +33,15 @@ function renderFlyerTitle(
   const centerX = marginLeft + contentWidth / 2;
   doc.text(limitedLines, centerX, y, { align: 'center' });
 
-  // Each line at 18pt ≈ 6.4mm
-  const lineHeight = 6.5;
-  return y + limitedLines.length * lineHeight + spacing.sm;
+  // Each line at 24pt ≈ 8.5mm
+  const lineHeight = 8.5;
+  return y + limitedLines.length * lineHeight + spacing.xs;
 }
 
 /**
- * Render date and location in compact inline format (centered).
+ * Render compact metadata (single line: date | time • location).
  */
-function renderCompactDateLocation(
+function renderCompactMetadata(
   doc: jsPDF,
   event: TenantEvent,
   y: number,
@@ -52,29 +50,58 @@ function renderCompactDateLocation(
   const { marginLeft, fonts, colors, spacing } = FLYER_STYLES;
   const centerX = marginLeft + contentWidth / 2;
 
-  // Date line
-  const dateTime = formatPosterDateTime(event);
-  if (dateTime) {
+  // Build compact metadata string
+  let metadataStr = '';
+
+  if (event.starts_at) {
+    const start = new Date(event.starts_at);
+    const dayStr = start.toLocaleDateString('de-DE', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+
+    const startTime = start.toLocaleTimeString('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    if (event.ends_at) {
+      const end = new Date(event.ends_at);
+      const endTime = end.toLocaleTimeString('de-DE', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      metadataStr = `${dayStr} | ${startTime}–${endTime} Uhr`;
+    } else {
+      metadataStr = `${dayStr} | ${startTime} Uhr`;
+    }
+  }
+
+  // Add location with bullet separator
+  if (event.map_center_address) {
+    if (metadataStr) {
+      metadataStr += ` • ${event.map_center_address}`;
+    } else {
+      metadataStr = event.map_center_address;
+    }
+  }
+
+  if (metadataStr) {
     doc.setFontSize(fonts.subtitle.size);
     doc.setFont('helvetica', fonts.subtitle.style);
-    doc.setTextColor(colors.text);
-    doc.text(dateTime, centerX, y, { align: 'center' });
-    y += 5;
-  }
-
-  // Location line
-  if (event.map_center_address) {
-    doc.setFontSize(fonts.subtitle.size);
-    doc.setFont('helvetica', 'normal');
     doc.setTextColor(colors.muted);
-    doc.text(event.map_center_address, centerX, y, { align: 'center' });
-    y += 5;
+
+    // If too long, split into two lines
+    const lines: string[] = doc.splitTextToSize(metadataStr, contentWidth);
+    doc.text(lines.slice(0, 2), centerX, y, { align: 'center' });
+
+    const lineHeight = 4;
+    return y + Math.min(lines.length, 2) * lineHeight + spacing.md;
   }
 
-  // Spacing after date/location
-  y += spacing.md;
-
-  return y;
+  return y + spacing.sm;
 }
 
 /**
@@ -114,9 +141,9 @@ function renderBannerImage(
 }
 
 /**
- * Render the compact description (truncated to max 120 chars, 2-3 lines).
+ * Render the description (full text, no truncation).
  */
-function renderCompactDescription(
+function renderDescription(
   doc: jsPDF,
   description: string,
   y: number,
@@ -124,69 +151,84 @@ function renderCompactDescription(
 ): number {
   const { marginLeft, fonts, colors, spacing } = FLYER_STYLES;
 
-  // Truncate description for compact layout
-  const truncatedDesc = truncateForFlyer(description, 120);
-
   doc.setFontSize(fonts.body.size);
   doc.setFont('helvetica', fonts.body.style);
   doc.setTextColor(colors.text);
 
-  const lines: string[] = doc.splitTextToSize(truncatedDesc, contentWidth);
-  const lineHeight = 4.5; // ~9pt body text line height in mm
+  const lines: string[] = doc.splitTextToSize(description, contentWidth);
+  const lineHeight = 4;
 
-  // Max 3 lines for compact layout
-  const limitedLines = lines.slice(0, 3);
+  // Render all lines (no truncation)
+  const centerX = marginLeft + contentWidth / 2;
+  doc.text(lines, centerX, y, { align: 'center' });
 
-  doc.text(limitedLines, marginLeft, y);
-
-  return y + limitedLines.length * lineHeight + spacing.lg;
+  return y + lines.length * lineHeight + spacing.md;
 }
 
 /**
- * Render the QR code section (QR + CTA + notice, centered).
+ * Render the QR action block (visually boxed with background).
+ * Contains: QR code + CTA text + "no login required" notice.
  */
-function renderQRCodeSection(
+function renderQRActionBlock(
   doc: jsPDF,
   qrCodeDataUrl: string,
   y: number,
   contentWidth: number
 ): number {
-  const { marginLeft, fonts, colors, spacing, qrCode } = FLYER_STYLES;
+  const { marginLeft, fonts, colors, spacing, qrCode, qrBlock } = FLYER_STYLES;
   const centerX = marginLeft + contentWidth / 2;
 
-  // QR code (centered)
-  const qrX = centerX - qrCode.size / 2;
+  // Calculate block dimensions
+  const blockPadding = qrBlock.padding;
+  const qrSize = qrCode.size;
+  const ctaText = 'Scanne den QR-Code und mach mit – keine Anmeldung erforderlich';
+
+  // Measure CTA text height
+  doc.setFontSize(fonts.cta.size);
+  const ctaLines: string[] = doc.splitTextToSize(ctaText, contentWidth - blockPadding * 2);
+  const ctaLineHeight = 4.5;
+  const ctaHeight = ctaLines.length * ctaLineHeight;
+
+  // Total block height
+  const blockHeight = blockPadding + qrSize + spacing.sm + ctaHeight + blockPadding;
+  const blockWidth = contentWidth;
+  const blockX = marginLeft;
+
+  // Draw background rectangle
+  doc.setFillColor(colors.qrBlockBg);
+  doc.roundedRect(blockX, y, blockWidth, blockHeight, qrBlock.borderRadius, qrBlock.borderRadius, 'F');
+
+  // Draw QR code (centered in block)
+  const qrX = centerX - qrSize / 2;
+  const qrY = y + blockPadding;
+
   try {
-    doc.addImage(qrCodeDataUrl, 'PNG', qrX, y, qrCode.size, qrCode.size);
+    doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
   } catch {
     // Fallback text if QR fails
     doc.setFontSize(fonts.body.size);
     doc.setTextColor(colors.muted);
-    doc.text('QR-Code konnte nicht erstellt werden', centerX, y + qrCode.size / 2, {
+    doc.text('QR-Code konnte nicht erstellt werden', centerX, qrY + qrSize / 2, {
       align: 'center',
     });
   }
 
-  const ctaY = y + qrCode.size + spacing.sm;
-
-  // CTA text (combined with "no login required" notice)
+  // Draw CTA text below QR
+  const ctaY = qrY + qrSize + spacing.sm;
   doc.setFontSize(fonts.cta.size);
   doc.setFont('helvetica', fonts.cta.style);
   doc.setTextColor(colors.primary);
-
-  // Split CTA text into multiple lines for better fit on A6
-  const ctaText = 'Scanne den QR-Code und mach mit – keine Anmeldung nötig';
-  const ctaLines: string[] = doc.splitTextToSize(ctaText, contentWidth);
   doc.text(ctaLines, centerX, ctaY, { align: 'center' });
 
-  const lineHeight = 4.5;
-  return ctaY + ctaLines.length * lineHeight + spacing.sm;
+  return y + blockHeight + spacing.md;
 }
 
 /**
- * Render contact email as small footer text (optional).
+ * Render contact email footer with redesigned copy.
+ * "Haben Sie noch Fragen zum Event? Schreib uns an {email}"
+ * Email is rendered in bold.
  */
-function renderEmailFooter(
+function renderContactFooter(
   doc: jsPDF,
   contactEmail: string,
   y: number,
@@ -195,16 +237,38 @@ function renderEmailFooter(
   const { marginLeft, fonts, colors } = FLYER_STYLES;
   const centerX = marginLeft + contentWidth / 2;
 
+  // First part: "Haben Sie noch Fragen zum Event? Schreib uns an "
+  const prefix = 'Haben Sie noch Fragen zum Event? Schreib uns an ';
+
   doc.setFontSize(fonts.small.size);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(colors.muted);
-  doc.text(`Fragen? ${contactEmail}`, centerX, y, { align: 'center' });
+
+  // Measure prefix width for positioning
+  const prefixWidth = doc.getTextWidth(prefix);
+
+  // Measure email width (bold)
+  doc.setFont('helvetica', 'bold');
+  const emailWidth = doc.getTextWidth(contactEmail);
+
+  // Calculate total width and starting X for centering
+  const totalWidth = prefixWidth + emailWidth;
+  const startX = centerX - totalWidth / 2;
+
+  // Draw prefix (normal weight)
+  doc.setFont('helvetica', 'normal');
+  doc.text(prefix, startX, y, { align: 'left' });
+
+  // Draw email (bold)
+  doc.setFont('helvetica', 'bold');
+  doc.text(contactEmail, startX + prefixWidth, y, { align: 'left' });
 
   return y + 4;
 }
 
 /**
- * Generate a single-page A6 compact flyer PDF for an event.
+ * Generate a single-page A6 flyer PDF for an event.
+ * Redesigned layout with strong visual hierarchy and boxed QR block.
  */
 export async function generateFlyerPDF(input: FlyerPDFInput): Promise<Blob> {
   const { event, coverImageUrl, registrationUrl, contactEmail, customDescription } = input;
@@ -219,7 +283,7 @@ export async function generateFlyerPDF(input: FlyerPDFInput): Promise<Blob> {
 
   let y: number = marginTop;
 
-  // 1. Banner Image (optional, top of page)
+  // 1. Banner Image (optional, top of page when available)
   let imageDataUrl: string | null = null;
   if (coverImageUrl) {
     imageDataUrl = await fetchImageAsDataUrl(coverImageUrl);
@@ -228,28 +292,28 @@ export async function generateFlyerPDF(input: FlyerPDFInput): Promise<Blob> {
         const dims = await getImageDimensions(imageDataUrl);
         y = renderBannerImage(doc, imageDataUrl, dims.width, dims.height, y, contentWidth);
       } catch {
-        // Image loading failed, skip
+        // Image loading failed, start with title directly
       }
     }
   }
 
-  // 2. Event Title
+  // 2. Event Title (very dominant, 24pt)
   y = renderFlyerTitle(doc, event.title, y, contentWidth);
 
-  // 3. Date + Location (compact, inline)
-  y = renderCompactDateLocation(doc, event, y, contentWidth);
+  // 3. Compact Metadata (single line: date | time • location)
+  y = renderCompactMetadata(doc, event, y, contentWidth);
 
-  // 4. Description (truncated to max 120 chars)
+  // 4. Description (full text, no truncation)
   const description = getPrintDescription(event, customDescription);
-  y = renderCompactDescription(doc, description, y, contentWidth);
+  y = renderDescription(doc, description, y, contentWidth);
 
-  // 5. QR Code + CTA
+  // 5. QR Action Block (boxed with background)
   const qrCodeDataUrl = await generateQRCodeDataUrl(registrationUrl);
-  y = renderQRCodeSection(doc, qrCodeDataUrl, y, contentWidth);
+  y = renderQRActionBlock(doc, qrCodeDataUrl, y, contentWidth);
 
-  // 6. Email Footer (optional, if email provided)
+  // 6. Contact Footer (optional, redesigned copy with bold email)
   if (contactEmail) {
-    renderEmailFooter(doc, contactEmail, y, contentWidth);
+    renderContactFooter(doc, contactEmail, y, contentWidth);
   }
 
   return doc.output('blob');
