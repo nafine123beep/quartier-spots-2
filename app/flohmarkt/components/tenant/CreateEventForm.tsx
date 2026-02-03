@@ -5,6 +5,7 @@ import { useFlohmarkt } from "../../FlohmarktContext";
 import { geocodeAddress } from "../../lib/geocoding";
 import { BOUNDARY_RADIUS_PRESETS } from "../../lib/geoUtils";
 import { SPOT_TERM_PRESETS } from "../../lib/spotTerms";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface CreateEventFormProps {
   onSuccess: (event: { id: string; title: string; slug: string }) => void;
@@ -182,29 +183,31 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
         </div>
 
         {/* Boundary Radius Section */}
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-start gap-2.5 mb-3">
-            <input
-              type="checkbox"
-              id="enableBoundary"
-              checked={enableBoundary}
-              onChange={(e) => {
-                setEnableBoundary(e.target.checked);
-                if (!e.target.checked) {
-                  setBoundaryRadius(null);
-                  setCustomRadius("");
-                }
-              }}
-              disabled={loading}
-              className="w-5 h-5 mt-0.5"
-            />
-            <label htmlFor="enableBoundary" className="font-bold text-gray-700 text-sm">
+        <div className="mb-4 border border-gray-300 rounded-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={() => {
+              setEnableBoundary(!enableBoundary);
+              if (enableBoundary) {
+                setBoundaryRadius(null);
+                setCustomRadius("");
+              }
+            }}
+            disabled={loading}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+          >
+            <span className="text-sm font-medium text-gray-700">
               Geografisches Gebiet einschränken
-            </label>
-          </div>
+            </span>
+            {enableBoundary ? (
+              <ChevronDown className="h-5 w-5 text-gray-500" aria-hidden="true" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-gray-500" aria-hidden="true" />
+            )}
+          </button>
 
           {enableBoundary && (
-            <>
+            <div className="p-4 border-t border-gray-200">
               <p className="text-xs text-gray-600 mb-3">
                 Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
               </p>
@@ -251,12 +254,12 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
                   className="w-32 p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500 disabled:bg-gray-100"
                 />
               </div>
-              {enableBoundary && !boundaryRadius && (
+              {!boundaryRadius && (
                 <p className="mt-2 text-xs text-orange-600">
                   Bitte wähle einen Radius aus oder gib einen eigenen Wert ein (min. 100m).
                 </p>
               )}
-            </>
+            </div>
           )}
         </div>
 

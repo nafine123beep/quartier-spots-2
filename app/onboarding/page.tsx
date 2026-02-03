@@ -92,6 +92,9 @@ function OnboardingContent() {
         // Save username to profile
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
+            // Update auth metadata so the name is available on next session load
+            await supabase.auth.updateUser({ data: { full_name: name } });
+
             // First try to update existing profile
             const { error: updateError } = await supabase
                 .from("profiles")
