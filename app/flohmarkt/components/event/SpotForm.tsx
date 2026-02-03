@@ -109,7 +109,6 @@ export function SpotForm() {
       setCity(cache.address.city);
       setFinalLat(cache.coordinates.lat);
       setFinalLng(cache.coordinates.lng);
-      setShowCacheIndicator(true);
 
       // Update lastUsed timestamp
       saveLocationToCache(cache.address, cache.coordinates, true);

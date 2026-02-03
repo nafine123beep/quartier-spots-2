@@ -266,16 +266,6 @@ export function AddressPinSelector({
             )}
           </div>
 
-          {/* Scroll Indicator - visible on mobile */}
-          <div className="md:hidden flex justify-center py-2 bg-gradient-to-b from-transparent to-gray-50 -mt-8 relative z-[1001]">
-            <div className="animate-bounce text-gray-400 flex flex-col items-center">
-              <span className="text-xs text-gray-500 mb-1">Weiter scrollen</span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-              </svg>
-            </div>
-          </div>
-
           {/* Instructions and Actions */}
           <div className="p-4 md:p-6 bg-gray-50 border-t border-gray-200 pb-8 md:pb-6">
             <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
