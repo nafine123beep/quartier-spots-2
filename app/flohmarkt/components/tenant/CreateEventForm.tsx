@@ -140,7 +140,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
         <div className="flex gap-4">
           <div className="flex-1 mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Start
+              Start *
             </label>
             <input
               type="datetime-local"
@@ -152,7 +152,7 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
           </div>
           <div className="flex-1 mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Ende
+              Ende *
             </label>
             <input
               type="datetime-local"

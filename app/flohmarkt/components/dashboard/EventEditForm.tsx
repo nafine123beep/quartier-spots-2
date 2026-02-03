@@ -199,7 +199,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block mb-2 font-bold text-gray-700 text-sm">
-              Start
+              Start <span className="text-red-500">*</span>
             </label>
             <input
               type="datetime-local"
@@ -210,7 +210,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
           </div>
           <div>
             <label className="block mb-2 font-bold text-gray-700 text-sm">
-              Ende
+              Ende <span className="text-red-500">*</span>
             </label>
             <input
               type="datetime-local"
