@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Mail, User, Users, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [checkingSession, setCheckingSession] = useState(true);
   const [resetPasswordMode, setResetPasswordMode] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [showNewUserInfo, setShowNewUserInfo] = useState(true);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -307,7 +309,50 @@ export default function LoginPage() {
 
       {/* Form Container */}
       <div className="max-w-[400px] w-full mx-auto p-5">
-        <h2 className="mt-0 text-[#003366]">Login für Veranstalter:innen</h2>
+        <h2 className="mt-0 text-[#003366]">Willkommen bei QuartierSpots</h2>
+
+        {/* New User Info Box */}
+        <div className="mb-5 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowNewUserInfo(!showNewUserInfo)}
+            className="w-full flex items-center justify-between p-3 bg-transparent border-none cursor-pointer text-left"
+          >
+            <span className="font-semibold text-blue-800">Neu hier? So funktioniert&apos;s:</span>
+            {showNewUserInfo ? (
+              <ChevronUp className="h-5 w-5 text-blue-600" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-blue-600" />
+            )}
+          </button>
+          {showNewUserInfo && (
+            <div className="px-3 pb-3">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 text-blue-800">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">1. E-Mail eingeben</span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-800">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">2. Namen &amp; Passwort wählen</span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-800">
+                  <div className="flex items-center justify-center w-7 h-7 rounded-full bg-blue-100">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">3. Organisation erstellen oder beitreten</span>
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-blue-700 font-medium">
+                In unter 2 Minuten startklar!
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Login Mode Toggle */}
         <div className="flex gap-2 mb-5">
@@ -320,7 +365,7 @@ export default function LoginPage() {
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
           >
-            Magic Link
+            E-Mail-Link
           </button>
           <button
             type="button"
@@ -337,7 +382,7 @@ export default function LoginPage() {
 
         <p className="text-gray-700 mb-5">
           {loginMode === "magic"
-            ? "Gib deine E-Mail-Adresse ein und wir senden dir einen Login-Link."
+            ? "Wir senden dir einen Link per E-Mail. Damit kannst du dich anmelden oder einen neuen Account erstellen."
             : "Melde dich mit deiner E-Mail und deinem Passwort an."}
         </p>
 
@@ -381,8 +426,7 @@ export default function LoginPage() {
               </div>
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <p className="text-sm text-blue-800">
-                  <strong>Hinweis:</strong> Passwort-Login funktioniert nur, wenn du bereits ein Passwort in deinen Profileinstellungen gesetzt hast.
-                  Ansonsten nutze bitte den Magic Link.
+                  <strong>Hinweis:</strong> Du hast bei der Registrierung ein Passwort festgelegt? Dann kannst du dich hier damit anmelden. Für neue Accounts nutze bitte &quot;E-Mail-Link&quot;.
                 </p>
               </div>
             </>
@@ -396,7 +440,7 @@ export default function LoginPage() {
             {loading
               ? "Wird gesendet..."
               : loginMode === "magic"
-              ? "Magic Link senden"
+              ? "E-Mail-Link senden"
               : "Anmelden"}
           </button>
 
@@ -431,10 +475,7 @@ export default function LoginPage() {
           Weiter mit Google
         </button>
 
-        <div className="mt-5 text-center text-sm text-gray-700">
-          Noch kein Account? Der Magic Link erstellt automatisch einen Account.
-        </div>
-      </div>
+              </div>
     </div>
   );
 }
