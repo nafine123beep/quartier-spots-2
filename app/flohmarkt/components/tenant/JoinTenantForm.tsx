@@ -133,17 +133,20 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
 
           <div className="mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
-              Beitritts-Passwort
+              Team-Code
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Passwort eingeben..."
+              placeholder="Code eingeben..."
               required
               disabled={loading}
               className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
             />
+            <p className="text-gray-600 text-sm mt-1">
+              Frag den Organisator nach dem Team-Code.
+            </p>
           </div>
 
           <button

@@ -77,7 +77,7 @@ export function SettingsPage() {
               </div>
               {isAdmin && currentTenant.join_password && (
                 <div>
-                  <label className="text-gray-700 text-sm font-semibold">Beitritts-Passwort</label>
+                  <label className="text-gray-700 text-sm font-semibold">Team-Code</label>
                   <p className="m-0 font-medium text-gray-900">{currentTenant.join_password}</p>
                 </div>
               )}

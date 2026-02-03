@@ -145,7 +145,7 @@ export default function OrganizationSetupPage({ onComplete, onBack, username }: 
 
             <div>
               <label htmlFor="orgPassword" className="block text-sm font-bold text-gray-700 mb-2">
-                Beitritts-Passwort
+                Team-Code
               </label>
               <input
                 type="text"
@@ -158,7 +158,7 @@ export default function OrganizationSetupPage({ onComplete, onBack, username }: 
                 disabled={createLoading}
               />
               <p className="text-gray-600 text-sm mt-1">
-                Andere können mit diesem Passwort deiner Organisation beitreten.
+                Diesen Code kannst du an Teammitglieder weitergeben, damit sie beitreten können.
               </p>
             </div>
 
@@ -291,7 +291,7 @@ export default function OrganizationSetupPage({ onComplete, onBack, username }: 
 
               <div>
                 <label htmlFor="joinPassword" className="block text-sm font-bold text-gray-700 mb-2">
-                  Beitritts-Passwort
+                  Team-Code
                 </label>
                 <input
                   type="password"
@@ -299,10 +299,13 @@ export default function OrganizationSetupPage({ onComplete, onBack, username }: 
                   value={joinPassword}
                   onChange={(e) => setJoinPassword(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-[#003366] focus:border-transparent disabled:bg-gray-100"
-                  placeholder="Passwort eingeben..."
+                  placeholder="Code eingeben..."
                   required
                   disabled={joinLoading}
                 />
+                <p className="text-gray-600 text-sm mt-1">
+                  Frag den Organisator nach dem Team-Code.
+                </p>
               </div>
 
               <div className="flex gap-3">

@@ -75,7 +75,7 @@ export function CreateTenantForm({ onBack }: CreateTenantFormProps) {
 
         <div className="mb-4">
           <label className="block mb-1 font-bold text-gray-700 text-sm">
-            Beitritts-Passwort
+            Team-Code
           </label>
           <input
             type="text"
@@ -87,7 +87,7 @@ export function CreateTenantForm({ onBack }: CreateTenantFormProps) {
             className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
           />
           <p className="text-gray-600 text-sm mt-1">
-            Andere können mit diesem Passwort deiner Organisation beitreten.
+            Diesen Code kannst du an Teammitglieder weitergeben, damit sie beitreten können.
           </p>
         </div>
 

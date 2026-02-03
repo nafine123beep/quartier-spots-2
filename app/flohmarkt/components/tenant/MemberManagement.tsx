@@ -30,10 +30,10 @@ export function MemberManagement() {
       {isAdmin && currentTenant?.join_password && (
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-5">
           <p className="text-sm text-blue-800 m-0">
-            <strong>Beitritts-Passwort:</strong> {currentTenant.join_password}
+            <strong>Team-Code zum Teilen:</strong> {currentTenant.join_password}
           </p>
           <p className="text-xs text-blue-600 m-0 mt-1">
-            Teile dieses Passwort mit Personen, die deiner Organisation beitreten sollen.
+            Teile diesen Code mit Personen, die deinem Team beitreten sollen.
           </p>
         </div>
       )}

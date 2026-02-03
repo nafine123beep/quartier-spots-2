@@ -193,10 +193,10 @@ export function OrganizationSettings() {
               )}
             </div>
             <div>
-              <label className="text-gray-700 text-sm font-semibold block mb-1">Beitritts-Passwort</label>
+              <label className="text-gray-700 text-sm font-semibold block mb-1">Team-Code</label>
               <p className="m-0 font-medium text-gray-900">{currentTenant.join_password || '—'}</p>
               <p className="text-gray-500 text-xs mt-1">
-                Teile dieses Passwort mit Personen, die der Organisation beitreten sollen.
+                Teile diesen Code mit Personen, die deinem Team beitreten sollen.
               </p>
             </div>
 
