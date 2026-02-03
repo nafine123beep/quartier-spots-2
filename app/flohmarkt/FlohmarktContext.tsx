@@ -1244,47 +1244,30 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       contactEmail: string,
       reason?: string
     ): Promise<{ success: boolean; error?: string }> => {
-      // Helper function for case-insensitive comparison
-      const normalize = (str: string | undefined | null): string => {
-        return (str || '').trim().toLowerCase();
-      };
+      // Normalize address for matching
+      const normalizedInput = (addressRaw || '').trim().toLowerCase();
 
-      // Normalize input
-      const inputAddress = normalize(addressRaw);
-      const inputName = normalize(contactName);
-      const inputEmail = normalize(contactEmail);
+      if (!normalizedInput) {
+        return {
+          success: false,
+          error: "Bitte gib eine Adresse ein."
+        };
+      }
 
-      // Find spot that matches at least 2 out of 3 fields
+      // Find spot by address only (no verification required)
       const spot = spots.find((s) => {
-        const spotAddress = normalize(s.address_raw);
-        const spotName = normalize(s.contact_name);
-        const spotEmail = normalize(s.contact_email);
-
-        // Check how many fields match
-        let matchCount = 0;
-
-        if (inputAddress && spotAddress && inputAddress === spotAddress) {
-          matchCount++;
-        }
-        if (inputName && spotName && inputName === spotName) {
-          matchCount++;
-        }
-        if (inputEmail && spotEmail && inputEmail === spotEmail) {
-          matchCount++;
-        }
-
-        // Require at least 2 out of 3 fields to match
-        return matchCount >= 2;
+        const spotAddress = (s.address_raw || '').trim().toLowerCase();
+        return spotAddress === normalizedInput;
       });
 
       if (!spot) {
         return {
           success: false,
-          error: "Es wurden keine übereinstimmenden Daten gefunden. Bitte stelle sicher, dass mindestens 2 der 3 Felder (Adresse, Name, E-Mail) korrekt sind."
+          error: "Kein Spot mit dieser Adresse gefunden."
         };
       }
 
-      // Create a deletion request instead of immediate deletion
+      // Create a deletion request for admin approval
       const result = await requestSpotDeletion(
         spot.id,
         contactName,
