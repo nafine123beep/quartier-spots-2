@@ -37,7 +37,7 @@ export function SpotItem({
         ${isCompact ? "p-2.5 text-sm" : "p-5 mb-4"}
         ${
           isHighlighted
-            ? "bg-yellow-50 border-l-[#FFCC00] shadow-lg ring-2 ring-[#FFCC00] ring-opacity-50"
+            ? "bg-green-50 border-l-green-500 shadow-lg ring-2 ring-green-400 ring-opacity-50"
             : "bg-white border-l-[#003366]"
         }
       `}

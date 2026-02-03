@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { SpotItem } from "../shared/SpotItem";
 import { getSpotTerms } from "../../lib/spotTerms";
@@ -10,6 +10,22 @@ import { resolveIcon, getIconColorClass } from "../../lib/iconResolver";
 export function ListView() {
   const { spots, setCurrentTab, setDeletePreFill, highlightedSpotId, currentTenantEvent, setSelectedSpotId, customHighlightTypes } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
+
+  // Ref for auto-scrolling to highlighted spot
+  const highlightedRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to highlighted spot when it changes
+  useEffect(() => {
+    if (highlightedSpotId && highlightedRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        highlightedRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100);
+    }
+  }, [highlightedSpotId]);
 
   const handleDelete = (address: string) => {
     setDeletePreFill(address);
@@ -90,14 +106,18 @@ export function ListView() {
           <p className="text-gray-600">{terms.noSpotsYet}</p>
         ) : (
           sortedSpots.map((spot) => (
-            <SpotItem
+            <div
               key={spot.id}
-              spot={spot}
-              onDelete={handleDelete}
-              onClick={() => handleSpotClick(spot)}
-              isHighlighted={spot.id === highlightedSpotId}
-              deleteButtonTitle={terms.deleteOwnSpot}
-            />
+              ref={spot.id === highlightedSpotId ? highlightedRef : null}
+            >
+              <SpotItem
+                spot={spot}
+                onDelete={handleDelete}
+                onClick={() => handleSpotClick(spot)}
+                isHighlighted={spot.id === highlightedSpotId}
+                deleteButtonTitle={terms.deleteOwnSpot}
+              />
+            </div>
           ))
         )}
       </div>
