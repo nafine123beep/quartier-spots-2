@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Map as LeafletMap } from "leaflet";
 import { SupportFormModal } from "./shared/SupportFormModal";
@@ -9,6 +10,27 @@ export function FrontPage() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Open support modal from URL parameter
+  useEffect(() => {
+    if (searchParams.get("support") === "true") {
+      setIsSupportModalOpen(true);
+    }
+  }, [searchParams]);
+
+  const handleOpenSupportModal = () => {
+    setIsSupportModalOpen(true);
+    // Update URL to include support param
+    router.replace("/flohmarkt?support=true", { scroll: false });
+  };
+
+  const handleCloseSupportModal = () => {
+    setIsSupportModalOpen(false);
+    // Remove support param from URL
+    router.replace("/flohmarkt", { scroll: false });
+  };
 
   // Update page title
   useEffect(() => {
@@ -97,7 +119,7 @@ export function FrontPage() {
         {/* Footer */}
         <footer className="mt-5 flex gap-5 text-sm">
           <button
-            onClick={() => setIsSupportModalOpen(true)}
+            onClick={handleOpenSupportModal}
             className="text-gray-300 no-underline border-b border-dotted border-gray-300 pb-0.5 cursor-pointer hover:text-white hover:border-solid bg-transparent border-t-0 border-l-0 border-r-0"
           >
             Kontakt & Support
@@ -113,7 +135,7 @@ export function FrontPage() {
         {/* Support Form Modal */}
         <SupportFormModal
           isOpen={isSupportModalOpen}
-          onClose={() => setIsSupportModalOpen(false)}
+          onClose={handleCloseSupportModal}
         />
       </div>
     </div>

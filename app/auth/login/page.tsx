@@ -309,7 +309,7 @@ export default function LoginPage() {
 
       {/* Form Container */}
       <div className="max-w-[400px] w-full mx-auto p-5">
-        <h2 className="mt-0 text-[#003366]">Willkommen bei QuartierSpots</h2>
+        <h1 className="mt-0 mb-4 text-2xl md:text-3xl font-bold text-[#003366]">Willkommen bei QuartierSpots</h1>
 
         {/* New User Info Box */}
         <div className="mb-5 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
