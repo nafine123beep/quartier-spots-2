@@ -47,12 +47,18 @@ test.describe('Validation Error Tests', () => {
     // Navigate directly to event page with form tab
     await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}?tab=form`);
 
-    // Wait for form to load
-    await page.getByLabel(/straße|street/i).waitFor({ timeout: 10000 });
+    // Registration info modal appears first - wait for it and close it
+    const closeModalButton = page.getByRole('button', { name: /schließen/i });
+    await expect(closeModalButton).toBeVisible({ timeout: 5000 });
+    await closeModalButton.click();
+    await expect(closeModalButton).toBeHidden({ timeout: 5000 });
+
+    // Wait for form to load - use the exact placeholder
+    await expect(page.getByPlaceholder('z.B. Hauptstraße')).toBeVisible({ timeout: 10000 });
 
     // Fill with obviously invalid address
-    await page.getByLabel(/straße|street/i).fill('XyzNonExistentStreet99999');
-    await page.getByLabel(/stadt|city/i).fill('FakeCity12345ABC');
+    await page.getByPlaceholder('z.B. Hauptstraße').fill('XyzNonExistentStreet99999');
+    await page.getByPlaceholder('z.B. Regensburg').fill('FakeCity12345ABC');
 
     // Fill other required fields
     await page.getByLabel(/einverstanden|consent/i).check();
@@ -79,13 +85,19 @@ test.describe('Validation Error Tests', () => {
     // Navigate directly to event page with form tab
     await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}?tab=form`);
 
+    // Registration info modal appears first - wait for it and close it
+    const closeModalButton = page.getByRole('button', { name: /schließen/i });
+    await expect(closeModalButton).toBeVisible({ timeout: 5000 });
+    await closeModalButton.click();
+    await expect(closeModalButton).toBeHidden({ timeout: 5000 });
+
     // Wait for form to load
-    await page.getByLabel(/straße|street/i).waitFor({ timeout: 10000 });
+    await expect(page.getByPlaceholder('z.B. Hauptstraße')).toBeVisible({ timeout: 10000 });
 
     // Fill all fields except consent
-    await page.getByLabel(/straße|street/i).fill('Teststraße');
-    await page.getByLabel(/stadt|city/i).fill('Regensburg');
-    await page.getByLabel(/was bietest du an/i).fill('Test');
+    await page.getByPlaceholder('z.B. Hauptstraße').fill('Teststraße');
+    await page.getByPlaceholder('z.B. Regensburg').fill('Regensburg');
+    await page.getByPlaceholder('z.B. Kindersachen, Bücher...').fill('Test');
 
     // Do NOT check consent checkbox
 

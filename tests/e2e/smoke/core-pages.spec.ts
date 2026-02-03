@@ -32,8 +32,9 @@ test.describe('Core Pages Smoke Tests', () => {
     try {
       await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
 
-      // Verify page loaded with event title
-      await expect(page.locator('h1', { hasText: event.title })).toBeVisible({ timeout: 10000 });
+      // Verify page loaded with event title (desktop header has visible h1, mobile has hidden h1)
+      // Use the desktop header which is inside .hidden.md\\:block container
+      await expect(page.locator('.hidden.md\\:block h1', { hasText: event.title })).toBeVisible({ timeout: 10000 });
 
       // Verify tabs are visible (using emojis from the actual UI)
       await expect(page.getByRole('button', { name: /📋.*liste/i })).toBeVisible();

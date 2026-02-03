@@ -28,7 +28,7 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [hasSeenModalForThisSession, setHasSeenModalForThisSession] = useState(false);
 
-  // Check for tab query parameter and auto-select tab
+  // Check for tab query parameter and auto-select tab (only on mount or when searchParams change)
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam === 'form' || tabParam === 'list' || tabParam === 'map' || tabParam === 'delete') {
@@ -43,7 +43,8 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
       // Default to map view when no tab parameter is specified
       setCurrentTab('map');
     }
-  }, [searchParams, setCurrentTab, hasSeenModalForThisSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, setCurrentTab]); // Removed hasSeenModalForThisSession to prevent tab reset on modal close
 
   // Update page title dynamically
   useEffect(() => {

@@ -44,27 +44,35 @@ test.describe('iPhone Safari Tests', () => {
 
     await registerButton.tap();
 
-    // Wait a moment for tab to switch to form
-    await page.waitForTimeout(500);
+    // Registration info modal appears first - wait for it and close it
+    const closeModalButton = page.getByRole('button', { name: /schließen/i });
+    await expect(closeModalButton).toBeVisible({ timeout: 5000 });
+    await closeModalButton.tap();
+    await expect(closeModalButton).toBeHidden({ timeout: 5000 });
+
+    // Wait for form to appear
+    await expect(page.getByPlaceholder('z.B. Hauptstraße')).toBeVisible({ timeout: 10000 });
 
     // Fill form with mobile keyboard - use real address for geocoding
-    await page.getByLabel(/straße|street/i).tap();
+    await page.getByPlaceholder('z.B. Hauptstraße').tap();
     await page.keyboard.type('Domplatz');
 
-    await page.getByLabel(/hausnummer/i).tap();
+    await page.getByPlaceholder('z.B. 42').tap();
     await page.keyboard.type('1');
 
-    await page.getByLabel(/plz|zip/i).tap();
+    await page.getByPlaceholder('z.B. 93051').tap();
     await page.keyboard.type('93047');
 
-    await page.getByLabel(/stadt|city/i).tap();
+    await page.getByPlaceholder('z.B. Regensburg').tap();
     await page.keyboard.type('Regensburg');
 
-    // Scroll to consent checkbox
-    await page.getByLabel(/einverstanden|consent/i).scrollIntoViewIfNeeded();
-    await page.getByLabel(/einverstanden|consent/i).tap();
+    // Scroll to consent checkbox and check it
+    const consentCheckbox = page.locator('input[type="checkbox"]').first();
+    await consentCheckbox.scrollIntoViewIfNeeded();
+    await consentCheckbox.tap();
 
-    await page.getByLabel(/bietest du an|verkaufst|note/i).tap();
+    // Fill the public note
+    await page.getByPlaceholder('z.B. Kindersachen, Bücher...').tap();
     await page.keyboard.type('Test items for sale');
 
     // Scroll to submit button to ensure it's visible

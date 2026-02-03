@@ -87,7 +87,7 @@ test.describe('Android Chrome Tests', () => {
     const hasHorizontalScroll = await body.evaluate((el) => el.scrollWidth > el.clientWidth);
     expect(hasHorizontalScroll).toBe(false);
 
-    // Verify content is visible
-    await expect(page.locator('h1')).toBeVisible();
+    // Verify content is visible (mobile has h1 in sticky header)
+    await expect(page.locator('h1').first()).toBeVisible();
   });
 });

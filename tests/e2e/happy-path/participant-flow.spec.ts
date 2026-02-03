@@ -28,8 +28,8 @@ test.describe('Participant Happy Path', () => {
       // Step 1: Access public event URL (no login)
       await page.goto(`/flohmarkt/${orgSlug}/${eventSlug}`);
 
-      // Step 2: Verify event details are visible
-      await expect(page.locator('h1', { hasText: event.title })).toBeVisible({ timeout: 10000 });
+      // Step 2: Verify event details are visible (desktop header h1 is visible, mobile header is hidden)
+      await expect(page.locator('.hidden.md\\:block h1', { hasText: event.title })).toBeVisible({ timeout: 10000 });
 
       // Step 3: View tabs (List and Map)
       const listTab = page.getByRole('button', { name: /📋.*liste/i });
@@ -52,16 +52,24 @@ test.describe('Participant Happy Path', () => {
       await expect(registerTab).toBeVisible({ timeout: 10000 });
       await registerTab.click();
 
+      // Registration info modal appears first - wait for it and close it
+      const closeModalButton = page.getByRole('button', { name: /schließen/i });
+      await expect(closeModalButton).toBeVisible({ timeout: 5000 });
+      await closeModalButton.click();
+
+      // Wait for modal to disappear completely
+      await expect(closeModalButton).toBeHidden({ timeout: 5000 });
+
       // Wait for registration form to appear - check for the street field
-      await page.waitForTimeout(1000);
-      await expect(page.getByPlaceholder(/hauptstraße/i)).toBeVisible({ timeout: 5000 });
+      const streetField = page.getByPlaceholder('z.B. Hauptstraße');
+      await expect(streetField).toBeVisible({ timeout: 10000 });
 
       // Step 5: Fill spot registration form
       // Use a real address in Regensburg that can be geocoded
-      await page.getByPlaceholder(/hauptstraße/i).fill('Domplatz');
-      await page.getByPlaceholder(/42/i).fill('1');
-      await page.getByPlaceholder(/93051/i).fill('93047');
-      await page.getByPlaceholder(/regensburg/i).fill('Regensburg');
+      await streetField.fill('Domplatz');
+      await page.getByPlaceholder('z.B. 42').fill('1');
+      await page.getByPlaceholder('z.B. 93051').fill('93047');
+      await page.getByPlaceholder('z.B. Regensburg').fill('Regensburg');
 
       // Address consent checkbox (required)
       const consentCheckbox = page.locator('label:has-text("Ich bin damit einverstanden")').locator('..').locator('input[type="checkbox"]');
@@ -70,16 +78,16 @@ test.describe('Participant Happy Path', () => {
       // Public note - fill the textarea
       await page.locator('textarea').fill('Testware und Spielzeug');
 
-      // Check the "Meinen Kontakt hinzufügen" checkbox to reveal contact fields
-      const contactCheckbox = page.locator('label:has-text("Meinen Kontakt hinzufügen")').locator('..').locator('input[type="checkbox"]');
-      await contactCheckbox.check();
+      // Expand the contact section (now a collapsible button)
+      const contactButton = page.getByRole('button', { name: /name.*e-mail.*telefon.*optional/i });
+      await contactButton.click();
 
       // Wait for contact fields to appear
       await page.waitForTimeout(500);
 
       // Contact info (optional but filling for completeness)
       await page.getByPlaceholder('Name').fill('Test Participant');
-      await page.getByPlaceholder(/e-mail-adresse/i).fill('participant@test.local');
+      await page.getByPlaceholder('E-Mail-Adresse').fill('participant@test.local');
 
       // Wait a moment for form to process
       await page.waitForTimeout(1000);
