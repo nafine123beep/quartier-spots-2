@@ -262,11 +262,15 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
             )}
           </button>
 
+          {/* Description - Always visible */}
+          <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+            <p className="text-xs text-gray-600 m-0">
+              Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
+            </p>
+          </div>
+
           {enableBoundary && (
             <div className="p-4 border-t border-gray-200">
-              <p className="text-xs text-gray-600 mb-3">
-                Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
-              </p>
               <div className="flex flex-wrap gap-2 mb-3">
                 {BOUNDARY_RADIUS_PRESETS.map((preset) => (
                   <button
