@@ -12,6 +12,7 @@ export default function PublicEventPage() {
   const organizationSlug = params.organizationSlug as string;
   const eventSlug = params.eventSlug as string;
   const previewToken = searchParams.get('preview');
+  const isEmbedded = searchParams.get('embedded') === 'true';
 
   const { setCurrentTenantEvent, setCurrentTenant, user } = useFlohmarkt();
   const [loading, setLoading] = useState(true);
@@ -80,5 +81,5 @@ export default function PublicEventPage() {
     );
   }
 
-  return <PublicEventView accessMode={accessMode} />;
+  return <PublicEventView accessMode={accessMode} embedded={isEmbedded} />;
 }

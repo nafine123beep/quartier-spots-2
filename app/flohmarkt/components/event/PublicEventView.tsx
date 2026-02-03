@@ -17,9 +17,10 @@ import { RegistrationInfoModal } from "../shared/RegistrationInfoModal";
 
 interface PublicEventViewProps {
   accessMode?: AccessMode;
+  embedded?: boolean;
 }
 
-export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps) {
+export function PublicEventView({ accessMode = 'public', embedded = false }: PublicEventViewProps) {
   const { currentTab, setCurrentTab, currentTenantEvent, currentTenant, user, setIsLightboxOpen } = useFlohmarkt();
   const terms = getSpotTerms(currentTenantEvent?.spot_term_singular, currentTenantEvent?.spot_term_plural);
   const searchParams = useSearchParams();
@@ -184,28 +185,30 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
         </div>
       )}
 
-      {/* Mobile Header with Drawer - Only on mobile */}
-      <MobileEventHeaderDrawer
-        event={currentTenantEvent}
-        coverImage={coverImage}
-        accessMode={accessMode}
-        onImageClick={openLightbox}
-        formatDate={formatDate}
-        managementButton={
-          user && currentTenant ? (
-            <button
-              onClick={handleBackToAdmin}
-              className="w-full flex items-center justify-center gap-2 bg-[#003366] hover:bg-[#002244] text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
-            >
-              <span>⚙️</span>
-              <span>Event verwalten</span>
-            </button>
-          ) : undefined
-        }
-      />
+      {/* Mobile Header with Drawer - Only on mobile, hidden in embedded mode */}
+      {!embedded && (
+        <MobileEventHeaderDrawer
+          event={currentTenantEvent}
+          coverImage={coverImage}
+          accessMode={accessMode}
+          onImageClick={openLightbox}
+          formatDate={formatDate}
+          managementButton={
+            user && currentTenant ? (
+              <button
+                onClick={handleBackToAdmin}
+                className="w-full flex items-center justify-center gap-2 bg-[#003366] hover:bg-[#002244] text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
+              >
+                <span>⚙️</span>
+                <span>Event verwalten</span>
+              </button>
+            ) : undefined
+          }
+        />
+      )}
 
-      {/* Desktop Header - Hidden on mobile */}
-      <div className="hidden md:block">
+      {/* Desktop Header - Hidden on mobile and in embedded mode shows simplified version */}
+      <div className={embedded ? "block" : "hidden md:block"}>
         <CollapsibleHeader>
           {/* Draft Banner - Only shown when event is in draft status */}
           {currentTenantEvent.status === 'draft' && (
@@ -295,8 +298,8 @@ export function PublicEventView({ accessMode = 'public' }: PublicEventViewProps)
                   </div>
                 </div>
 
-                {/* Management Button - Only visible for authenticated tenant members */}
-                {user && currentTenant && (
+                {/* Management Button - Only visible for authenticated tenant members, hidden in embedded mode */}
+                {user && currentTenant && !embedded && (
                   <button
                     onClick={handleBackToAdmin}
                     className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap backdrop-blur-sm border border-white/30"
