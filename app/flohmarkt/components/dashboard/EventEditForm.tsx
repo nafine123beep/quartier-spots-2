@@ -324,30 +324,39 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
         </div>
 
         {/* Spot Terminology Section */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-start gap-2.5 mb-3">
-            <input
-              type="checkbox"
-              id="enableCustomTerms"
-              checked={enableCustomTerms}
-              onChange={(e) => {
-                setEnableCustomTerms(e.target.checked);
-                if (!e.target.checked) {
-                  setSelectedTermPreset("Stand");
-                  setSpotTermSingular("");
-                  setSpotTermPlural("");
-                }
-              }}
-              disabled={submitting}
-              className="w-5 h-5 mt-0.5"
-            />
-            <label htmlFor="enableCustomTerms" className="font-bold text-gray-700 text-sm">
+        <div className="mb-6 border border-gray-300 rounded-lg overflow-hidden">
+          <button
+            type="button"
+            onClick={() => {
+              setEnableCustomTerms(!enableCustomTerms);
+              if (enableCustomTerms) {
+                setSelectedTermPreset("Stand");
+                setSpotTermSingular("");
+                setSpotTermPlural("");
+              }
+            }}
+            disabled={submitting}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+          >
+            <span className="text-sm font-medium text-gray-700">
               Bezeichnung für &quot;Spots&quot; anpassen
-            </label>
+            </span>
+            {enableCustomTerms ? (
+              <ChevronDown className="h-5 w-5 text-gray-500" aria-hidden="true" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-gray-500" aria-hidden="true" />
+            )}
+          </button>
+
+          {/* Description - Always visible */}
+          <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+            <p className="text-xs text-gray-600 m-0">
+              Dein Event wird aus mehreren &quot;Spots&quot; bestehen – das sind die Orte, an denen Teilnehmende aktiv sind. Wähle hier die Bezeichnung, die zu deinem Event passt.
+            </p>
           </div>
 
           {enableCustomTerms && (
-            <>
+            <div className="p-4 border-t border-gray-200">
               <p className="text-xs text-gray-600 mb-3">
                 Passe die Bezeichnung an dein Event an, wähle z.B. &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen, &quot;Checkpoint&quot; für Radtouren, Rallyes etc.
               </p>
@@ -401,7 +410,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
         </div>
 
