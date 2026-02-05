@@ -210,29 +210,6 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
       {/* Desktop Header - Hidden on mobile and in embedded mode shows simplified version */}
       <div className={embedded ? "block" : "hidden md:block"}>
         <CollapsibleHeader>
-          {/* Draft Banner - Only shown when event is in draft status */}
-          {currentTenantEvent.status === 'draft' && (
-            <div className={`${accessMode === 'preview' ? 'bg-purple-500 border-purple-600' : 'bg-yellow-500 border-yellow-600'} text-gray-900 px-4 py-3 shadow-md border-b-2`}>
-              <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
-                <span className="text-2xl">{accessMode === 'preview' ? '👁️' : '⚠️'}</span>
-                <div className="flex-1 text-center sm:text-left">
-                  <p className={`font-bold text-sm sm:text-base m-0 ${accessMode === 'preview' ? 'text-white' : ''}`}>
-                    {accessMode === 'preview'
-                      ? 'VORSCHAU-LINK: Du siehst eine Vorabversion dieses Events'
-                      : 'VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht'
-                    }
-                  </p>
-                  <p className={`text-xs sm:text-sm m-0 mt-1 ${accessMode === 'preview' ? 'text-purple-100' : ''}`}>
-                    {accessMode === 'preview'
-                      ? 'Diese Ansicht ist nur über den Vorschau-Link zugänglich. Das Event ist noch nicht öffentlich.'
-                      : 'Nur Organisatoren können diese Seite sehen. Veröffentliche das Event, damit Teilnehmer es sehen können.'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Hero Image Gallery */}
           {hasImages && (
             <div className="relative bg-gray-900">
@@ -271,17 +248,6 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-2xl font-bold m-0">{currentTenantEvent.title}</h1>
-                    {/* Draft Badge in Header */}
-                    {currentTenantEvent.status === 'draft' && (
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                        accessMode === 'preview'
-                          ? 'bg-purple-500 text-white border-2 border-purple-600'
-                          : 'bg-yellow-500 text-gray-900 border-2 border-yellow-600'
-                      }`}>
-                        <span className="mr-1">{accessMode === 'preview' ? '👁️' : '📝'}</span>
-                        {accessMode === 'preview' ? 'VORSCHAU' : 'ENTWURF'}
-                      </span>
-                    )}
                   </div>
                   {currentTenantEvent.description && (
                     <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>

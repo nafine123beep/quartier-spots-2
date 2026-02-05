@@ -115,29 +115,6 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
         </div>
       )}
 
-      {/* Draft Banner - Only shown when event is in draft status */}
-      {currentTenantEvent.status === 'draft' && (
-        <div className={`${accessMode === 'preview' ? 'bg-purple-500 border-purple-600' : 'bg-yellow-500 border-yellow-600'} text-gray-900 px-4 py-3 shadow-md border-b-2`}>
-          <div className="max-w-4xl mx-auto flex items-center justify-center gap-3">
-            <span className="text-2xl">{accessMode === 'preview' ? '👁️' : '⚠️'}</span>
-            <div className="flex-1 text-center sm:text-left">
-              <p className={`font-bold text-sm sm:text-base m-0 ${accessMode === 'preview' ? 'text-white' : ''}`}>
-                {accessMode === 'preview'
-                  ? 'VORSCHAU-LINK: Du siehst eine Vorabversion dieses Events'
-                  : 'VORSCHAU-MODUS: Dieses Event ist noch nicht veröffentlicht'
-                }
-              </p>
-              <p className={`text-xs sm:text-sm m-0 mt-1 ${accessMode === 'preview' ? 'text-purple-100' : ''}`}>
-                {accessMode === 'preview'
-                  ? 'Diese Ansicht ist nur über den Vorschau-Link zugänglich.'
-                  : 'Nur Organisatoren können diese Seite sehen.'
-                }
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Hero Image Gallery */}
       {hasImages && (
         <div className="relative bg-gray-900 flex-shrink-0">
@@ -187,17 +164,6 @@ export function RegistrationConfirmationPage({ accessMode = 'public' }: Registra
               <h1 className="text-3xl sm:text-4xl font-bold text-[#003366] m-0">
                 Am {currentTenantEvent.title} teilnehmen
               </h1>
-              {/* Draft Badge */}
-              {currentTenantEvent.status === 'draft' && (
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                  accessMode === 'preview'
-                    ? 'bg-purple-500 text-white border-2 border-purple-600'
-                    : 'bg-yellow-500 text-gray-900 border-2 border-yellow-600'
-                }`}>
-                  <span className="mr-1">{accessMode === 'preview' ? '👁️' : '📝'}</span>
-                  {accessMode === 'preview' ? 'VORSCHAU' : 'ENTWURF'}
-                </span>
-              )}
             </div>
             <p className="text-lg text-gray-600">
               {terms.enterYourSpot}

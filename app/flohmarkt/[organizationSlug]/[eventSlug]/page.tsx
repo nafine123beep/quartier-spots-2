@@ -11,7 +11,6 @@ export default function PublicEventPage() {
   const searchParams = useSearchParams();
   const organizationSlug = params.organizationSlug as string;
   const eventSlug = params.eventSlug as string;
-  const previewToken = searchParams.get('preview');
   const isEmbedded = searchParams.get('embedded') === 'true';
 
   const { setCurrentTenantEvent, setCurrentTenant, user } = useFlohmarkt();
@@ -27,7 +26,7 @@ export default function PublicEventPage() {
       setLoading(true);
       setError(null);
 
-      const result = await loadEventData(organizationSlug, eventSlug, user, previewToken);
+      const result = await loadEventData(organizationSlug, eventSlug, user);
 
       if (result.error) {
         setError(result.error);
@@ -48,7 +47,7 @@ export default function PublicEventPage() {
     };
 
     loadData();
-  }, [organizationSlug, eventSlug, setCurrentTenantEvent, setCurrentTenant, user, previewToken]);
+  }, [organizationSlug, eventSlug, setCurrentTenantEvent, setCurrentTenant, user]);
 
   // Show loading state
   if (loading) {

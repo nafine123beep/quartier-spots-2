@@ -106,11 +106,6 @@ export function MobileEventHeaderDrawer({
             <ChevronDown className="w-5 h-5" />
           </div>
         </button>
-
-        {/* Draft indicator bar */}
-        {event.status === 'draft' && (
-          <div className={`h-1 ${accessMode === 'preview' ? 'bg-purple-500' : 'bg-yellow-500'}`} />
-        )}
       </div>
 
       {/* Spacer to prevent content from going under fixed header - Mobile Only */}
@@ -161,26 +156,6 @@ export function MobileEventHeaderDrawer({
 
         {/* Scrollable Content */}
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(85vh - 60px)' }}>
-          {/* Draft Banner */}
-          {event.status === 'draft' && (
-            <div className={`${accessMode === 'preview' ? 'bg-purple-500' : 'bg-yellow-500'} text-gray-900 px-4 py-3`}>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{accessMode === 'preview' ? '👁️' : '⚠️'}</span>
-                <div>
-                  <p className={`font-bold text-sm m-0 ${accessMode === 'preview' ? 'text-white' : ''}`}>
-                    {accessMode === 'preview' ? 'VORSCHAU-LINK' : 'VORSCHAU-MODUS'}
-                  </p>
-                  <p className={`text-xs m-0 ${accessMode === 'preview' ? 'text-purple-100' : ''}`}>
-                    {accessMode === 'preview'
-                      ? 'Event ist noch nicht öffentlich'
-                      : 'Nur für Organisatoren sichtbar'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Hero Image */}
           {hasImages && coverImage && (
             <div
@@ -211,15 +186,6 @@ export function MobileEventHeaderDrawer({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h2 className="text-xl font-bold text-gray-900 m-0">{event.title}</h2>
-                  {event.status === 'draft' && (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
-                      accessMode === 'preview'
-                        ? 'bg-purple-500 text-white'
-                        : 'bg-yellow-500 text-gray-900'
-                    }`}>
-                      {accessMode === 'preview' ? '👁️' : '📝'}
-                    </span>
-                  )}
                 </div>
 
                 {event.description && (

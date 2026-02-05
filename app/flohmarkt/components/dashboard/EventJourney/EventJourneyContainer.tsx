@@ -7,12 +7,11 @@ import { useFlohmarkt } from "../../../FlohmarktContext";
 import { EventJourneyStepIndicator } from "./EventJourneyStepIndicator";
 import { CreateStep } from "./steps/CreateStep";
 import { PreviewStep } from "./steps/PreviewStep";
-import { PublishStep } from "./steps/PublishStep";
 import { ShareStep } from "./steps/ShareStep";
 import { ManageStep } from "./steps/ManageStep";
 import { ArrowLeft } from "lucide-react";
 
-export type JourneyStep = 1 | 2 | 3 | 4 | 5;
+export type JourneyStep = 1 | 2 | 3 | 4;
 
 export interface StepConfig {
   id: JourneyStep;
@@ -23,32 +22,23 @@ export interface StepConfig {
 export const JOURNEY_STEPS: StepConfig[] = [
   { id: 1, label: "Grunddaten", shortLabel: "Grunddaten" },
   { id: 2, label: "Vorschau", shortLabel: "Vorschau" },
-  { id: 3, label: "Veröffentlichen", shortLabel: "Veröff." },
-  { id: 4, label: "Verbreiten", shortLabel: "Verbreiten" },
-  { id: 5, label: "Verwalten", shortLabel: "Verwalten" },
+  { id: 3, label: "Verbreiten", shortLabel: "Verbreiten" },
+  { id: 4, label: "Verwalten", shortLabel: "Verwalten" },
 ];
 
 function determineInitialStep(status: string | undefined): JourneyStep {
   switch (status) {
-    case "published":
-      return 4; // Jump to Share for published events
+    case "active":
+      return 2; // Jump to Preview for active events
     case "archived":
-      return 5; // Jump to Manage for archived events
-    case "draft":
+      return 4; // Jump to Manage for archived events
     default:
-      return 1; // Start at Create for drafts
+      return 1; // Start at Create
   }
 }
 
-function getMaxAccessibleStep(status: string | undefined): JourneyStep {
-  switch (status) {
-    case "published":
-    case "archived":
-      return 5; // All steps available
-    case "draft":
-    default:
-      return 3; // Can only reach Publish step
-  }
+function getMaxAccessibleStep(): JourneyStep {
+  return 4; // All steps always accessible
 }
 
 export function EventJourneyContainer() {
@@ -60,7 +50,7 @@ export function EventJourneyContainer() {
     const stepParam = searchParams.get("step");
     if (stepParam) {
       const parsed = parseInt(stepParam, 10) as JourneyStep;
-      if (parsed >= 1 && parsed <= 5) {
+      if (parsed >= 1 && parsed <= 4) {
         return parsed;
       }
     }
@@ -69,7 +59,7 @@ export function EventJourneyContainer() {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const maxAccessibleStep = getMaxAccessibleStep(currentTenantEvent?.status);
+  const maxAccessibleStep = getMaxAccessibleStep();
 
   // Sync step with URL
   useEffect(() => {
@@ -83,7 +73,7 @@ export function EventJourneyContainer() {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const step = parseInt(params.get("step") || "1", 10);
-      if (step >= 1 && step <= 5 && step <= maxAccessibleStep) {
+      if (step >= 1 && step <= 4 && step <= maxAccessibleStep) {
         setCurrentStep(step as JourneyStep);
       }
     };
@@ -115,7 +105,7 @@ export function EventJourneyContainer() {
   );
 
   const goToNextStep = useCallback(() => {
-    if (currentStep < 5 && canNavigateToStep((currentStep + 1) as JourneyStep)) {
+    if (currentStep < 4 && canNavigateToStep((currentStep + 1) as JourneyStep)) {
       goToStep((currentStep + 1) as JourneyStep);
     }
   }, [currentStep, canNavigateToStep, goToStep]);
@@ -135,18 +125,12 @@ export function EventJourneyContainer() {
     router.push(`/flohmarkt/organizations/${currentTenant?.slug}`);
   }, [hasUnsavedChanges, router, currentTenant?.slug]);
 
-  // After publishing, automatically go to Step 4
-  const handlePublishSuccess = useCallback(() => {
-    setCurrentStep(4);
-  }, []);
-
   if (!currentTenantEvent || !currentTenant) {
     return null;
   }
 
   const statusConfig = {
-    draft: { bg: "bg-gray-100", text: "text-gray-600", label: "Entwurf" },
-    published: { bg: "bg-green-100", text: "text-green-700", label: "Veröffentlicht" },
+    active: { bg: "bg-green-100", text: "text-green-700", label: "Aktiv" },
     archived: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Archiviert" },
   };
 
@@ -222,19 +206,12 @@ export function EventJourneyContainer() {
             />
           )}
           {currentStep === 3 && (
-            <PublishStep
-              onNext={goToNextStep}
-              onBack={goToPreviousStep}
-              onPublishSuccess={handlePublishSuccess}
-            />
-          )}
-          {currentStep === 4 && (
             <ShareStep
               onNext={goToNextStep}
               onBack={goToPreviousStep}
             />
           )}
-          {currentStep === 5 && (
+          {currentStep === 4 && (
             <ManageStep
               onBack={goToPreviousStep}
             />
@@ -254,10 +231,10 @@ export function EventJourneyContainer() {
           </button>
 
           <span className="text-sm text-gray-500">
-            Schritt {currentStep} von 5
+            Schritt {currentStep} von 4
           </span>
 
-          {currentStep < 5 && canNavigateToStep((currentStep + 1) as JourneyStep) && (
+          {currentStep < 4 && canNavigateToStep((currentStep + 1) as JourneyStep) && (
             <button
               onClick={goToNextStep}
               className="flex items-center gap-2 px-4 py-2 bg-[#003366] text-white rounded-lg hover:bg-[#002244] transition-colors font-medium"
@@ -267,7 +244,7 @@ export function EventJourneyContainer() {
             </button>
           )}
 
-          {(currentStep === 5 || !canNavigateToStep((currentStep + 1) as JourneyStep)) && (
+          {(currentStep === 4 || !canNavigateToStep((currentStep + 1) as JourneyStep)) && (
             <div className="w-[100px]" /> // Spacer for alignment
           )}
         </div>

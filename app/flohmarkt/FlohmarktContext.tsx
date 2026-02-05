@@ -68,7 +68,6 @@ interface FlohmarktContextType {
 
   // Event management
   updateEvent: (eventId: string, data: Partial<TenantEvent>) => Promise<{ success: boolean; error?: string }>;
-  publishEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
   archiveEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
   deleteEvent: (eventId: string) => Promise<{ success: boolean; error?: string }>;
 
@@ -599,7 +598,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       map_center_lat: mapCenterLat,
       map_center_lng: mapCenterLng,
       boundary_radius_meters: boundaryRadiusMeters ?? null,
-      status: "draft",
+      status: "active",
     };
 
     // Only add dates if they exist
@@ -802,27 +801,6 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     // Update local state
     if (currentTenantEvent?.id === eventId) {
       setCurrentTenantEvent({ ...currentTenantEvent, ...data });
-    }
-    await loadTenantEvents();
-
-    return { success: true };
-  }, [currentTenant, user, currentTenantEvent, loadTenantEvents]);
-
-  const publishEvent = useCallback(async (eventId: string) => {
-    if (!currentTenant || !user) return { success: false, error: "Not authorized" };
-
-    const supabase = createClient();
-
-    const { error } = await supabase
-      .from("events")
-      .update({ status: 'published' })
-      .eq("id", eventId);
-
-    if (error) return { success: false, error: error.message };
-
-    // Update local state
-    if (currentTenantEvent?.id === eventId) {
-      setCurrentTenantEvent({ ...currentTenantEvent, status: 'published' });
     }
     await loadTenantEvents();
 
@@ -1377,7 +1355,6 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         findEventBySlug,
         findEventBySlugOrId,
         updateEvent,
-        publishEvent,
         archiveEvent,
         deleteEvent,
         deletionRequests,

@@ -52,17 +52,6 @@ export function RegistrationInfoModal({ isOpen, onClose, event, accessMode = 'pu
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#003366] m-0">
                   Am {event.title} teilnehmen
                 </h1>
-                {/* Draft Badge */}
-                {event.status === 'draft' && (
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                    accessMode === 'preview'
-                      ? 'bg-purple-500 text-white border-2 border-purple-600'
-                      : 'bg-yellow-500 text-gray-900 border-2 border-yellow-600'
-                  }`}>
-                    <span className="mr-1">{accessMode === 'preview' ? '👁️' : '📝'}</span>
-                    {accessMode === 'preview' ? 'VORSCHAU' : 'ENTWURF'}
-                  </span>
-                )}
               </div>
               <p className="text-base text-gray-600">
                 {terms.enterYourSpot}

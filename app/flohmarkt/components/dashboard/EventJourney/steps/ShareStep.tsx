@@ -5,7 +5,7 @@ import { useFlohmarkt } from "../../../../FlohmarktContext";
 import { getPublicImageUrl } from "../../../../lib/imageUpload";
 import { PrintMaterialsModal } from "../../PrintMaterialsModal";
 import { LinkCopyField } from "../shared/LinkCopyField";
-import { FileText, Share2, ChevronDown, ChevronRight, QrCode, Printer, AlertCircle } from "lucide-react";
+import { FileText, Share2, ChevronDown, ChevronRight, QrCode, Printer } from "lucide-react";
 
 interface ShareStepProps {
   onNext: () => void;
@@ -34,8 +34,6 @@ export function ShareStep({ onNext, onBack }: ShareStepProps) {
     return undefined;
   })();
 
-  const isDraft = currentTenantEvent.status === "draft";
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -48,24 +46,6 @@ export function ShareStep({ onNext, onBack }: ShareStepProps) {
           Teile dein Event mit Postern, Flyern oder Links. Der QR-Code auf den Druckmaterialien führt direkt zur Anmeldung.
         </p>
       </div>
-
-      {/* Draft warning */}
-      {isDraft && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-          <div className="flex gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-amber-800 font-medium">
-                Event noch nicht veröffentlicht
-              </p>
-              <p className="text-sm text-amber-700 mt-1">
-                Links und QR-Codes funktionieren erst nach der Veröffentlichung.
-                Gehe zurück zu Schritt 3, um das Event zu veröffentlichen.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Primary: PDF/Poster creation */}
       <div className="bg-green-50 border-2 border-green-400 rounded-lg p-6">
@@ -85,8 +65,7 @@ export function ShareStep({ onNext, onBack }: ShareStepProps) {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => setIsPrintMaterialsOpen(true)}
-                disabled={isDraft}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
               >
                 <Printer className="h-5 w-5" />
                 Poster & Flyer erstellen
@@ -149,12 +128,6 @@ export function ShareStep({ onNext, onBack }: ShareStepProps) {
               description="Zeigt das gesamte Event mit Karte und Liste"
               url={publicLink}
             />
-
-            {isDraft && (
-              <p className="text-xs text-amber-600 mt-3">
-                Diese Links funktionieren erst nach der Veröffentlichung.
-              </p>
-            )}
           </div>
         )}
       </div>

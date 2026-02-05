@@ -78,12 +78,11 @@ export interface TenantEvent {
   description?: string;
   starts_at?: string;
   ends_at?: string;
-  status: 'draft' | 'published' | 'archived';
+  status: 'active' | 'archived';
   map_center_lat?: number;
   map_center_lng?: number;
   map_center_address?: string;
   boundary_radius_meters?: number | null;
-  preview_token?: string | null;
   spot_term_singular?: string;
   spot_term_plural?: string;
   created_by?: string;

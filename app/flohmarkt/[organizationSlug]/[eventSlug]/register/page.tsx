@@ -1,30 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const organizationSlug = params.organizationSlug as string;
   const eventSlug = params.eventSlug as string;
-  const previewToken = searchParams.get('preview');
 
   // Redirect to main event page with form tab
   useEffect(() => {
     if (!organizationSlug || !eventSlug) return;
 
-    // Build redirect URL with form tab
-    let redirectUrl = `/flohmarkt/${organizationSlug}/${eventSlug}?tab=form`;
-
-    // Preserve preview token if present
-    if (previewToken) {
-      redirectUrl += `&preview=${encodeURIComponent(previewToken)}`;
-    }
-
+    // Redirect to event page with form tab
+    const redirectUrl = `/flohmarkt/${organizationSlug}/${eventSlug}?tab=form`;
     router.replace(redirectUrl);
-  }, [organizationSlug, eventSlug, previewToken, router]);
+  }, [organizationSlug, eventSlug, router]);
 
   // Show loading state while redirecting
   return (

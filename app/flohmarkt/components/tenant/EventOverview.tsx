@@ -33,7 +33,7 @@ export function EventOverview() {
   };
 
   const activeEvents = tenantEvents
-    .filter(e => e.status === 'draft' || e.status === 'published')
+    .filter(e => e.status === 'active')
     .sort(sortByDateTime);
   const archivedEvents = tenantEvents
     .filter(e => e.status === 'archived')

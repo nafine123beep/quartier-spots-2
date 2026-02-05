@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-
 interface EventCreatedNotificationProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,42 +17,16 @@ export function EventCreatedNotification({
   eventSlug,
   tenantSlug,
 }: EventCreatedNotificationProps) {
-  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
-
   if (!isOpen) return null;
 
-  const handleGoToEvent = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsGeneratingToken(true);
+  const handleGoToEvent = () => {
+    // Navigate to the event page directly (event is already active)
+    window.location.href = `/flohmarkt/${tenantSlug}/${eventSlug}`;
+  };
 
-    try {
-      const supabase = createClient();
-
-      // Generate a new UUID token
-      const newToken = crypto.randomUUID();
-
-      const { error } = await supabase
-        .from("events")
-        .update({ preview_token: newToken })
-        .eq("id", eventId);
-
-      if (error) {
-        console.error("Error generating preview token:", error);
-        // Still navigate to event even if token generation fails
-        window.location.href = `/flohmarkt/${tenantSlug}/${eventSlug}/dashboard`;
-        return;
-      }
-
-      // Navigate to preview URL
-      const previewUrl = `/flohmarkt/${tenantSlug}/${eventSlug}?preview=${newToken}`;
-      window.location.href = previewUrl;
-    } catch (error) {
-      console.error("Error:", error);
-      // Fallback to dashboard
-      window.location.href = `/flohmarkt/${tenantSlug}/${eventSlug}/dashboard`;
-    } finally {
-      setIsGeneratingToken(false);
-    }
+  const handleGoToDashboard = () => {
+    // Navigate to the event dashboard
+    window.location.href = `/flohmarkt/organizations/${tenantSlug}/events/${eventSlug}`;
   };
 
   return (
@@ -84,9 +55,9 @@ export function EventCreatedNotification({
         {/* Content */}
         <div className="p-6">
           {/* Success Icon */}
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
-              className="w-8 h-8 text-[#003366]"
+              className="w-8 h-8 text-green-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -95,7 +66,7 @@ export function EventCreatedNotification({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M5 13l4 4L19 7"
               />
             </svg>
           </div>
@@ -106,15 +77,15 @@ export function EventCreatedNotification({
           </h3>
 
           {/* Main Message */}
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
+              <span className="text-2xl">✅</span>
               <div>
                 <p className="font-bold text-gray-800 mb-2">
-                  Jetzt veröffentlichen und sichtbar machen
+                  Dein Event ist jetzt aktiv!
                 </p>
                 <p className="text-sm text-gray-700 mb-0">
-                  Dein Event existiert nur im Vorschaumodus. Damit Teilnehmer es finden und sich anmelden können, musst du es noch veröffentlichen.
+                  Teilnehmer können sich ab sofort anmelden. Du kannst jetzt Druckmaterialien erstellen oder Links teilen.
                 </p>
               </div>
             </div>
@@ -124,41 +95,25 @@ export function EventCreatedNotification({
           <div className="mb-4">
             <p className="text-sm font-bold text-gray-700 mb-2">Nächste Schritte:</p>
             <ul className="text-sm text-gray-700 space-y-1 pl-5 list-disc">
-              <li>Prüfe und vervollständige die Event-Details</li>
-              <li>Füge optional Fotos hinzu</li>
-              <li>Klicke auf &quot;Event veröffentlichen&quot;</li>
+              <li>Erstelle Poster und Flyer mit QR-Code</li>
+              <li>Teile den Link in sozialen Medien</li>
+              <li>Füge optional weitere Fotos hinzu</li>
             </ul>
-          </div>
-
-          {/* Video Guide */}
-          <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full"
-            >
-              <source src="/videos/screen-flow-event-creation.mp4" type="video/mp4" />
-              Dein Browser unterstützt keine Video-Wiedergabe.
-            </video>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
             <button
-              onClick={onClose}
-              disabled={isGeneratingToken}
-              className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-md font-bold hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGoToEvent}
+              className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-md font-bold hover:bg-gray-300 transition-colors"
             >
-              Später
+              Event ansehen
             </button>
             <button
-              onClick={handleGoToEvent}
-              disabled={isGeneratingToken}
-              className="flex-1 bg-[#003366] text-white px-4 py-3 rounded-md font-bold hover:bg-[#002244] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGoToDashboard}
+              className="flex-1 bg-[#003366] text-white px-4 py-3 rounded-md font-bold hover:bg-[#002244] transition-colors"
             >
-              {isGeneratingToken ? "Lade..." : "Zum Event"}
+              Zum Dashboard
             </button>
           </div>
         </div>
