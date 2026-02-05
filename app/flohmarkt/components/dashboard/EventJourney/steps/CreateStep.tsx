@@ -1,28 +1,21 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useFlohmarkt } from "../../../../FlohmarktContext";
+import { EventImage } from "../../../../types";
 import { geocodeAddress, GeocodeResult } from "../../../../lib/geocoding";
-import { uploadEventImage, deleteEventImage, getPublicImageUrl } from "../../../../lib/imageUpload";
-import { getSpotTerms, SPOT_TERM_PRESETS } from "../../../../lib/spotTerms";
+import { SPOT_TERM_PRESETS } from "../../../../lib/spotTerms";
 import { BOUNDARY_RADIUS_PRESETS } from "../../../../lib/geoUtils";
-import { ImageCropModal } from "../../../shared/ImageCropModal";
-import { MapPin, Calendar, Image as ImageIcon, Settings, ChevronDown, ChevronRight, X, Crop, Star, Loader2 } from "lucide-react";
+import { EventImageUpload } from "../../../shared/EventImageUpload";
+import { MapPin, Calendar, Settings, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 
 interface CreateStepProps {
   onNext: () => void;
   onUnsavedChanges: (hasChanges: boolean) => void;
 }
 
-interface StagedImage {
-  id: string;
-  file: File;
-  previewUrl: string;
-  isCover: boolean;
-}
-
 export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
-  const { currentTenantEvent, currentTenant, updateEvent } = useFlohmarkt();
+  const { currentTenantEvent, updateEvent } = useFlohmarkt();
 
   // Form state
   const [title, setTitle] = useState(currentTenantEvent?.title || "");
@@ -31,26 +24,27 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
   const [endsAt, setEndsAt] = useState("");
   const [mapCenterAddress, setMapCenterAddress] = useState(currentTenantEvent?.map_center_address || "");
 
-  // Optional sections
+  // Boundary
   const [enableBoundary, setEnableBoundary] = useState(!!currentTenantEvent?.boundary_radius_meters);
   const [boundaryRadius, setBoundaryRadius] = useState<number | null>(currentTenantEvent?.boundary_radius_meters || null);
+  const [customRadius, setCustomRadius] = useState(
+    currentTenantEvent?.boundary_radius_meters && !BOUNDARY_RADIUS_PRESETS.some(p => p.value === currentTenantEvent.boundary_radius_meters)
+      ? String(currentTenantEvent.boundary_radius_meters)
+      : ""
+  );
+
+  // Terminology
   const [enableCustomTerms, setEnableCustomTerms] = useState(false);
   const [selectedTermPreset, setSelectedTermPreset] = useState("Stand");
   const [customTermSingular, setCustomTermSingular] = useState("");
   const [customTermPlural, setCustomTermPlural] = useState("");
 
-  // Image state
-  const [stagedImages, setStagedImages] = useState<StagedImage[]>([]);
-  const [existingImages, setExistingImages] = useState(currentTenantEvent?.images || []);
-  const [imageToDelete, setImageToDelete] = useState<string | null>(null);
-  const [cropImage, setCropImage] = useState<{ id: string; url: string; isExisting: boolean } | null>(null);
+  // Images
+  const [images, setImages] = useState<EventImage[]>(currentTenantEvent?.images ?? []);
 
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [uploadingImages, setUploadingImages] = useState(false);
-
-  const isNewEvent = !currentTenantEvent?.id;
 
   // Convert UTC dates to local datetime-local format
   useEffect(() => {
@@ -86,17 +80,9 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
   useEffect(() => {
     const hasChanges =
       title !== (currentTenantEvent?.title || "") ||
-      description !== (currentTenantEvent?.description || "") ||
-      stagedImages.length > 0;
+      description !== (currentTenantEvent?.description || "");
     onUnsavedChanges(hasChanges);
-  }, [title, description, stagedImages, currentTenantEvent, onUnsavedChanges]);
-
-  // Cleanup preview URLs on unmount
-  useEffect(() => {
-    return () => {
-      stagedImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
-    };
-  }, [stagedImages]);
+  }, [title, description, currentTenantEvent, onUnsavedChanges]);
 
   const formatDateTimeLocal = (date: Date): string => {
     const year = date.getFullYear();
@@ -105,46 +91,6 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
     return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const totalImages = existingImages.length + stagedImages.length + files.length;
-
-    if (totalImages > 5) {
-      setError("Maximal 5 Fotos erlaubt");
-      return;
-    }
-
-    const newStagedImages: StagedImage[] = files.map((file, index) => ({
-      id: `staged-${Date.now()}-${index}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-      isCover: existingImages.length === 0 && stagedImages.length === 0 && index === 0,
-    }));
-
-    setStagedImages((prev) => [...prev, ...newStagedImages]);
-    e.target.value = ""; // Reset input
-  };
-
-  const removeStagedImage = (id: string) => {
-    setStagedImages((prev) => {
-      const updated = prev.filter((img) => img.id !== id);
-      // Reassign cover if needed
-      if (updated.length > 0 && !updated.some((img) => img.isCover)) {
-        updated[0].isCover = true;
-      }
-      return updated;
-    });
-  };
-
-  const setStagedCover = (id: string) => {
-    setStagedImages((prev) =>
-      prev.map((img) => ({
-        ...img,
-        isCover: img.id === id,
-      }))
-    );
   };
 
   const handleSave = async () => {
@@ -213,22 +159,6 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         return;
       }
 
-      // Upload staged images
-      if (stagedImages.length > 0) {
-        setUploadingImages(true);
-        for (let i = 0; i < stagedImages.length; i++) {
-          const staged = stagedImages[i];
-          await uploadEventImage(
-            currentTenantEvent!.id,
-            staged.file,
-            existingImages.length + i,
-            staged.isCover && existingImages.length === 0
-          );
-        }
-        setUploadingImages(false);
-        setStagedImages([]);
-      }
-
       onUnsavedChanges(false);
       onNext();
     } catch (err) {
@@ -238,11 +168,9 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
     }
   };
 
-  const totalImages = existingImages.length + stagedImages.length;
-
   return (
     <div className="space-y-6">
-      {/* Title */}
+      {/* Title & Description */}
       <div className="bg-white rounded-lg shadow-sm p-5">
         <h2 className="text-lg font-bold text-[#003366] mb-4 flex items-center gap-2">
           <Settings className="h-5 w-5" />
@@ -250,7 +178,6 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         </h2>
 
         <div className="space-y-4">
-          {/* Title input */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
               Titel der Veranstaltung <span className="text-red-500">*</span>
@@ -266,7 +193,6 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
             />
           </div>
 
-          {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               Beschreibung
@@ -284,126 +210,13 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         </div>
       </div>
 
-      {/* Photos */}
-      <div className="bg-white rounded-lg shadow-sm p-5">
-        <h2 className="text-lg font-bold text-[#003366] mb-4 flex items-center gap-2">
-          <ImageIcon className="h-5 w-5" />
-          Fotos
-        </h2>
-
-        <p className="text-sm text-gray-600 mb-4">
-          Füge bis zu 5 Fotos hinzu. Das erste Foto wird als Titelbild verwendet.
-        </p>
-
-        {/* Image grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
-          {/* Existing images */}
-          {existingImages.map((img) => (
-            <div
-              key={img.id}
-              className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group"
-            >
-              <img
-                src={getPublicImageUrl(img.storage_path)}
-                alt="Event Foto"
-                className="w-full h-full object-cover"
-              />
-              {img.is_cover && (
-                <span className="absolute top-1 left-1 bg-yellow-400 text-yellow-900 text-[10px] px-1.5 py-0.5 rounded font-medium">
-                  Titelbild
-                </span>
-              )}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setCropImage({ id: img.id, url: getPublicImageUrl(img.storage_path), isExisting: true })}
-                  className="p-2 bg-white rounded-full hover:bg-gray-100"
-                  title="Zuschneiden"
-                >
-                  <Crop className="h-4 w-4 text-gray-700" />
-                </button>
-                {!img.is_cover && (
-                  <button
-                    onClick={async () => {
-                      // Set as cover logic would go here
-                    }}
-                    className="p-2 bg-white rounded-full hover:bg-gray-100"
-                    title="Als Titelbild"
-                  >
-                    <Star className="h-4 w-4 text-gray-700" />
-                  </button>
-                )}
-                <button
-                  onClick={() => setImageToDelete(img.id)}
-                  className="p-2 bg-white rounded-full hover:bg-gray-100"
-                  title="Löschen"
-                >
-                  <X className="h-4 w-4 text-red-600" />
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {/* Staged images */}
-          {stagedImages.map((img) => (
-            <div
-              key={img.id}
-              className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden group"
-            >
-              <img
-                src={img.previewUrl}
-                alt="Neues Foto"
-                className="w-full h-full object-cover"
-              />
-              {img.isCover && existingImages.length === 0 && (
-                <span className="absolute top-1 left-1 bg-yellow-400 text-yellow-900 text-[10px] px-1.5 py-0.5 rounded font-medium">
-                  Titelbild
-                </span>
-              )}
-              <div className="absolute top-1 right-1 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">
-                Neu
-              </div>
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                {!img.isCover && existingImages.length === 0 && (
-                  <button
-                    onClick={() => setStagedCover(img.id)}
-                    className="p-2 bg-white rounded-full hover:bg-gray-100"
-                    title="Als Titelbild"
-                  >
-                    <Star className="h-4 w-4 text-gray-700" />
-                  </button>
-                )}
-                <button
-                  onClick={() => removeStagedImage(img.id)}
-                  className="p-2 bg-white rounded-full hover:bg-gray-100"
-                  title="Entfernen"
-                >
-                  <X className="h-4 w-4 text-red-600" />
-                </button>
-              </div>
-            </div>
-          ))}
-
-          {/* Add image button */}
-          {totalImages < 5 && (
-            <label className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-[#003366] hover:bg-gray-50 transition-colors">
-              <ImageIcon className="h-6 w-6 text-gray-400 mb-1" />
-              <span className="text-xs text-gray-500">Hinzufügen</span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-                onChange={handleImageSelect}
-                className="hidden"
-                disabled={isLoading}
-              />
-            </label>
-          )}
-        </div>
-
-        <p className="text-xs text-gray-500">
-          {totalImages}/5 Fotos • JPEG, PNG oder WebP • max. 5 MB pro Foto
-        </p>
-      </div>
+      {/* Photos — same component as EventEditForm */}
+      <EventImageUpload
+        eventId={currentTenantEvent!.id}
+        images={images}
+        onImagesChange={setImages}
+        disabled={isLoading}
+      />
 
       {/* Date/Time */}
       <div className="bg-white rounded-lg shadow-sm p-5">
@@ -466,122 +279,176 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
             Diese Adresse bestimmt den Mittelpunkt der Karte für Teilnehmer.
           </p>
         </div>
-
-        {/* Boundary radius toggle */}
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => setEnableBoundary(!enableBoundary)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-[#003366]"
-          >
-            {enableBoundary ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-            Geografisches Gebiet einschränken
-          </button>
-
-          {enableBoundary && (
-            <div className="mt-3 pl-6">
-              <div className="flex flex-wrap gap-2 mb-3">
-                {BOUNDARY_RADIUS_PRESETS.map((preset) => (
-                  <button
-                    key={preset.value}
-                    type="button"
-                    onClick={() => setBoundaryRadius(preset.value)}
-                    className={`px-3 py-1.5 rounded-full text-sm ${
-                      boundaryRadius === preset.value
-                        ? "bg-[#003366] text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500">
-                Teilnehmer können sich nur innerhalb dieses Radius anmelden.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* Custom terminology */}
-      <div className="bg-white rounded-lg shadow-sm p-5">
+      {/* Boundary radius — card pattern from EventEditForm */}
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
         <button
           type="button"
-          onClick={() => setEnableCustomTerms(!enableCustomTerms)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-[#003366] w-full text-left"
+          onClick={() => {
+            setEnableBoundary(!enableBoundary);
+            if (enableBoundary) {
+              setBoundaryRadius(null);
+              setCustomRadius("");
+            }
+          }}
+          disabled={isLoading}
+          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
         >
-          {enableCustomTerms ? (
-            <ChevronDown className="h-4 w-4" />
+          <span className="text-sm font-medium text-gray-700">
+            Geografisches Gebiet einschränken
+          </span>
+          {enableBoundary ? (
+            <ChevronDown className="h-5 w-5 text-gray-500" aria-hidden="true" />
           ) : (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-5 w-5 text-gray-500" aria-hidden="true" />
           )}
-          <span>Bezeichnung für &quot;Spots&quot; anpassen</span>
         </button>
 
-        {/* Always-visible description */}
-        <p className="text-xs text-gray-600 mt-2 ml-6">
-          Dein Event wird aus mehreren &quot;Spots&quot; bestehen – das sind die Orte, an denen Teilnehmende aktiv sind. Wähle hier die Bezeichnung, die zu deinem Event passt.
-        </p>
+        {/* Description — always visible */}
+        <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+          <p className="text-xs text-gray-600 m-0">
+            Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
+          </p>
+        </div>
+
+        {enableBoundary && (
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex flex-wrap gap-2 mb-3">
+              {BOUNDARY_RADIUS_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => {
+                    setBoundaryRadius(preset.value);
+                    setCustomRadius("");
+                  }}
+                  disabled={isLoading}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    boundaryRadius === preset.value
+                      ? "bg-[#003366] text-white"
+                      : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                  } disabled:opacity-50`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <div>
+              <label className="block mb-1 text-xs text-gray-600">
+                Oder eigenen Radius eingeben (in Metern):
+              </label>
+              <input
+                type="number"
+                value={customRadius}
+                onChange={(e) => {
+                  setCustomRadius(e.target.value);
+                  const value = parseInt(e.target.value);
+                  if (value >= 100) {
+                    setBoundaryRadius(value);
+                  } else {
+                    setBoundaryRadius(null);
+                  }
+                }}
+                placeholder="z.B. 750"
+                min="100"
+                max="50000"
+                disabled={isLoading}
+                className="w-32 p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500 disabled:bg-gray-100"
+              />
+            </div>
+            {!boundaryRadius && (
+              <p className="mt-2 text-xs text-orange-600">
+                Bitte wähle einen Radius aus oder gib einen eigenen Wert ein (min. 100m).
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Terminology — card pattern from EventEditForm */}
+      <div className="border border-gray-300 rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => {
+            setEnableCustomTerms(!enableCustomTerms);
+            if (enableCustomTerms) {
+              setSelectedTermPreset("Stand");
+              setCustomTermSingular("");
+              setCustomTermPlural("");
+            }
+          }}
+          disabled={isLoading}
+          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+        >
+          <span className="text-sm font-medium text-gray-700">
+            Bezeichnung für &quot;Spots&quot; anpassen
+          </span>
+          {enableCustomTerms ? (
+            <ChevronDown className="h-5 w-5 text-gray-500" aria-hidden="true" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-gray-500" aria-hidden="true" />
+          )}
+        </button>
+
+        {/* Description — always visible */}
+        <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+          <p className="text-xs text-gray-600 m-0">
+            Dein Event wird aus mehreren &quot;Spots&quot; bestehen – das sind die Orte, an denen Teilnehmende aktiv sind. Wähle hier die Bezeichnung, die zu deinem Event passt.
+          </p>
+        </div>
 
         {enableCustomTerms && (
-          <div className="mt-3 pl-6">
-            {/* Expanded help text */}
+          <div className="p-4 border-t border-gray-200">
             <p className="text-xs text-gray-600 mb-3">
               Wähle z.B. &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen, &quot;Checkpoint&quot; für Rallyes oder eine eigene Bezeichnung.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-              {SPOT_TERM_PRESETS.map((preset) => (
-                <button
-                  key={preset.singular}
-                  type="button"
-                  onClick={() => setSelectedTermPreset(preset.singular)}
-                  className={`px-3 py-2 rounded-lg text-sm ${
-                    selectedTermPreset === preset.singular
-                      ? "bg-[#003366] text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
+            <select
+              value={selectedTermPreset}
+              onChange={(e) => {
+                setSelectedTermPreset(e.target.value);
+                if (e.target.value !== "custom") {
+                  setCustomTermSingular("");
+                  setCustomTermPlural("");
+                }
+              }}
+              disabled={isLoading}
+              className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 bg-white disabled:bg-gray-100"
+            >
+              {SPOT_TERM_PRESETS.slice(1).map((preset) => (
+                <option key={preset.singular} value={preset.singular}>
                   {preset.singular}
-                </button>
+                </option>
               ))}
-              <button
-                type="button"
-                onClick={() => setSelectedTermPreset("custom")}
-                className={`px-3 py-2 rounded-lg text-sm ${
-                  selectedTermPreset === "custom"
-                    ? "bg-[#003366] text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                Eigene...
-              </button>
-            </div>
+              <option value="custom">Eigene Bezeichnung...</option>
+            </select>
 
             {selectedTermPreset === "custom" && (
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Singular</label>
+              <div className="flex gap-4 mt-3 pt-3 border-t border-gray-200">
+                <div className="flex-1">
+                  <label className="block mb-1 text-xs text-gray-600">
+                    Singular
+                  </label>
                   <input
                     type="text"
                     value={customTermSingular}
                     onChange={(e) => setCustomTermSingular(e.target.value)}
                     placeholder="z.B. Platz"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    disabled={isLoading}
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1">Plural</label>
+                <div className="flex-1">
+                  <label className="block mb-1 text-xs text-gray-600">
+                    Plural
+                  </label>
                   <input
                     type="text"
                     value={customTermPlural}
                     onChange={(e) => setCustomTermPlural(e.target.value)}
                     placeholder="z.B. Plätze"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    disabled={isLoading}
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -607,25 +474,13 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>{uploadingImages ? "Fotos werden hochgeladen..." : "Wird gespeichert..."}</span>
+              <span>Wird gespeichert...</span>
             </>
           ) : (
             <span>Speichern und weiter</span>
           )}
         </button>
       </div>
-
-      {/* Crop modal */}
-      {cropImage && (
-        <ImageCropModal
-          imageUrl={cropImage.url}
-          onComplete={async () => {
-            // Handle crop complete
-            setCropImage(null);
-          }}
-          onCancel={() => setCropImage(null)}
-        />
-      )}
     </div>
   );
 }

@@ -358,7 +358,7 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
           {enableCustomTerms && (
             <div className="p-4 border-t border-gray-200">
               <p className="text-xs text-gray-600 mb-3">
-                Passe die Bezeichnung an dein Event an, wähle z.B. &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen, &quot;Checkpoint&quot; für Radtouren, Rallyes etc.
+                Wähle z.B. &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen, &quot;Checkpoint&quot; für Rallyes oder eine eigene Bezeichnung.
               </p>
               <select
                 value={selectedTermPreset}
