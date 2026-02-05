@@ -20,9 +20,9 @@ export interface StepConfig {
 }
 
 export const JOURNEY_STEPS: StepConfig[] = [
-  { id: 1, label: "Grunddaten", shortLabel: "Grunddaten" },
+  { id: 1, label: "Daten", shortLabel: "Daten" },
   { id: 2, label: "Vorschau", shortLabel: "Vorschau" },
-  { id: 3, label: "Verbreiten", shortLabel: "Verbreiten" },
+  { id: 3, label: "Teilen", shortLabel: "Teilen" },
   { id: 4, label: "Verwalten", shortLabel: "Verwalten" },
 ];
 
@@ -182,11 +182,10 @@ export function EventJourneyContainer() {
         </div>
       </div>
 
-      {/* Step Indicator */}
+      {/* Tab Navigation */}
       <EventJourneyStepIndicator
         steps={JOURNEY_STEPS}
         currentStep={currentStep}
-        maxAccessibleStep={maxAccessibleStep}
         onStepClick={goToStep}
       />
 
@@ -229,10 +228,6 @@ export function EventJourneyContainer() {
             <ArrowLeft className="h-4 w-4" />
             <span>Zurück</span>
           </button>
-
-          <span className="text-sm text-gray-500">
-            Schritt {currentStep} von 4
-          </span>
 
           {currentStep < 4 && canNavigateToStep((currentStep + 1) as JourneyStep) && (
             <button
