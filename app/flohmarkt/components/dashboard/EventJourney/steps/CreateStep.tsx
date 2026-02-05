@@ -523,8 +523,17 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
           <span>Bezeichnung für &quot;Spots&quot; anpassen</span>
         </button>
 
+        {/* Always-visible description */}
+        <p className="text-xs text-gray-600 mt-2 ml-6">
+          Dein Event wird aus mehreren &quot;Spots&quot; bestehen – das sind die Orte, an denen Teilnehmende aktiv sind. Wähle hier die Bezeichnung, die zu deinem Event passt.
+        </p>
+
         {enableCustomTerms && (
-          <div className="mt-4 pl-6">
+          <div className="mt-3 pl-6">
+            {/* Expanded help text */}
+            <p className="text-xs text-gray-600 mb-3">
+              Wähle z.B. &quot;Stand&quot; für Flohmärkte, &quot;Spielort&quot; oder &quot;Bühne&quot; für Musik-/Kulturveranstaltungen, &quot;Checkpoint&quot; für Rallyes oder eine eigene Bezeichnung.
+            </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
               {SPOT_TERM_PRESETS.map((preset) => (
                 <button
