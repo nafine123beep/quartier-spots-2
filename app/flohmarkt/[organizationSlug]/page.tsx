@@ -48,12 +48,12 @@ export default function OrganizationPublicPage() {
 
         setTenant(loadedTenant);
 
-        // Load all published events for this tenant
+        // Load all active events for this tenant
         const { data: eventsData, error: eventsError } = await supabase
           .from("events")
           .select("*")
           .eq("tenant_id", loadedTenant.id)
-          .eq("status", "published")
+          .eq("status", "active")
           .order("starts_at", { ascending: false });
 
         if (eventsError) {
@@ -154,7 +154,7 @@ export default function OrganizationPublicPage() {
               <div className="text-6xl mb-4">📅</div>
               <h3 className="text-xl font-bold text-gray-700 mb-2">Keine Veranstaltungen</h3>
               <p className="text-gray-600">
-                Diese Organisation hat derzeit keine veröffentlichten Veranstaltungen.
+                Diese Organisation hat derzeit keine aktiven Veranstaltungen.
               </p>
             </div>
           ) : (
