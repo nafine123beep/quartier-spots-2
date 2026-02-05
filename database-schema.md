@@ -379,13 +379,6 @@
   },
   {
     "table_name": "events",
-    "column_name": "status",
-    "data_type": "USER-DEFINED",
-    "is_nullable": "NO",
-    "column_default": "'draft'::event_status"
-  },
-  {
-    "table_name": "events",
     "column_name": "created_by",
     "data_type": "uuid",
     "is_nullable": "YES",
@@ -442,13 +435,6 @@
   },
   {
     "table_name": "events",
-    "column_name": "preview_token",
-    "data_type": "uuid",
-    "is_nullable": "YES",
-    "column_default": null
-  },
-  {
-    "table_name": "events",
     "column_name": "spot_term_singular",
     "data_type": "text",
     "is_nullable": "YES",
@@ -460,6 +446,13 @@
     "data_type": "text",
     "is_nullable": "YES",
     "column_default": "'Spots'::text"
+  },
+  {
+    "table_name": "events",
+    "column_name": "status",
+    "data_type": "USER-DEFINED",
+    "is_nullable": "NO",
+    "column_default": "'active'::event_status"
   },
   {
     "table_name": "geocoding_requests",
@@ -1080,7 +1073,7 @@
 ]
 ## Foreign Key Beziehungen
 
-[[
+[
   {
     "table_name": "memberships",
     "column_name": "tenant_id",

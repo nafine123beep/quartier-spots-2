@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { PublicEventView } from "../../components/event/PublicEventView";
@@ -18,10 +18,20 @@ export default function PublicEventPage() {
   const [error, setError] = useState<string | null>(null);
   const [accessMode, setAccessMode] = useState<AccessMode>('public');
 
+  // Track loaded event to prevent infinite reload loops (esp. in preview iframe)
+  const loadedEventRef = useRef<string | null>(null);
+
   // Load event and tenant data from Supabase (public access, no login required)
   useEffect(() => {
     const loadData = async () => {
       if (!organizationSlug || !eventSlug) return;
+
+      // Guard: Don't reload if already loaded (prevents infinite loop in preview iframe)
+      const eventKey = `${organizationSlug}/${eventSlug}`;
+      if (loadedEventRef.current === eventKey) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       setError(null);
@@ -39,6 +49,7 @@ export default function PublicEventPage() {
         setCurrentTenant(result.tenant);
         setCurrentTenantEvent(result.event);
         setAccessMode(result.accessMode || 'public');
+        loadedEventRef.current = eventKey; // Mark as loaded
         setLoading(false);
       } else {
         setError("Fehler beim Laden des Events.");
@@ -47,7 +58,7 @@ export default function PublicEventPage() {
     };
 
     loadData();
-  }, [organizationSlug, eventSlug, setCurrentTenantEvent, setCurrentTenant, user]);
+  }, [organizationSlug, eventSlug, user, setCurrentTenant, setCurrentTenantEvent]);
 
   // Show loading state
   if (loading) {
