@@ -13,33 +13,12 @@ interface PreviewStepProps {
 export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
   const { currentTenantEvent, currentTenant, setCurrentTenantEvent } = useFlohmarkt();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!currentTenantEvent || !currentTenant) return;
-
-    const baseUrl = window.location.origin;
-    const eventUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`;
-
-    if (currentTenantEvent.status === "draft") {
-      // Draft events need preview token
-      if (currentTenantEvent.preview_token) {
-        setPreviewUrl(`${eventUrl}?preview=${currentTenantEvent.preview_token}&embedded=true`);
-      } else {
-        setPreviewUrl(null);
-      }
-    } else {
-      // Published events can be viewed directly
-      setPreviewUrl(`${eventUrl}?embedded=true`);
-    }
-  }, [currentTenantEvent, currentTenant]);
 
   const generatePreviewToken = async () => {
     if (!currentTenantEvent) return;
 
-    setIsGeneratingToken(true);
     const supabase = createClient();
     const newToken = crypto.randomUUID();
 
@@ -53,13 +32,33 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
     } else {
       setCurrentTenantEvent({ ...currentTenantEvent, preview_token: newToken });
     }
-    setIsGeneratingToken(false);
   };
+
+  // Auto-generate token on mount if missing — works for any event status
+  useEffect(() => {
+    if (currentTenantEvent && !currentTenantEvent.preview_token) {
+      generatePreviewToken();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTenantEvent?.id]);
+
+  // Build preview URL whenever token or event identity changes
+  useEffect(() => {
+    if (!currentTenantEvent || !currentTenant) return;
+
+    if (!currentTenantEvent.preview_token) {
+      setPreviewUrl(null); // spinner while token is generating
+      return;
+    }
+
+    const baseUrl = window.location.origin;
+    const eventUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`;
+    setPreviewUrl(`${eventUrl}?preview=${currentTenantEvent.preview_token}&embedded=true&tab=map`);
+  }, [currentTenantEvent, currentTenant]);
 
   if (!currentTenantEvent || !currentTenant) return null;
 
   const isDraft = currentTenantEvent.status === "draft";
-  const needsToken = isDraft && !currentTenantEvent.preview_token;
 
   return (
     <div className="space-y-6">
@@ -76,38 +75,8 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
 
       {/* Preview area */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        {needsToken ? (
-          // Need to generate token first
-          <div className="p-8 text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Eye className="h-8 w-8 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              Vorschau aktivieren
-            </h3>
-            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-              Da dein Event noch ein Entwurf ist, muss eine sichere Vorschau erstellt werden.
-            </p>
-            <button
-              onClick={generatePreviewToken}
-              disabled={isGeneratingToken}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 disabled:opacity-50 transition-colors"
-            >
-              {isGeneratingToken ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Wird erstellt...
-                </>
-              ) : (
-                <>
-                  <Eye className="h-5 w-5" />
-                  Vorschau erstellen
-                </>
-              )}
-            </button>
-          </div>
-        ) : previewUrl ? (
-          // Show iframe preview
+        {previewUrl ? (
+          // Show iframe preview (map view forced via &tab=map)
           <div>
             <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
               <span className="text-sm text-gray-600 flex items-center gap-2">
@@ -137,10 +106,10 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
             </div>
           </div>
         ) : (
-          // Error state
+          // Token is auto-generating — show spinner
           <div className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Vorschau konnte nicht geladen werden.</p>
+            <Loader2 className="h-12 w-12 animate-spin text-[#003366] mx-auto mb-4" />
+            <p className="text-gray-600">Vorschau wird vorbereitet…</p>
           </div>
         )}
       </div>
