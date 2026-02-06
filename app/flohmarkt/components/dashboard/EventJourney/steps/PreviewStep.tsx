@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState } from "react";
 import { useFlohmarkt } from "../../../../FlohmarktContext";
-import { Eye, Maximize2, X, Loader2 } from "lucide-react";
+import { PublicEventView } from "../../../event/PublicEventView";
+import { Eye, Maximize2, X } from "lucide-react";
 
 interface PreviewStepProps {
   onNext: () => void;
@@ -10,22 +11,8 @@ interface PreviewStepProps {
 }
 
 export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
-  const { currentTenantEvent, currentTenant } = useFlohmarkt();
+  const { currentTenantEvent, currentTenant, isAdmin } = useFlohmarkt();
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-
-  // Store the initial event ID to use as iframe key - prevents remounting
-  const iframeKeyRef = useRef<string | null>(null);
-  if (currentTenantEvent && !iframeKeyRef.current) {
-    iframeKeyRef.current = currentTenantEvent.id;
-  }
-
-  // Build preview URL once - memoized to prevent unnecessary iframe reloads
-  const previewUrl = useMemo(() => {
-    if (!currentTenantEvent || !currentTenant) return null;
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?embedded=true&tab=map`;
-  }, [currentTenantEvent?.id, currentTenant?.slug]); // Only rebuild if ID or slug changes
 
   if (!currentTenantEvent || !currentTenant) return null;
 
@@ -44,48 +31,29 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
 
       {/* Preview area */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        {previewUrl ? (
-          // Show iframe preview (map view forced via &tab=map)
-          <div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
-              <span className="text-sm text-gray-600 flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Teilnehmer-Ansicht
-              </span>
-              <button
-                onClick={() => setShowFullscreenModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <Maximize2 className="h-4 w-4" />
-                Vollbild
-              </button>
-            </div>
-            <div className="relative" style={{ height: "60vh", minHeight: "400px" }}>
-              {!iframeLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                  <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                </div>
-              )}
-              <iframe
-                key={iframeKeyRef.current}
-                src={previewUrl}
-                className="w-full h-full border-0"
-                title="Event-Vorschau"
-                onLoad={() => setIframeLoaded(true)}
-              />
-            </div>
-          </div>
-        ) : (
-          // Loading state
-          <div className="p-8 text-center">
-            <Loader2 className="h-12 w-12 animate-spin text-[#003366] mx-auto mb-4" />
-            <p className="text-gray-600">Vorschau wird geladen…</p>
-          </div>
-        )}
+        <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
+          <span className="text-sm text-gray-600 flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            Teilnehmer-Ansicht
+          </span>
+          <button
+            onClick={() => setShowFullscreenModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            <Maximize2 className="h-4 w-4" />
+            Vollbild
+          </button>
+        </div>
+        <div className="relative" style={{ height: "60vh", minHeight: "400px" }}>
+          <PublicEventView
+            accessMode={isAdmin ? 'member' : 'public'}
+            embedded={true}
+          />
+        </div>
       </div>
 
       {/* Fullscreen modal */}
-      {showFullscreenModal && previewUrl && (
+      {showFullscreenModal && (
         <div className="fixed inset-0 bg-black/90 z-[4000] flex flex-col">
           <div className="flex items-center justify-between p-4 bg-white border-b">
             <h3 className="font-bold text-gray-800">Vorschau - Vollbildansicht</h3>
@@ -98,10 +66,9 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
             </button>
           </div>
           <div className="flex-grow">
-            <iframe
-              src={previewUrl}
-              className="w-full h-full border-0"
-              title="Event-Vorschau Vollbild"
+            <PublicEventView
+              accessMode={isAdmin ? 'member' : 'public'}
+              embedded={true}
             />
           </div>
         </div>
