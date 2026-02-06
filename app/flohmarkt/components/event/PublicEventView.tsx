@@ -207,8 +207,8 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
         />
       )}
 
-      {/* Desktop Header - Hidden on mobile and in embedded mode shows simplified version */}
-      <div className={embedded ? "block" : "hidden md:block"}>
+      {/* Header - Only shown in embedded mode (non-embedded uses MobileEventHeaderDrawer on all screens) */}
+      {embedded && <div>
         <CollapsibleHeader>
           {/* Hero Image Gallery */}
           {hasImages && (
@@ -280,7 +280,7 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
             </div>
           </div>
         </CollapsibleHeader>
-      </div>
+      </div>}
 
       {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200 shadow-sm">

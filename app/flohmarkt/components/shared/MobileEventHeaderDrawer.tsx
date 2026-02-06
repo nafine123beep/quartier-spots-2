@@ -70,8 +70,8 @@ export function MobileEventHeaderDrawer({
 
   return (
     <>
-      {/* Sticky Mini Header - Mobile Only */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#003366] shadow-lg">
+      {/* Sticky Mini Header */}
+      <div className="fixed top-0 left-0 right-0 z-40 bg-[#003366] shadow-lg">
         <button
           onClick={openDrawer}
           className="w-full flex items-center gap-3 p-3 text-left"
@@ -108,13 +108,13 @@ export function MobileEventHeaderDrawer({
         </button>
       </div>
 
-      {/* Spacer to prevent content from going under fixed header - Mobile Only */}
-      <div className="md:hidden h-[70px]" />
+      {/* Spacer to prevent content from going under fixed header */}
+      <div className="h-[70px]" />
 
       {/* Backdrop */}
       {isDrawerOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
           onClick={closeDrawer}
         />
       )}
@@ -123,7 +123,7 @@ export function MobileEventHeaderDrawer({
       <div
         ref={drawerRef}
         className={`
-          md:hidden fixed left-0 right-0 bottom-0 z-50
+          fixed left-0 right-0 bottom-0 z-50
           bg-white rounded-t-2xl shadow-2xl
           transition-transform duration-300 ease-out
           ${isDrawerOpen ? 'translate-y-0' : 'translate-y-full'}
