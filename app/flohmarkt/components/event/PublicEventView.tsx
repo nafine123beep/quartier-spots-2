@@ -139,7 +139,7 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
   };
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+    <div className={`${embedded ? 'absolute' : 'fixed'} inset-0 bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col`}>
       {/* Lightbox for full-size image viewing */}
       {lightboxImage && (
         <div
