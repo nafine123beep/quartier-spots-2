@@ -34,15 +34,17 @@ function PublicEventPageContent() {
   const eventSlug = params.eventSlug as string;
   const isEmbedded = searchParams.get('embedded') === 'true';
 
-  const { setCurrentTenantEvent, setCurrentTenant, user } = useFlohmarkt();
+  const { setCurrentTenantEvent, setCurrentTenant } = useFlohmarkt();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accessMode, setAccessMode] = useState<AccessMode>('public');
 
-  // Track loaded event to prevent infinite reload loops (esp. in preview iframe)
+  // Track loaded event and loading state to prevent loops
   const loadedEventRef = useRef<string | null>(null);
+  const isLoadingRef = useRef(false);
 
   // Load event and tenant data from Supabase (public access, no login required)
+  // Only runs once when organizationSlug and eventSlug are available
   useEffect(() => {
     const loadData = async () => {
       // Early return if params not available yet
@@ -51,18 +53,22 @@ function PublicEventPageContent() {
         return;
       }
 
-      // Guard: Don't reload if already loaded (prevents infinite loop in preview iframe)
+      // Guard: Don't reload if already loaded or currently loading
       const eventKey = `${organizationSlug}/${eventSlug}`;
-      if (loadedEventRef.current === eventKey) {
-        setLoading(false);
+      if (loadedEventRef.current === eventKey || isLoadingRef.current) {
+        if (loadedEventRef.current === eventKey) {
+          setLoading(false);
+        }
         return;
       }
 
+      isLoadingRef.current = true;
       setLoading(true);
       setError(null);
 
       try {
-        const result = await loadEventData(organizationSlug, eventSlug, user);
+        // Load without user context - rely on public access
+        const result = await loadEventData(organizationSlug, eventSlug, null);
 
         if (result.error) {
           setError(result.error);
@@ -82,12 +88,14 @@ function PublicEventPageContent() {
         console.error("Unexpected error loading event:", err);
         setError("Unerwarteter Fehler beim Laden des Events.");
       } finally {
+        isLoadingRef.current = false;
         setLoading(false);
       }
     };
 
     loadData();
-  }, [organizationSlug, eventSlug, user, setCurrentTenant, setCurrentTenantEvent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationSlug, eventSlug]); // Only depend on route params
 
   // Show loading state
   if (loading) {

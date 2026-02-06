@@ -5,18 +5,125 @@ import { EventImage } from "../../types";
 import {
   uploadEventImage,
   deleteEventImage,
-  setEventCoverImage,
   getPublicImageUrl,
   validateImageFile,
+  updateImagePositions,
   MAX_IMAGES_PER_EVENT,
 } from "../../lib/imageUpload";
 import { ImageCropModal } from "./ImageCropModal";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Crop, X, GripVertical } from "lucide-react";
 
 interface EventImageUploadProps {
   eventId: string;
   images: EventImage[];
   onImagesChange: (images: EventImage[]) => void;
   disabled?: boolean;
+}
+
+interface SortableImageThumbnailProps {
+  image: EventImage;
+  isFirst: boolean;
+  disabled: boolean;
+  onCrop: () => void;
+  onDelete: () => void;
+}
+
+function SortableImageThumbnail({
+  image,
+  isFirst,
+  disabled,
+  onCrop,
+  onDelete,
+}: SortableImageThumbnailProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: image.id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative w-24 h-24 rounded-lg overflow-hidden border-2 ${
+        isFirst ? "border-yellow-400" : "border-gray-200"
+      } ${isDragging ? "opacity-50 z-50" : ""}`}
+    >
+      <img
+        src={getPublicImageUrl(image.storage_path)}
+        alt={image.filename}
+        className="w-full h-full object-cover"
+      />
+
+      {/* Cover badge */}
+      {isFirst && (
+        <div className="absolute bottom-1 left-1 bg-yellow-400 text-yellow-900 text-xs px-1.5 py-0.5 rounded font-medium">
+          Titel
+        </div>
+      )}
+
+      {/* Always-visible action buttons */}
+      {!disabled && (
+        <div className="absolute top-1 right-1 flex gap-1">
+          {/* Drag handle */}
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="p-1 bg-black/60 text-white rounded hover:bg-black/80 transition-colors cursor-grab active:cursor-grabbing touch-none"
+            title="Verschieben"
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+
+          {/* Crop button */}
+          <button
+            type="button"
+            onClick={onCrop}
+            className="p-1 bg-black/60 text-white rounded hover:bg-black/80 transition-colors"
+            title="Zuschneiden"
+          >
+            <Crop className="w-4 h-4" />
+          </button>
+
+          {/* Delete button */}
+          <button
+            type="button"
+            onClick={onDelete}
+            className="p-1 bg-black/60 text-white rounded hover:bg-red-600 transition-colors"
+            title="Löschen"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function EventImageUpload({
@@ -35,6 +142,53 @@ export function EventImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canAddMore = images.length < MAX_IMAGES_PER_EVENT;
+
+  // Sort images by position for display
+  const sortedImages = [...images].sort((a, b) => a.position - b.position);
+
+  // DnD sensors with pointer and keyboard support
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = sortedImages.findIndex((img) => img.id === active.id);
+      const newIndex = sortedImages.findIndex((img) => img.id === over.id);
+
+      const reorderedImages = arrayMove(sortedImages, oldIndex, newIndex);
+
+      // Update positions and is_cover flag (first image is always cover)
+      const updatedImages = reorderedImages.map((img, index) => ({
+        ...img,
+        position: index,
+        is_cover: index === 0,
+      }));
+
+      // Optimistically update UI
+      onImagesChange(updatedImages);
+
+      // Persist to database
+      const result = await updateImagePositions(
+        updatedImages.map((img) => ({ id: img.id, position: img.position }))
+      );
+
+      if (!result.success) {
+        setError(result.error || "Fehler beim Speichern der Reihenfolge");
+        // Revert on error
+        onImagesChange(images);
+      }
+    }
+  };
 
   const handleFileSelect = useCallback(
     async (files: FileList | null) => {
@@ -109,37 +263,31 @@ export function EventImageUpload({
   const handleDeleteImage = async (imageId: string) => {
     if (disabled) return;
 
-    const result = await deleteEventImage(imageId);
+    const { deleteEventImage: deleteImage } = await import("../../lib/imageUpload");
+    const result = await deleteImage(imageId);
 
     if (result.success) {
       const updatedImages = images.filter((img) => img.id !== imageId);
 
-      // If we deleted the cover image, set the first remaining image as cover
-      const deletedImage = images.find((img) => img.id === imageId);
-      if (deletedImage?.is_cover && updatedImages.length > 0) {
-        await setEventCoverImage(eventId, updatedImages[0].id);
-        updatedImages[0] = { ...updatedImages[0], is_cover: true };
-      }
+      // Re-calculate positions and set first as cover
+      const reorderedImages = updatedImages
+        .sort((a, b) => a.position - b.position)
+        .map((img, index) => ({
+          ...img,
+          position: index,
+          is_cover: index === 0,
+        }));
 
-      onImagesChange(updatedImages);
+      onImagesChange(reorderedImages);
+
+      // Persist position updates if there are remaining images
+      if (reorderedImages.length > 0) {
+        await updateImagePositions(
+          reorderedImages.map((img) => ({ id: img.id, position: img.position }))
+        );
+      }
     } else {
       setError(result.error || "Fehler beim Löschen");
-    }
-  };
-
-  const handleSetCover = async (imageId: string) => {
-    if (disabled) return;
-
-    const result = await setEventCoverImage(eventId, imageId);
-
-    if (result.success) {
-      const updatedImages = images.map((img) => ({
-        ...img,
-        is_cover: img.id === imageId,
-      }));
-      onImagesChange(updatedImages);
-    } else {
-      setError(result.error || "Fehler beim Setzen des Titelbildes");
     }
   };
 
@@ -263,96 +411,39 @@ export function EventImageUpload({
         </div>
       )}
 
-      {/* Image Thumbnails */}
-      {images.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {images.map((image) => (
-            <div
-              key={image.id}
-              className="relative group w-24 h-24 rounded-lg overflow-hidden border border-gray-200"
-            >
-              <img
-                src={getPublicImageUrl(image.storage_path)}
-                alt={image.filename}
-                className="w-full h-full object-cover"
-              />
-
-              {/* Cover badge */}
-              {image.is_cover && (
-                <div className="absolute top-1 left-1 bg-yellow-400 text-yellow-900 text-xs px-1.5 py-0.5 rounded font-medium">
-                  Titel
-                </div>
-              )}
-
-              {/* Hover overlay with actions */}
-              {!disabled && (
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
-                  {/* Crop/Edit button */}
-                  <button
-                    type="button"
-                    onClick={() => handleOpenCropModal(image)}
-                    className="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                    title="Zuschneiden"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"
-                      />
-                    </svg>
-                  </button>
-
-                  {/* Set as cover button */}
-                  {!image.is_cover && (
-                    <button
-                      type="button"
-                      onClick={() => handleSetCover(image.id)}
-                      className="p-1.5 bg-yellow-400 text-yellow-900 rounded hover:bg-yellow-300 transition-colors"
-                      title="Als Titelbild setzen"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    </button>
-                  )}
-
-                  {/* Delete button */}
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteImage(image.id)}
-                    className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-                    title="Löschen"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              )}
+      {/* Image Thumbnails with Drag-to-Reorder */}
+      {sortedImages.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sortedImages.map((img) => img.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex flex-wrap gap-3">
+              {sortedImages.map((image, index) => (
+                <SortableImageThumbnail
+                  key={image.id}
+                  image={image}
+                  isFirst={index === 0}
+                  disabled={disabled}
+                  onCrop={() => handleOpenCropModal(image)}
+                  onDelete={() => handleDeleteImage(image.id)}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
+      )}
+
+      {/* Reorder hint */}
+      {sortedImages.length > 1 && !disabled && (
+        <p className="text-xs text-gray-500 mt-2">
+          ↔ Verschieben, um die Reihenfolge zu ändern. Das erste Bild ist das
+          Titelbild.
+        </p>
       )}
 
       {/* Image count indicator */}

@@ -226,17 +226,21 @@ export async function loadEventImages(eventId: string): Promise<EventImage[]> {
 
 /**
  * Updates the positions of images (for reordering)
+ * Also syncs is_cover flag: position 0 image becomes cover
  */
 export async function updateImagePositions(
   imagePositions: { id: string; position: number }[]
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createClient();
 
-  // Update each image position
+  // Update each image position and is_cover flag
   for (const { id, position } of imagePositions) {
     const { error } = await supabase
       .from("event_images")
-      .update({ position })
+      .update({
+        position,
+        is_cover: position === 0 // First image is always cover
+      })
       .eq("id", id);
 
     if (error) {
