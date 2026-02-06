@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useFlohmarkt } from "../../../FlohmarktContext";
@@ -58,6 +58,7 @@ export function EventJourneyContainer() {
   });
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const maxAccessibleStep = getMaxAccessibleStep();
 
@@ -100,6 +101,7 @@ export function EventJourneyContainer() {
       }
 
       setCurrentStep(step);
+      contentRef.current?.scrollTo(0, 0);
     },
     [canNavigateToStep, hasUnsavedChanges, currentStep]
   );
@@ -190,7 +192,7 @@ export function EventJourneyContainer() {
       />
 
       {/* Content */}
-      <div className="flex-grow overflow-y-auto">
+      <div ref={contentRef} className="flex-grow overflow-y-auto">
         <div className="p-4 sm:p-5 w-full max-w-[800px] mx-auto">
           {currentStep === 1 && (
             <CreateStep
