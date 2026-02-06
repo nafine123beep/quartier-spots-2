@@ -202,8 +202,8 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Beschreibe dein Event kurz..."
-              rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent resize-none"
+              rows={6}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent resize-y"
               disabled={isLoading}
             />
           </div>
@@ -307,7 +307,7 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
 
         {/* Description — always visible */}
         <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
-          <p className="text-xs text-gray-600 m-0">
+          <p className="text-xs text-gray-400 m-0">
             Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
           </p>
         </div>
@@ -344,24 +344,17 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                 onChange={(e) => {
                   setCustomRadius(e.target.value);
                   const value = parseInt(e.target.value);
-                  if (value >= 100) {
+                  if (value > 0) {
                     setBoundaryRadius(value);
                   } else {
                     setBoundaryRadius(null);
                   }
                 }}
-                placeholder="z.B. 750"
-                min="100"
-                max="50000"
+                placeholder="z.B. 50"
                 disabled={isLoading}
                 className="w-32 p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500 disabled:bg-gray-100"
               />
             </div>
-            {!boundaryRadius && (
-              <p className="mt-2 text-xs text-orange-600">
-                Bitte wähle einen Radius aus oder gib einen eigenen Wert ein (min. 100m).
-              </p>
-            )}
           </div>
         )}
       </div>
