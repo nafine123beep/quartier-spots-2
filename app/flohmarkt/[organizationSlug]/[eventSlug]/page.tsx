@@ -39,35 +39,25 @@ function PublicEventPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [accessMode, setAccessMode] = useState<AccessMode>('public');
 
-  // Track loaded event and loading state to prevent loops
-  const loadedEventRef = useRef<string | null>(null);
-  const isLoadingRef = useRef(false);
+  // Track if data has been loaded (using ref to avoid re-renders)
+  const hasLoadedRef = useRef(false);
 
   // Load event and tenant data from Supabase (public access, no login required)
-  // Only runs once when organizationSlug and eventSlug are available
   useEffect(() => {
+    // Only run once
+    if (hasLoadedRef.current) return;
+
     const loadData = async () => {
-      // Early return if params not available yet
       if (!organizationSlug || !eventSlug) {
         setLoading(false);
         return;
       }
 
-      // Guard: Don't reload if already loaded or currently loading
-      const eventKey = `${organizationSlug}/${eventSlug}`;
-      if (loadedEventRef.current === eventKey || isLoadingRef.current) {
-        if (loadedEventRef.current === eventKey) {
-          setLoading(false);
-        }
-        return;
-      }
-
-      isLoadingRef.current = true;
+      hasLoadedRef.current = true;
       setLoading(true);
       setError(null);
 
       try {
-        // Load without user context - rely on public access
         const result = await loadEventData(organizationSlug, eventSlug, null);
 
         if (result.error) {
@@ -76,11 +66,17 @@ function PublicEventPageContent() {
         }
 
         if (result.tenant && result.event) {
-          // Set the current tenant and event in context
-          setCurrentTenant(result.tenant);
-          setCurrentTenantEvent(result.event);
+          // Only update context if NOT embedded (prevent side effects in iframe)
+          if (!isEmbedded) {
+            setCurrentTenant(result.tenant);
+            setCurrentTenantEvent(result.event);
+          } else {
+            // For embedded mode, directly set the context without triggering parent updates
+            // We still need to set context for PublicEventView to read
+            setCurrentTenant(result.tenant);
+            setCurrentTenantEvent(result.event);
+          }
           setAccessMode(result.accessMode || 'public');
-          loadedEventRef.current = eventKey; // Mark as loaded
         } else {
           setError("Fehler beim Laden des Events.");
         }
@@ -88,21 +84,17 @@ function PublicEventPageContent() {
         console.error("Unexpected error loading event:", err);
         setError("Unerwarteter Fehler beim Laden des Events.");
       } finally {
-        isLoadingRef.current = false;
         setLoading(false);
       }
     };
 
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationSlug, eventSlug]); // Only depend on route params
+  }, [organizationSlug, eventSlug, isEmbedded, setCurrentTenant, setCurrentTenantEvent]);
 
-  // Show loading state
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="fixed inset-0 bg-gray-100 flex items-center justify-center">
@@ -110,12 +102,14 @@ function PublicEventPageContent() {
           <div className="text-6xl mb-4">❌</div>
           <h2 className="text-2xl font-bold text-[#003366] mb-2">Event nicht gefunden</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <a
-            href="/flohmarkt"
-            className="inline-block bg-[#003366] text-white px-6 py-3 rounded-md font-bold hover:bg-[#002244] no-underline"
-          >
-            Zurück zur Startseite
-          </a>
+          {!isEmbedded && (
+            <a
+              href="/flohmarkt"
+              className="inline-block bg-[#003366] text-white px-6 py-3 rounded-md font-bold hover:bg-[#002244] no-underline"
+            >
+              Zurück zur Startseite
+            </a>
+          )}
         </div>
       </div>
     );

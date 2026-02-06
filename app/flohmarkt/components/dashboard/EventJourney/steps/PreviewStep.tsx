@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useFlohmarkt } from "../../../../FlohmarktContext";
 import { Eye, Maximize2, X, Loader2 } from "lucide-react";
 
@@ -11,18 +11,21 @@ interface PreviewStepProps {
 
 export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
   const { currentTenantEvent, currentTenant } = useFlohmarkt();
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
-  // Build preview URL - now uses direct event URL since events are always active
-  useEffect(() => {
-    if (!currentTenantEvent || !currentTenant) return;
+  // Store the initial event ID to use as iframe key - prevents remounting
+  const iframeKeyRef = useRef<string | null>(null);
+  if (currentTenantEvent && !iframeKeyRef.current) {
+    iframeKeyRef.current = currentTenantEvent.id;
+  }
 
-    const baseUrl = window.location.origin;
-    const eventUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`;
-    setPreviewUrl(`${eventUrl}?embedded=true&tab=map`);
-  }, [currentTenantEvent, currentTenant]);
+  // Build preview URL once - memoized to prevent unnecessary iframe reloads
+  const previewUrl = useMemo(() => {
+    if (!currentTenantEvent || !currentTenant) return null;
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}?embedded=true&tab=map`;
+  }, [currentTenantEvent?.id, currentTenant?.slug]); // Only rebuild if ID or slug changes
 
   if (!currentTenantEvent || !currentTenant) return null;
 
@@ -64,6 +67,7 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
                 </div>
               )}
               <iframe
+                key={iframeKeyRef.current}
                 src={previewUrl}
                 className="w-full h-full border-0"
                 title="Event-Vorschau"
