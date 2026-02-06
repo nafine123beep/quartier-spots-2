@@ -44,16 +44,19 @@ function PublicEventPageContent() {
 
   // Load event and tenant data from Supabase (public access, no login required)
   useEffect(() => {
-    // Only run once
+    // Guard: Only run once - MUST be checked synchronously before any async work
     if (hasLoadedRef.current) return;
 
-    const loadData = async () => {
-      if (!organizationSlug || !eventSlug) {
-        setLoading(false);
-        return;
-      }
+    // Early return if params not available
+    if (!organizationSlug || !eventSlug) {
+      setLoading(false);
+      return;
+    }
 
-      hasLoadedRef.current = true;
+    // Set flag IMMEDIATELY (synchronously) to prevent race conditions
+    hasLoadedRef.current = true;
+
+    const loadData = async () => {
       setLoading(true);
       setError(null);
 
@@ -66,16 +69,8 @@ function PublicEventPageContent() {
         }
 
         if (result.tenant && result.event) {
-          // Only update context if NOT embedded (prevent side effects in iframe)
-          if (!isEmbedded) {
-            setCurrentTenant(result.tenant);
-            setCurrentTenantEvent(result.event);
-          } else {
-            // For embedded mode, directly set the context without triggering parent updates
-            // We still need to set context for PublicEventView to read
-            setCurrentTenant(result.tenant);
-            setCurrentTenantEvent(result.event);
-          }
+          setCurrentTenant(result.tenant);
+          setCurrentTenantEvent(result.event);
           setAccessMode(result.accessMode || 'public');
         } else {
           setError("Fehler beim Laden des Events.");
@@ -89,7 +84,8 @@ function PublicEventPageContent() {
     };
 
     loadData();
-  }, [organizationSlug, eventSlug, isEmbedded, setCurrentTenant, setCurrentTenantEvent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationSlug, eventSlug]); // Only route params - setters are stable
 
   if (loading) {
     return <LoadingSpinner />;

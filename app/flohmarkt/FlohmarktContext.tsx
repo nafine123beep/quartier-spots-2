@@ -313,7 +313,16 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (tenantError) {
-      return { success: false, error: tenantError.message };
+      // Translate database errors to user-friendly German messages
+      let errorMessage = tenantError.message;
+
+      if (tenantError.message.includes('row-level security') ||
+          tenantError.message.includes('duplicate key') ||
+          tenantError.code === '23505') {
+        errorMessage = 'Dieser Organisationsname ist bereits vergeben. Bitte wähle einen anderen Namen.';
+      }
+
+      return { success: false, error: errorMessage };
     }
 
     // Create membership as admin
