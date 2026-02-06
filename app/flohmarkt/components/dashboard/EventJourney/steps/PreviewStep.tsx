@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useFlohmarkt } from "../../../../FlohmarktContext";
 import { PublicEventView } from "../../../event/PublicEventView";
-import { Eye, Maximize2, X } from "lucide-react";
+import { Eye, Maximize2, Minimize2 } from "lucide-react";
 
 interface PreviewStepProps {
   onNext: () => void;
@@ -59,13 +59,14 @@ export function PreviewStep({ onNext, onBack }: PreviewStepProps) {
             <h3 className="font-bold text-gray-800">Vorschau - Vollbildansicht</h3>
             <button
               onClick={() => setShowFullscreenModal(false)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Schließen"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+              aria-label="Zurück zur Vorschau"
             >
-              <X className="h-6 w-6" />
+              <Minimize2 className="h-4 w-4" />
+              Vorschau
             </button>
           </div>
-          <div className="flex-grow">
+          <div className="flex-grow relative">
             <PublicEventView
               accessMode={isAdmin ? 'member' : 'public'}
               embedded={true}
