@@ -1,12 +1,33 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { PublicEventView } from "../../components/event/PublicEventView";
 import { loadEventData, AccessMode } from "../../lib/loadEventData";
 
+// Loading spinner component
+function LoadingSpinner() {
+  return (
+    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003366] mx-auto mb-4"></div>
+        <p className="text-[#003366] font-medium">Event wird geladen...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main page wrapper with Suspense for useSearchParams
 export default function PublicEventPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <PublicEventPageContent />
+    </Suspense>
+  );
+}
+
+function PublicEventPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const organizationSlug = params.organizationSlug as string;
@@ -24,7 +45,11 @@ export default function PublicEventPage() {
   // Load event and tenant data from Supabase (public access, no login required)
   useEffect(() => {
     const loadData = async () => {
-      if (!organizationSlug || !eventSlug) return;
+      // Early return if params not available yet
+      if (!organizationSlug || !eventSlug) {
+        setLoading(false);
+        return;
+      }
 
       // Guard: Don't reload if already loaded (prevents infinite loop in preview iframe)
       const eventKey = `${organizationSlug}/${eventSlug}`;
@@ -36,23 +61,27 @@ export default function PublicEventPage() {
       setLoading(true);
       setError(null);
 
-      const result = await loadEventData(organizationSlug, eventSlug, user);
+      try {
+        const result = await loadEventData(organizationSlug, eventSlug, user);
 
-      if (result.error) {
-        setError(result.error);
-        setLoading(false);
-        return;
-      }
+        if (result.error) {
+          setError(result.error);
+          return;
+        }
 
-      if (result.tenant && result.event) {
-        // Set the current tenant and event in context
-        setCurrentTenant(result.tenant);
-        setCurrentTenantEvent(result.event);
-        setAccessMode(result.accessMode || 'public');
-        loadedEventRef.current = eventKey; // Mark as loaded
-        setLoading(false);
-      } else {
-        setError("Fehler beim Laden des Events.");
+        if (result.tenant && result.event) {
+          // Set the current tenant and event in context
+          setCurrentTenant(result.tenant);
+          setCurrentTenantEvent(result.event);
+          setAccessMode(result.accessMode || 'public');
+          loadedEventRef.current = eventKey; // Mark as loaded
+        } else {
+          setError("Fehler beim Laden des Events.");
+        }
+      } catch (err) {
+        console.error("Unexpected error loading event:", err);
+        setError("Unerwarteter Fehler beim Laden des Events.");
+      } finally {
         setLoading(false);
       }
     };
@@ -62,14 +91,7 @@ export default function PublicEventPage() {
 
   // Show loading state
   if (loading) {
-    return (
-      <div className="fixed inset-0 bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003366] mx-auto mb-4"></div>
-          <p className="text-[#003366] font-medium">Event wird geladen...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // Show error state
