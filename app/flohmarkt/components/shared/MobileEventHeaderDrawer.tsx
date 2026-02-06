@@ -13,6 +13,7 @@ interface MobileEventHeaderDrawerProps {
   onImageClick: (index: number) => void;
   formatDate: (dateString?: string) => string;
   managementButton?: ReactNode;
+  embedded?: boolean;
 }
 
 export function MobileEventHeaderDrawer({
@@ -22,6 +23,7 @@ export function MobileEventHeaderDrawer({
   onImageClick,
   formatDate,
   managementButton,
+  embedded = false,
 }: MobileEventHeaderDrawerProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [dragY, setDragY] = useState(0);
@@ -71,7 +73,7 @@ export function MobileEventHeaderDrawer({
   return (
     <>
       {/* Sticky Mini Header */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-[#003366] shadow-lg">
+      <div className={`${embedded ? 'absolute' : 'fixed'} top-0 left-0 right-0 z-40 bg-[#003366] shadow-lg`}>
         <button
           onClick={openDrawer}
           className="w-full flex items-center gap-3 p-3 text-left"
@@ -114,7 +116,7 @@ export function MobileEventHeaderDrawer({
       {/* Backdrop */}
       {isDrawerOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+          className={`${embedded ? 'absolute' : 'fixed'} inset-0 bg-black/50 z-50 transition-opacity duration-300`}
           onClick={closeDrawer}
         />
       )}
@@ -123,7 +125,7 @@ export function MobileEventHeaderDrawer({
       <div
         ref={drawerRef}
         className={`
-          fixed left-0 right-0 bottom-0 z-50
+          ${embedded ? 'absolute' : 'fixed'} left-0 right-0 bottom-0 z-50
           bg-white rounded-t-2xl shadow-2xl
           transition-transform duration-300 ease-out
           ${isDrawerOpen ? 'translate-y-0' : 'translate-y-full'}

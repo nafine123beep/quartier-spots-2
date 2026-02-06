@@ -11,7 +11,6 @@ import { ListView } from "./ListView";
 import { MapView } from "./MapView";
 import { SpotForm } from "./SpotForm";
 import { DeleteSpotForm } from "./DeleteSpotForm";
-import { CollapsibleHeader } from "../shared/CollapsibleHeader";
 import { MobileEventHeaderDrawer } from "../shared/MobileEventHeaderDrawer";
 import { RegistrationInfoModal } from "../shared/RegistrationInfoModal";
 
@@ -59,7 +58,6 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
   }
 
   const images = currentTenantEvent.images ?? [];
-  const hasImages = images.length > 0;
   const coverImage = images.find(img => img.is_cover) || images[0];
 
   const openLightbox = (index: number) => {
@@ -185,102 +183,26 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
         </div>
       )}
 
-      {/* Mobile Header with Drawer - Only on mobile, hidden in embedded mode */}
-      {!embedded && (
-        <MobileEventHeaderDrawer
-          event={currentTenantEvent}
-          coverImage={coverImage}
-          accessMode={accessMode}
-          onImageClick={openLightbox}
-          formatDate={formatDate}
-          managementButton={
-            user && currentTenant ? (
-              <button
-                onClick={handleBackToAdmin}
-                className="w-full flex items-center justify-center gap-2 bg-[#003366] hover:bg-[#002244] text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
-              >
-                <span>⚙️</span>
-                <span>Event verwalten</span>
-              </button>
-            ) : undefined
-          }
-        />
-      )}
-
-      {/* Header - Only shown in embedded mode (non-embedded uses MobileEventHeaderDrawer on all screens) */}
-      {embedded && <div>
-        <CollapsibleHeader>
-          {/* Hero Image Gallery */}
-          {hasImages && (
-            <div className="relative bg-gray-900">
-              {/* Main Cover Image */}
-              <div
-                className="relative h-48 sm:h-64 cursor-pointer"
-                onClick={() => openLightbox(images.indexOf(coverImage))}
-              >
-                <img
-                  src={getPublicImageUrl(coverImage.storage_path)}
-                  alt={currentTenantEvent.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-
-                {/* View all images button */}
-                {images.length > 1 && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); openLightbox(0); }}
-                    className="absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white text-sm px-4 py-2 rounded-full flex items-center gap-2 transition-colors shadow-lg"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Alle {images.length} Fotos ansehen
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Header */}
-          <div className="bg-[#003366] text-white p-4 shadow-lg">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h1 className="text-2xl font-bold m-0">{currentTenantEvent.title}</h1>
-                  </div>
-                  {currentTenantEvent.description && (
-                    <p className="text-sm opacity-90 m-0 mb-2">{currentTenantEvent.description}</p>
-                  )}
-                  <div className="text-sm opacity-80 flex flex-col md:flex-row md:gap-4">
-                    {currentTenantEvent.starts_at && (
-                      <span>
-                        Start: {formatDate(currentTenantEvent.starts_at)}
-                      </span>
-                    )}
-                    {currentTenantEvent.ends_at && (
-                      <span>Ende: {formatDate(currentTenantEvent.ends_at)}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Management Button - Only visible for authenticated tenant members, hidden in embedded mode */}
-                {user && currentTenant && !embedded && (
-                  <button
-                    onClick={handleBackToAdmin}
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap backdrop-blur-sm border border-white/30"
-                    title="Zurück zur Event-Verwaltung"
-                  >
-                    <span>⚙️</span>
-                    <span className="hidden sm:inline">Event verwalten</span>
-                    <span className="sm:hidden">Verwalten</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </CollapsibleHeader>
-      </div>}
+      {/* Header with Thumbnail + Drawer */}
+      <MobileEventHeaderDrawer
+        event={currentTenantEvent}
+        coverImage={coverImage}
+        accessMode={accessMode}
+        onImageClick={openLightbox}
+        formatDate={formatDate}
+        embedded={embedded}
+        managementButton={
+          user && currentTenant && !embedded ? (
+            <button
+              onClick={handleBackToAdmin}
+              className="w-full flex items-center justify-center gap-2 bg-[#003366] hover:bg-[#002244] text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
+            >
+              <span>⚙️</span>
+              <span>Event verwalten</span>
+            </button>
+          ) : undefined
+        }
+      />
 
       {/* Tab Navigation */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
