@@ -96,12 +96,23 @@ CREATE POLICY "Anyone can view spots for active events"
     )
   );
 
--- Policy on tenants table (changed from 'published' to 'active')
+-- Policies on tenants table
+-- 1. Public can see tenants that have active events
 CREATE POLICY "Anyone can view tenant info for active events"
   ON tenants FOR SELECT
   USING (
     id IN (
       SELECT tenant_id FROM events WHERE status = 'active'
+    )
+  );
+
+-- 2. Members can always see tenants they belong to (even without active events)
+CREATE POLICY "Members can view their own tenants"
+  ON tenants FOR SELECT
+  USING (
+    id IN (
+      SELECT tenant_id FROM memberships
+      WHERE user_id = auth.uid() AND status = 'active'
     )
   );
 

@@ -102,6 +102,18 @@ interface FlohmarktContextType {
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
 
 export function FlohmarktProvider({ children }: { children: ReactNode }) {
+  // Detect if running inside an iframe (e.g., preview embed).
+  // The iframe creates its own FlohmarktContext but does NOT need auth or tenant loading —
+  // it only renders public event data loaded by the page itself.
+  const [isEmbedded] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.self !== window.top;
+    } catch {
+      return true; // Cross-origin iframe
+    }
+  });
+
   const [spots, setSpots] = useState<Spot[]>([]);
   const [currentEvent, setCurrentEvent] = useState<FlohmarktEvent | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>("frontpage");
@@ -130,7 +142,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
   const [customHighlightTypes, setCustomHighlightTypes] = useState<CustomHighlightType[]>([]);
 
   // Check Supabase session on mount and listen for auth changes
+  // Skip entirely in embedded/iframe mode — no auth needed for public event preview
   useEffect(() => {
+    if (isEmbedded) return;
+
     const supabase = createClient();
 
     // Check existing session
@@ -170,7 +185,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isEmbedded]);
 
   // Load tenants when user logs in
   const loadTenants = useCallback(async () => {
@@ -220,12 +235,13 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, [user]);
 
-  // Load tenants when authenticated
+  // Load tenants when authenticated (skip in iframe — no tenants needed for public preview)
   useEffect(() => {
+    if (isEmbedded) return;
     if (isAuthenticated && user) {
       loadTenants();
     }
-  }, [isAuthenticated, user, loadTenants]);
+  }, [isAuthenticated, user, loadTenants, isEmbedded]);
 
   const selectTenant = useCallback(async (tenant: Tenant) => {
     if (!user) return;
