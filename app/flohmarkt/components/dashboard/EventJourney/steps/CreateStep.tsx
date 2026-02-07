@@ -306,8 +306,8 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         </button>
 
         {/* Description — always visible */}
-        <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
-          <p className="text-xs text-gray-400 m-0">
+        <div className="px-3 py-2 bg-white border-t border-gray-100">
+          <p className="text-xs text-gray-500 m-0">
             Spots können nur innerhalb des festgelegten Radius vom Karten-Zentrum erstellt werden.
           </p>
         </div>
@@ -333,6 +333,21 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                   {preset.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setBoundaryRadius(null);
+                  setCustomRadius("");
+                }}
+                disabled={isLoading}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  boundaryRadius === null && customRadius === ""
+                    ? "bg-[#003366] text-white"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
+                } disabled:opacity-50`}
+              >
+                ∞
+              </button>
             </div>
             <div>
               <label className="block mb-1 text-xs text-gray-600">
