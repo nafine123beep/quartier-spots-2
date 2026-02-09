@@ -161,7 +161,7 @@ export function ManageStep(_props: ManageStepProps) {
           <p className={`text-2xl font-bold ${pendingCount > 0 ? "text-red-600" : "text-gray-600"}`}>
             {pendingCount}
           </p>
-          <p className="text-sm text-gray-600">Offene Anfragen</p>
+          <p className="text-sm text-gray-600">Offene Löschanfragen</p>
         </div>
       </div>
 
