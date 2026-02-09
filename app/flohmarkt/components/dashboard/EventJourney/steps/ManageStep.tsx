@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useFlohmarkt } from "../../../../FlohmarktContext";
 import { getSpotTerms } from "../../../../lib/spotTerms";
+import { LinkCopyField } from "../shared/LinkCopyField";
 import { AdminSpotTable } from "../../AdminSpotTable";
 import { HighlightManagementPanel } from "../../HighlightManagementPanel";
 import { PendingDeletionRequests } from "../../PendingDeletionRequests";
 import { PrintViewModal } from "../../PrintView";
-import { Settings, MapPin, Star, Trash2, FileText, Loader2 } from "lucide-react";
+import { Settings, MapPin, Star, Trash2, FileText } from "lucide-react";
 
 interface ManageStepProps {
   onBack: () => void;
@@ -15,12 +16,15 @@ interface ManageStepProps {
 
 type ManageTab = "spots" | "highlights" | "deletion-requests";
 
-export function ManageStep({ onBack }: ManageStepProps) {
-  const { currentTenantEvent, spots, deletionRequests } = useFlohmarkt();
+export function ManageStep(_props: ManageStepProps) {
+  const { currentTenantEvent, currentTenant, spots, deletionRequests } = useFlohmarkt();
   const [activeTab, setActiveTab] = useState<ManageTab>("spots");
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
-  if (!currentTenantEvent) return null;
+  if (!currentTenantEvent || !currentTenant) return null;
+
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const eventUrl = `${baseUrl}/flohmarkt/${currentTenant.slug}/${currentTenantEvent.slug}`;
 
   const terms = getSpotTerms(
     currentTenantEvent.spot_term_singular,
@@ -61,7 +65,10 @@ export function ManageStep({ onBack }: ManageStepProps) {
               Anmeldungen verwalten
             </h2>
             <p className="text-gray-600">
-              Verwalte {terms.plural}, markiere Highlights und bearbeite Löschanfragen.
+              Verwalte Stände, setze Highlights und bearbeite Löschanfragen.
+            </p>
+            <p className="text-gray-600 mt-1">
+              Setze wichtige Infrastrukturpunkte wie Registrierung, Toiletten, Info-Points, etc.
             </p>
           </div>
           <button
@@ -73,6 +80,15 @@ export function ManageStep({ onBack }: ManageStepProps) {
             <span className="sm:hidden">PDF</span>
           </button>
         </div>
+      </div>
+
+      {/* Besucher-Ansicht link */}
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <LinkCopyField
+          label="Besucher-Ansicht"
+          description="Link zur öffentlichen Event-Seite für alle Teilnehmer"
+          url={eventUrl}
+        />
       </div>
 
       {/* Tab navigation */}
@@ -118,7 +134,14 @@ export function ManageStep({ onBack }: ManageStepProps) {
         <div className="p-4 sm:p-5">
           {activeTab === "spots" && <AdminSpotTable />}
           {activeTab === "highlights" && <HighlightManagementPanel />}
-          {activeTab === "deletion-requests" && <PendingDeletionRequests />}
+          {activeTab === "deletion-requests" && (
+            <>
+              <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600">
+                Teilnehmer können die Löschung ihres Stands beantragen. Offene Anfragen müssen von dir bestätigt oder abgelehnt werden.
+              </div>
+              <PendingDeletionRequests />
+            </>
+          )}
         </div>
       </div>
 
@@ -138,7 +161,7 @@ export function ManageStep({ onBack }: ManageStepProps) {
           <p className={`text-2xl font-bold ${pendingCount > 0 ? "text-red-600" : "text-gray-600"}`}>
             {pendingCount}
           </p>
-          <p className="text-sm text-gray-600">Offen</p>
+          <p className="text-sm text-gray-600">Offene Anfragen</p>
         </div>
       </div>
 
