@@ -166,9 +166,11 @@ export function EventJourneyContainer() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium ${config.bg} ${config.text}`}>
-              {config.label}
-            </span>
+            {currentTenantEvent.status === "archived" && (
+              <span className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium ${config.bg} ${config.text}`}>
+                {config.label}
+              </span>
+            )}
             {user && (
               <span className="text-sm text-gray-300 hidden lg:inline truncate max-w-[150px]">
                 {user.email}

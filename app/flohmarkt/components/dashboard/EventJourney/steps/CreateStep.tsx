@@ -402,7 +402,7 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         {/* Description — always visible */}
         <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
           <p className="text-xs text-gray-600 m-0">
-            Dein Event wird aus mehreren &quot;Spots&quot; bestehen – das sind die Orte, an denen Teilnehmende aktiv sind. Wähle hier die Bezeichnung, die zu deinem Event passt.
+            Dein Event wird aus mehreren &quot;Spots&quot; bestehen – das sind die Orte, an denen Teilnehmende aktiv sind.
           </p>
         </div>
 
