@@ -12,7 +12,7 @@ interface ShareStepProps {
   onBack: () => void;
 }
 
-export function ShareStep({ onNext, onBack }: ShareStepProps) {
+export function ShareStep(_props: ShareStepProps) {
   const { currentTenantEvent, currentTenant, user } = useFlohmarkt();
   const [isPrintMaterialsOpen, setIsPrintMaterialsOpen] = useState(false);
 
@@ -69,6 +69,25 @@ export function ShareStep({ onNext, onBack }: ShareStepProps) {
             Erstellen
           </button>
         </div>
+      </div>
+
+      {/* Tips */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <h4 className="font-medium text-green-800 mb-2">Tipps zum Verbreiten</h4>
+        <ul className="space-y-2 text-sm text-green-700">
+          <li className="flex items-start gap-2">
+            <span className="text-green-500">•</span>
+            Hänge Poster an gut besuchten Orten auf: Supermärkte, Bäckereien, Cafés
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-500">•</span>
+            Verteile Flyer in Briefkästen oder bei Nachbarn
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-500">•</span>
+            Teile den Link in lokalen WhatsApp-Gruppen oder Nachbarschaftsnetzwerken
+          </li>
+        </ul>
       </div>
 
       {/* Print Materials Modal */}
