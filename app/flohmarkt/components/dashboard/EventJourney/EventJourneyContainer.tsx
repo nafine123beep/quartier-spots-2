@@ -22,7 +22,7 @@ export interface StepConfig {
 export const JOURNEY_STEPS: StepConfig[] = [
   { id: 1, label: "Daten", shortLabel: "Daten" },
   { id: 2, label: "Vorschau", shortLabel: "Vorschau" },
-  { id: 3, label: "Teilen", shortLabel: "Teilen" },
+  { id: 3, label: "Einladen", shortLabel: "Einladen" },
   { id: 4, label: "Verwalten", shortLabel: "Verwalten" },
 ];
 
