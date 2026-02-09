@@ -346,7 +346,7 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                     : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
                 } disabled:opacity-50`}
               >
-                ∞
+                Ohne Limit
               </button>
             </div>
             <div>
