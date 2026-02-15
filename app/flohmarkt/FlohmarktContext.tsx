@@ -1,9 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Spot, FlohmarktEvent, ViewType, AppTabType, User, Tenant, Member, TenantEvent, SpotDeletionRequest, CustomHighlightType } from "./types";
 import { generateSlug } from "./utils/slug";
+import {
+  getLastSelectedTenantSlug as getLastSelectedTenantSlugFromStorage,
+  setLastSelectedTenantSlug as setLastSelectedTenantSlugInStorage,
+  clearLastSelectedTenant
+} from "./lib/tenantPersistence";
 
 
 interface FlohmarktContextType {
@@ -97,6 +102,11 @@ interface FlohmarktContextType {
   deleteHighlight: (id: string) => Promise<boolean>;
   addCustomHighlightType: (typeKey: string, label: string, icon: string) => Promise<boolean>;
   deleteCustomHighlightType: (id: string) => Promise<boolean>;
+
+  // Dashboard state & actions
+  upcomingEvents: TenantEvent[];
+  lastSelectedTenantSlug: string | null;
+  setLastSelectedTenantSlug: (slug: string) => void;
 }
 
 const FlohmarktContext = createContext<FlohmarktContextType | null>(null);
@@ -140,6 +150,33 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
 
   // Event Highlights state
   const [customHighlightTypes, setCustomHighlightTypes] = useState<CustomHighlightType[]>([]);
+
+  // Dashboard state
+  const [lastSelectedTenantSlug, setLastSelectedTenantSlugState] = useState<string | null>(null);
+
+  // Compute upcoming events (max 6, active only, sorted by start date ascending)
+  const upcomingEvents = useMemo(() => {
+    if (tenantEvents.length === 0) return [];
+
+    const now = new Date().toISOString();
+
+    return tenantEvents
+      .filter(e => {
+        // Only active events
+        if (e.status !== 'active') return false;
+        // Only events with start date
+        if (!e.starts_at) return false;
+        // Only upcoming/current events (>= today)
+        return e.starts_at >= now;
+      })
+      .sort((a, b) => {
+        // Sort by start date ascending (soonest first)
+        const dateA = new Date(a.starts_at!).getTime();
+        const dateB = new Date(b.starts_at!).getTime();
+        return dateA - dateB;
+      })
+      .slice(0, 6); // Max 6 events
+  }, [tenantEvents]);
 
   // Check Supabase session on mount and listen for auth changes
   // Skip entirely in embedded/iframe mode — no auth needed for public event preview
@@ -242,6 +279,38 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       loadTenants();
     }
   }, [isAuthenticated, user, loadTenants, isEmbedded]);
+
+  // localStorage wrapper for setting last selected tenant
+  const setLastSelectedTenantSlug = useCallback((slug: string) => {
+    if (user?.id) {
+      setLastSelectedTenantSlugInStorage(user.id, slug);
+      setLastSelectedTenantSlugState(slug);
+    }
+  }, [user]);
+
+  // Auto-select tenant on login (restores last selected from localStorage or selects first)
+  useEffect(() => {
+    if (isEmbedded) return; // Skip in iframes
+    if (!user || tenants.length === 0 || currentTenant) return;
+
+    // Auto-select tenant on login
+    let tenantToSelect: Tenant | null = null;
+
+    // Try to load last selected from localStorage
+    const lastSlug = getLastSelectedTenantSlugFromStorage(user.id);
+    if (lastSlug) {
+      tenantToSelect = tenants.find(t => t.slug === lastSlug) || null;
+    }
+
+    // Fallback to first tenant
+    if (!tenantToSelect && tenants.length > 0) {
+      tenantToSelect = tenants[0];
+    }
+
+    if (tenantToSelect) {
+      selectTenant(tenantToSelect);
+    }
+  }, [user, tenants, currentTenant, isEmbedded]); // Note: selectTenant not in deps to avoid circular dependency - it's stable
 
   const selectTenant = useCallback(async (tenant: Tenant) => {
     if (!user) return;
@@ -1311,6 +1380,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setTenantEvents([]);
     setMembers([]);
     setCurrentView("frontpage");
+    clearLastSelectedTenant(); // Clear localStorage
 
     // Redirect to flohmarkt home page
     if (typeof window !== 'undefined') {
@@ -1395,6 +1465,9 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         deleteHighlight,
         addCustomHighlightType,
         deleteCustomHighlightType,
+        upcomingEvents,
+        lastSelectedTenantSlug,
+        setLastSelectedTenantSlug,
       }}
     >
       {children}

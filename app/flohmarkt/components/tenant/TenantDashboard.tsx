@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { CreateTenantForm } from "./CreateTenantForm";
 import { JoinTenantForm } from "./JoinTenantForm";
 import { TenantCard } from "./TenantCard";
+import { OrganizationHomeDashboard } from "./OrganizationHomeDashboard";
 
 type Mode = "list" | "create" | "join";
 
 export function TenantDashboard() {
-  const { tenants, user, logout, loading, isAuthenticated } = useFlohmarkt();
+  const { tenants, currentTenant, user, logout, loading, isAuthenticated } = useFlohmarkt();
+  const searchParams = useSearchParams();
+  const viewAll = searchParams.get('view') === 'all';
   const [mode, setMode] = useState<Mode>("list");
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
@@ -43,6 +47,12 @@ export function TenantDashboard() {
     return () => clearTimeout(timer);
   }, [hasCheckedAuth, user, isAuthenticated]);
 
+  // If user has selected org AND not explicitly viewing all → show dashboard
+  if (currentTenant && !viewAll) {
+    return <OrganizationHomeDashboard />;
+  }
+
+  // Otherwise show existing multi-tenant selector/create/join UI
   return (
     <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
       {/* Header */}
