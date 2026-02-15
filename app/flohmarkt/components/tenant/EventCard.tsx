@@ -52,6 +52,16 @@ export function EventCard({ event, variant = 'default' }: EventCardProps) {
   const imageWidth = 600; // Responsive width handled by CSS
   const previewImage = getEventPreviewImage(event, imageWidth, imageHeight);
 
+  // Temporary debug logging
+  console.log('EventCard Debug:', {
+    title: event.title,
+    hasImages: event.images && event.images.length > 0,
+    hasCoordinates: event.map_center_lat != null && event.map_center_lng != null,
+    coordinates: { lat: event.map_center_lat, lng: event.map_center_lng },
+    previewType: previewImage.type,
+    previewUrl: previewImage.url
+  });
+
   return (
     <div className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden ${
       isCompact ? 'h-full flex flex-col' : ''
