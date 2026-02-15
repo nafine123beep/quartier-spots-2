@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { TenantEvent } from "../../types";
 import { getPublicImageUrl } from "../../lib/imageUpload";
+import { getEventPreviewImage } from "../../lib/staticMapPreview";
+import { ImageOff } from "lucide-react";
 
 interface EventCardProps {
   event: TenantEvent;
@@ -42,26 +44,36 @@ export function EventCard({ event, variant = 'default' }: EventCardProps) {
   // Fallback to event ID if slug is not available (for events created before slug migration)
   const eventIdentifier = event.slug || event.id;
 
-  // Get cover image or first image
-  const coverImage = event.images?.find(img => img.is_cover) || event.images?.[0];
-
   const isCompact = variant === 'compact';
   const buttonText = isCompact ? 'Öffnen' : 'Verwalten';
+
+  // Get appropriate preview image (uploaded > map > placeholder)
+  const imageHeight = isCompact ? 128 : 160; // h-32 = 128px, h-40 = 160px
+  const imageWidth = 600; // Responsive width handled by CSS
+  const previewImage = getEventPreviewImage(event, imageWidth, imageHeight);
 
   return (
     <div className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden ${
       isCompact ? 'h-full flex flex-col' : ''
     }`}>
-      {/* Cover Image */}
-      {coverImage && (
-        <div className={`relative bg-gray-100 ${isCompact ? 'h-32' : 'h-40'}`}>
+      {/* Preview Image (uploaded image, map preview, or placeholder) */}
+      <div className={`relative bg-gray-100 ${isCompact ? 'h-32' : 'h-40'}`}>
+        {previewImage.url ? (
           <img
-            src={getPublicImageUrl(coverImage.storage_path)}
-            alt={event.title}
+            src={previewImage.type === 'uploaded'
+              ? getPublicImageUrl(event.images!.find(img => img.is_cover)?.storage_path || event.images![0].storage_path)
+              : previewImage.url
+            }
+            alt={previewImage.alt}
             className="w-full h-full object-cover"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <ImageOff className="h-12 w-12 text-gray-400" aria-hidden="true" />
+            <span className="sr-only">{previewImage.alt}</span>
+          </div>
+        )}
+      </div>
 
       <div className={`${isCompact ? 'p-4 flex-grow flex flex-col' : 'p-5'}`}>
         <div className={`flex ${isCompact ? 'flex-col' : 'justify-between items-start'}`}>
