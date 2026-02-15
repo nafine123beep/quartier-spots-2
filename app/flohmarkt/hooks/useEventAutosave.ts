@@ -128,19 +128,32 @@ export function useEventAutosave({
             }
           }
 
-          // Prepare update data
+          // Prepare update data with validation
           const updateData: Record<string, unknown> = {
             title: formData.title.trim(),
             description: formData.description.trim() || undefined,
-            starts_at: new Date(formData.startsAt).toISOString(),
-            ends_at: new Date(formData.endsAt).toISOString(),
             map_center_address: formData.mapCenterAddress.trim(),
             boundary_radius_meters: formData.boundaryRadius,
             spot_term_singular: formData.spotTermSingular,
             spot_term_plural: formData.spotTermPlural,
           };
 
-          // Only include geocoding results if we have them
+          // Only add date fields if they're valid
+          if (formData.startsAt && formData.startsAt.trim()) {
+            const startDate = new Date(formData.startsAt);
+            if (!isNaN(startDate.getTime())) {
+              updateData.starts_at = startDate.toISOString();
+            }
+          }
+
+          if (formData.endsAt && formData.endsAt.trim()) {
+            const endDate = new Date(formData.endsAt);
+            if (!isNaN(endDate.getTime())) {
+              updateData.ends_at = endDate.toISOString();
+            }
+          }
+
+          // Include geocoding results if available
           if (geocodeResult) {
             updateData.map_center_lat = geocodeResult.lat;
             updateData.map_center_lng = geocodeResult.lng;

@@ -86,7 +86,7 @@ export function SaveStatusIndicator({
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className={`fixed bottom-20 left-4 z-10 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${config.className} ${className}`}
+      className={`fixed bottom-20 right-4 z-10 flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${config.className} ${className}`}
     >
       <Icon className={`h-4 w-4 ${config.iconClassName}`} aria-hidden="true" />
       <span>{config.text}</span>
