@@ -4,15 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { EventCard } from "./EventCard";
-import { MemberManagement } from "./MemberManagement";
-import { CreateEventForm } from "./CreateEventForm";
+import { CreateEventCard } from "./CreateEventCard";
 import { EventCreatedNotification } from "./EventCreatedNotification";
-
-type Tab = "events" | "members" | "create";
 
 export function EventOverview() {
   const { currentTenant, tenantEvents, user, logout, isAdmin } = useFlohmarkt();
-  const [activeTab, setActiveTab] = useState<Tab>("events");
   const [showNotification, setShowNotification] = useState(false);
   const [createdEvent, setCreatedEvent] = useState<{ id: string; title: string; slug: string } | null>(null);
 
@@ -77,96 +73,48 @@ export function EventOverview() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="bg-white border-b border-gray-200 px-5">
-        <div className="flex gap-1 max-w-[1000px] mx-auto">
-          <button
-            onClick={() => setActiveTab("events")}
-            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-              activeTab === "events"
-                ? "border-[#003366] text-[#003366]"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            Aktive Events ({activeEvents.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("members")}
-            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-              activeTab === "members"
-                ? "border-[#003366] text-[#003366]"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            Mitglieder
-          </button>
-          <button
-            onClick={() => setActiveTab("create")}
-            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-              activeTab === "create"
-                ? "border-[#003366] text-[#003366]"
-                : "border-transparent text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            + Neues Event
-          </button>
-        </div>
-      </div>
+      {/* Main Content */}
+      <div className="p-5 overflow-y-auto flex-grow">
+        <div className="w-full max-w-[1000px] mx-auto">
+          {/* Active Events Section */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Aktive Events ({activeEvents.length})
+            </h2>
 
-      {/* Content */}
-      <div className="p-5 overflow-y-auto w-full max-w-[1000px] mx-auto flex-grow">
-        {activeTab === "events" && (
-          <>
-            {/* Active Events Section */}
-            {activeEvents.length === 0 ? (
-              <div className="bg-white p-8 rounded-lg shadow-md text-center mb-6">
-                <h3 className="text-[#003366] mt-0">Noch keine Events</h3>
-                <p className="text-gray-600 mb-4">
-                  Erstelle dein erstes Event, um Spots zu sammeln.
-                </p>
-                <button
-                  onClick={() => setActiveTab("create")}
-                  className="bg-[#003366] text-white px-6 py-3 rounded-md font-bold cursor-pointer hover:bg-[#002244]"
-                >
-                  Event erstellen
-                </button>
-              </div>
-            ) : (
-              <div className="grid gap-4 mb-6">
-                {activeEvents.map((event) => (
-                  <EventCard key={event.id} event={event} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Create Event Tile - Always first */}
+              <CreateEventCard />
+
+              {/* Active Event Tiles */}
+              {activeEvents.map((event) => (
+                <EventCard key={event.id} event={event} variant="default" />
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {activeEvents.length === 0 && (
+              <p className="text-gray-600 text-center py-8 mt-4">
+                Noch keine aktiven Events. Erstelle dein erstes Event!
+              </p>
+            )}
+          </div>
+
+          {/* Archived Events Section */}
+          {archivedEvents.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <span>📦</span>
+                <span>Archivierte Events ({archivedEvents.length})</span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {archivedEvents.map((event) => (
+                  <EventCard key={event.id} event={event} variant="default" />
                 ))}
               </div>
-            )}
-
-            {/* Archived Events Section */}
-            {archivedEvents.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <span>📦</span>
-                  <span>Archivierte Events ({archivedEvents.length})</span>
-                </h2>
-                <div className="grid gap-4">
-                  {archivedEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {activeTab === "members" && <MemberManagement />}
-
-        {activeTab === "create" && (
-          <CreateEventForm
-            onSuccess={(event) => {
-              setCreatedEvent(event);
-              setShowNotification(true);
-              setActiveTab("events");
-            }}
-          />
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Event Created Notification Modal */}

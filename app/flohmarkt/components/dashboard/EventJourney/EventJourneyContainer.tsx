@@ -57,8 +57,8 @@ export function EventJourneyContainer() {
     return determineInitialStep(currentTenantEvent?.status);
   });
 
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const saveCreateStepRef = useRef<(() => Promise<{ success: boolean; error?: string }>) | null>(null);
 
   const maxAccessibleStep = getMaxAccessibleStep();
 
@@ -94,19 +94,24 @@ export function EventJourneyContainer() {
     (step: JourneyStep) => {
       if (!canNavigateToStep(step)) return;
 
-      if (hasUnsavedChanges && currentStep === 1) {
-        if (!confirm("Du hast ungespeicherte Änderungen. Möchtest du wirklich fortfahren?")) {
-          return;
-        }
-      }
-
       setCurrentStep(step);
       contentRef.current?.scrollTo(0, 0);
     },
-    [canNavigateToStep, hasUnsavedChanges, currentStep]
+    [canNavigateToStep]
   );
 
-  const goToNextStep = useCallback(() => {
+  const goToNextStep = useCallback(async () => {
+    // If leaving step 1 (Daten), trigger save with validation
+    if (currentStep === 1 && saveCreateStepRef.current) {
+      const saveResult = await saveCreateStepRef.current();
+      if (!saveResult.success) {
+        // Show error, don't navigate
+        alert(saveResult.error || "Fehler beim Speichern");
+        return;
+      }
+    }
+
+    // Proceed with navigation
     if (currentStep < 4 && canNavigateToStep((currentStep + 1) as JourneyStep)) {
       goToStep((currentStep + 1) as JourneyStep);
     }
@@ -119,13 +124,22 @@ export function EventJourneyContainer() {
   }, [currentStep, goToStep]);
 
   const handleBackToOrganization = useCallback(() => {
-    if (hasUnsavedChanges) {
-      if (!confirm("Du hast ungespeicherte Änderungen. Möchtest du wirklich zurück?")) {
-        return;
-      }
-    }
     router.push(`/flohmarkt/organizations/${currentTenant?.slug}`);
-  }, [hasUnsavedChanges, router, currentTenant?.slug]);
+  }, [router, currentTenant?.slug]);
+
+  // Helper function for dynamic "Weiter" button labels
+  const getNextButtonLabel = (step: JourneyStep): string => {
+    switch (step) {
+      case 1:
+        return "Weiter zur Vorschau";
+      case 2:
+        return 'Weiter zu "Einladen"';
+      case 3:
+        return 'Weiter zu "Verwalten"';
+      default:
+        return "Weiter";
+    }
+  };
 
   if (!currentTenantEvent || !currentTenant) {
     return null;
@@ -199,7 +213,10 @@ export function EventJourneyContainer() {
           {currentStep === 1 && (
             <CreateStep
               onNext={goToNextStep}
-              onUnsavedChanges={setHasUnsavedChanges}
+              onUnsavedChanges={() => {}}
+              onSave={(callback) => {
+                saveCreateStepRef.current = callback;
+              }}
             />
           )}
           {currentStep === 2 && (
@@ -225,27 +242,33 @@ export function EventJourneyContainer() {
       {/* Footer Navigation */}
       <div className="bg-white border-t border-gray-200 p-4">
         <div className="max-w-[800px] mx-auto flex justify-between items-center">
-          <button
-            onClick={currentStep === 1 ? handleBackToOrganization : goToPreviousStep}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Zurück</span>
-          </button>
+          {/* Only show "Zurück" on steps 2-4 */}
+          {currentStep > 1 && (
+            <button
+              onClick={goToPreviousStep}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Zurück</span>
+            </button>
+          )}
 
+          {/* Spacer when no back button (step 1) */}
+          {currentStep === 1 && <div className="w-[100px]" />}
+
+          {/* "Weiter" button with dynamic label */}
           {currentStep < 4 && canNavigateToStep((currentStep + 1) as JourneyStep) && (
             <button
               onClick={goToNextStep}
               className="flex items-center gap-2 px-4 py-2 bg-[#003366] text-white rounded-lg hover:bg-[#002244] transition-colors font-medium"
             >
-              <span>Weiter</span>
+              <span>{getNextButtonLabel(currentStep)}</span>
               <ArrowLeft className="h-4 w-4 rotate-180" />
             </button>
           )}
 
-          {(currentStep === 4 || !canNavigateToStep((currentStep + 1) as JourneyStep)) && (
-            <div className="w-[100px]" /> // Spacer for alignment
-          )}
+          {/* Spacer for alignment on step 4 */}
+          {currentStep === 4 && <div className="w-[100px]" />}
         </div>
       </div>
     </div>

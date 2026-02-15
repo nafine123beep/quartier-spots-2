@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useFlohmarkt } from "../../../../FlohmarktContext";
 import { EventImage } from "../../../../types";
-import { geocodeAddress, GeocodeResult } from "../../../../lib/geocoding";
 import { SPOT_TERM_PRESETS } from "../../../../lib/spotTerms";
 import { BOUNDARY_RADIUS_PRESETS } from "../../../../lib/geoUtils";
 import { EventImageUpload } from "../../../shared/EventImageUpload";
-import { MapPin, Calendar, Settings, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { SaveStatusIndicator } from "../../../shared/SaveStatusIndicator";
+import { useEventAutosave, type EventFormData } from "../../../../hooks/useEventAutosave";
+import { MapPin, Calendar, Settings, ChevronDown, ChevronRight } from "lucide-react";
 
 interface CreateStepProps {
   onNext: () => void;
   onUnsavedChanges: (hasChanges: boolean) => void;
+  onSave?: (saveCallback: () => Promise<{ success: boolean; error?: string }>) => void;
 }
 
-export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
+export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps) {
   const { currentTenantEvent, updateEvent } = useFlohmarkt();
 
   // Form state
@@ -42,9 +44,24 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
   // Images
   const [images, setImages] = useState<EventImage[]>(currentTenantEvent?.images ?? []);
 
-  // UI state
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Form data ref for autosave hook
+  const formDataRef = useRef<EventFormData>({
+    title: currentTenantEvent?.title || "",
+    description: currentTenantEvent?.description || "",
+    startsAt: "",
+    endsAt: "",
+    mapCenterAddress: currentTenantEvent?.map_center_address || "",
+    boundaryRadius: currentTenantEvent?.boundary_radius_meters || null,
+    spotTermSingular: currentTenantEvent?.spot_term_singular,
+    spotTermPlural: currentTenantEvent?.spot_term_plural,
+  });
+
+  // Initialize autosave hook
+  const { saveStatus, error: saveError, markDirty, save } = useEventAutosave({
+    eventId: currentTenantEvent!.id,
+    initialData: formDataRef.current,
+    updateEvent,
+  });
 
   // Convert UTC dates to local datetime-local format
   useEffect(() => {
@@ -93,80 +110,75 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  const handleSave = async () => {
+  // Validation function for navigation
+  const validateForm = (): { valid: boolean; error?: string } => {
     if (!title.trim()) {
-      setError("Bitte gib einen Titel ein");
-      return;
+      return { valid: false, error: "Bitte gib einen Titel ein" };
     }
-
     if (!startsAt || !endsAt) {
-      setError("Bitte gib Start- und Enddatum ein");
-      return;
+      return { valid: false, error: "Bitte gib Start- und Enddatum ein" };
     }
-
     if (!mapCenterAddress.trim()) {
-      setError("Bitte gib eine Adresse für das Kartenzentrum ein");
-      return;
+      return { valid: false, error: "Bitte gib eine Adresse für das Kartenzentrum ein" };
     }
+    return { valid: true };
+  };
 
-    setIsLoading(true);
-    setError(null);
+  // Update formDataRef when state changes
+  useEffect(() => {
+    // Prepare term values
+    let spotTermSingular: string | undefined;
+    let spotTermPlural: string | undefined;
 
-    try {
-      // Geocode address
-      const geocodeResult: GeocodeResult | null = await geocodeAddress(mapCenterAddress);
-
-      if (!geocodeResult) {
-        setError("Adresse konnte nicht gefunden werden. Bitte überprüfe die Eingabe.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Prepare term values
-      let spotTermSingular: string | undefined;
-      let spotTermPlural: string | undefined;
-
-      if (enableCustomTerms) {
-        if (selectedTermPreset === "custom") {
-          spotTermSingular = customTermSingular || undefined;
-          spotTermPlural = customTermPlural || undefined;
-        } else {
-          const preset = SPOT_TERM_PRESETS.find((p) => p.singular === selectedTermPreset);
-          if (preset) {
-            spotTermSingular = preset.singular;
-            spotTermPlural = preset.plural;
-          }
+    if (enableCustomTerms) {
+      if (selectedTermPreset === "custom") {
+        spotTermSingular = customTermSingular || undefined;
+        spotTermPlural = customTermPlural || undefined;
+      } else {
+        const preset = SPOT_TERM_PRESETS.find((p) => p.singular === selectedTermPreset);
+        if (preset) {
+          spotTermSingular = preset.singular;
+          spotTermPlural = preset.plural;
         }
       }
-
-      // Update event
-      const result = await updateEvent(currentTenantEvent!.id, {
-        title: title.trim(),
-        description: description.trim() || undefined,
-        starts_at: new Date(startsAt).toISOString(),
-        ends_at: new Date(endsAt).toISOString(),
-        map_center_address: mapCenterAddress.trim(),
-        map_center_lat: geocodeResult.lat,
-        map_center_lng: geocodeResult.lng,
-        boundary_radius_meters: enableBoundary ? boundaryRadius : null,
-        spot_term_singular: spotTermSingular,
-        spot_term_plural: spotTermPlural,
-      });
-
-      if (!result.success) {
-        setError(result.error || "Fehler beim Speichern");
-        setIsLoading(false);
-        return;
-      }
-
-      onUnsavedChanges(false);
-      onNext();
-    } catch (err) {
-      setError("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
-    } finally {
-      setIsLoading(false);
     }
-  };
+
+    formDataRef.current = {
+      title,
+      description,
+      startsAt,
+      endsAt,
+      mapCenterAddress,
+      boundaryRadius: enableBoundary ? boundaryRadius : null,
+      spotTermSingular,
+      spotTermPlural,
+    };
+  }, [
+    title,
+    description,
+    startsAt,
+    endsAt,
+    mapCenterAddress,
+    enableBoundary,
+    boundaryRadius,
+    enableCustomTerms,
+    selectedTermPreset,
+    customTermSingular,
+    customTermPlural,
+  ]);
+
+  // Expose save callback to parent for navigation
+  useEffect(() => {
+    if (onSave) {
+      onSave(async () => {
+        const validation = validateForm();
+        if (!validation.valid) {
+          return { success: false, error: validation.error };
+        }
+        return save({ immediate: true, validate: true });
+      });
+    }
+  }, [onSave, save, title, startsAt, endsAt, mapCenterAddress]);
 
   return (
     <div className="space-y-6">
@@ -186,10 +198,13 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
               id="title"
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                markDirty("title");
+              }}
+              onBlur={() => save({ immediate: true })}
               placeholder="z.B. Hinterhof-Flohmarkt Kreuzberg"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent"
-              disabled={isLoading}
             />
           </div>
 
@@ -200,11 +215,14 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
             <textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                markDirty("description");
+              }}
+              onBlur={() => save({ immediate: true })}
               placeholder="Beschreibe dein Event kurz..."
               rows={6}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent resize-y"
-              disabled={isLoading}
             />
           </div>
         </div>
@@ -215,7 +233,6 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         eventId={currentTenantEvent!.id}
         images={images}
         onImagesChange={setImages}
-        disabled={isLoading}
       />
 
       {/* Date/Time */}
@@ -234,9 +251,12 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
               id="startsAt"
               type="datetime-local"
               value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
+              onChange={(e) => {
+                setStartsAt(e.target.value);
+                markDirty("startsAt");
+                save({ immediate: true });
+              }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent"
-              disabled={isLoading}
             />
           </div>
           <div>
@@ -247,9 +267,12 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
               id="endsAt"
               type="datetime-local"
               value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
+              onChange={(e) => {
+                setEndsAt(e.target.value);
+                markDirty("endsAt");
+                save({ immediate: true });
+              }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent"
-              disabled={isLoading}
             />
           </div>
         </div>
@@ -270,10 +293,13 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
             id="mapCenterAddress"
             type="text"
             value={mapCenterAddress}
-            onChange={(e) => setMapCenterAddress(e.target.value)}
+            onChange={(e) => {
+              setMapCenterAddress(e.target.value);
+              markDirty("mapCenterAddress");
+            }}
+            onBlur={() => save({ immediate: true })}
             placeholder="z.B. Oranienstraße 25, Berlin"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent"
-            disabled={isLoading}
           />
           <p className="text-xs text-gray-500 mt-1">
             Diese Adresse bestimmt den Mittelpunkt der Karte für Teilnehmer.
@@ -291,9 +317,10 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
               setBoundaryRadius(null);
               setCustomRadius("");
             }
+            markDirty("boundaryRadius");
+            save({ immediate: true });
           }}
-          disabled={isLoading}
-          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <span className="text-sm font-medium text-gray-700">
             Geografisches Gebiet einschränken
@@ -322,13 +349,14 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                   onClick={() => {
                     setBoundaryRadius(preset.value);
                     setCustomRadius("");
+                    markDirty("boundaryRadius");
+                    save({ immediate: true });
                   }}
-                  disabled={isLoading}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     boundaryRadius === preset.value
                       ? "bg-[#003366] text-white"
                       : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
-                  } disabled:opacity-50`}
+                  }`}
                 >
                   {preset.label}
                 </button>
@@ -338,13 +366,14 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                 onClick={() => {
                   setBoundaryRadius(null);
                   setCustomRadius("");
+                  markDirty("boundaryRadius");
+                  save({ immediate: true });
                 }}
-                disabled={isLoading}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   boundaryRadius === null && customRadius === ""
                     ? "bg-[#003366] text-white"
                     : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100"
-                } disabled:opacity-50`}
+                }`}
               >
                 Ohne Limit
               </button>
@@ -364,10 +393,11 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                   } else {
                     setBoundaryRadius(null);
                   }
+                  markDirty("boundaryRadius");
                 }}
+                onBlur={() => save({ immediate: true })}
                 placeholder="z.B. 50"
-                disabled={isLoading}
-                className="w-32 p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500 disabled:bg-gray-100"
+                className="w-32 p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-500"
               />
             </div>
           </div>
@@ -384,10 +414,12 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
               setSelectedTermPreset("Stand");
               setCustomTermSingular("");
               setCustomTermPlural("");
+              markDirty("spotTermSingular");
+              markDirty("spotTermPlural");
+              save({ immediate: true });
             }
           }}
-          disabled={isLoading}
-          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
         >
           <span className="text-sm font-medium text-gray-700">
             Bezeichnung für &quot;Spots&quot; anpassen
@@ -419,9 +451,11 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                   setCustomTermSingular("");
                   setCustomTermPlural("");
                 }
+                markDirty("spotTermSingular");
+                markDirty("spotTermPlural");
+                save({ immediate: true });
               }}
-              disabled={isLoading}
-              className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 bg-white disabled:bg-gray-100"
+              className="w-full p-2.5 border border-gray-300 rounded-md text-sm text-gray-900 bg-white"
             >
               {SPOT_TERM_PRESETS.slice(1).map((preset) => (
                 <option key={preset.singular} value={preset.singular}>
@@ -440,10 +474,13 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                   <input
                     type="text"
                     value={customTermSingular}
-                    onChange={(e) => setCustomTermSingular(e.target.value)}
+                    onChange={(e) => {
+                      setCustomTermSingular(e.target.value);
+                      markDirty("spotTermSingular");
+                    }}
+                    onBlur={() => save({ immediate: true })}
                     placeholder="z.B. Platz"
-                    disabled={isLoading}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
                 <div className="flex-1">
@@ -453,10 +490,13 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
                   <input
                     type="text"
                     value={customTermPlural}
-                    onChange={(e) => setCustomTermPlural(e.target.value)}
+                    onChange={(e) => {
+                      setCustomTermPlural(e.target.value);
+                      markDirty("spotTermPlural");
+                    }}
+                    onBlur={() => save({ immediate: true })}
                     placeholder="z.B. Plätze"
-                    disabled={isLoading}
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400"
                   />
                 </div>
               </div>
@@ -465,30 +505,8 @@ export function CreateStep({ onNext, onUnsavedChanges }: CreateStepProps) {
         )}
       </div>
 
-      {/* Error message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {/* Save button */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          disabled={isLoading}
-          className="flex items-center gap-2 px-6 py-3 bg-[#003366] text-white rounded-lg font-bold hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Wird gespeichert...</span>
-            </>
-          ) : (
-            <span>Speichern und weiter</span>
-          )}
-        </button>
-      </div>
+      {/* Save status indicator */}
+      <SaveStatusIndicator status={saveStatus} error={saveError} />
     </div>
   );
 }

@@ -28,7 +28,6 @@ interface FlohmarktContextType {
   tenants: Tenant[];
   currentTenant: Tenant | null;
   tenantEvents: TenantEvent[];
-  members: Member[];
   isAdmin: boolean;
   loading: boolean;
 
@@ -54,10 +53,7 @@ interface FlohmarktContextType {
   joinTenant: (tenantId: string, password: string) => Promise<{ success: boolean; error?: string }>;
   searchTenants: (query: string) => Promise<Tenant[]>;
   loadTenantEvents: () => Promise<void>;
-  loadMembers: () => Promise<void>;
   createTenantEvent: (title: string, description: string, startsAt: string, endsAt: string, mapCenterAddress: string, mapCenterLat: number, mapCenterLng: number, boundaryRadiusMeters?: number | null, spotTermSingular?: string, spotTermPlural?: string) => Promise<{ success: boolean; error?: string; event?: { id: string; title: string; slug: string } }>;
-  removeMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
-  updateMemberRole: (userId: string, role: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
   setCurrentTenantEvent: (event: TenantEvent) => void;
   currentTenantEvent: TenantEvent | null;
 
@@ -570,44 +566,6 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setTenantEvents(eventsWithSortedImages);
   }, [currentTenant]);
 
-  const loadMembers = useCallback(async () => {
-    if (!currentTenant) return;
-
-    const supabase = createClient();
-
-    const { data, error } = await supabase
-      .from("memberships")
-      .select(`
-        user_id,
-        tenant_id,
-        role,
-        status,
-        created_at,
-        profiles (
-          email,
-          display_name
-        )
-      `)
-      .eq("tenant_id", currentTenant.id);
-
-    if (error) {
-      console.error("Error loading members:", error);
-      return;
-    }
-
-    const loadedMembers: Member[] = data?.map((m) => ({
-      user_id: m.user_id,
-      tenant_id: m.tenant_id,
-      role: m.role as 'admin' | 'member',
-      status: m.status as 'active' | 'pending' | 'invited',
-      created_at: m.created_at,
-      email: (m.profiles as { email?: string })?.email,
-      display_name: (m.profiles as { display_name?: string })?.display_name,
-    })) ?? [];
-
-    setMembers(loadedMembers);
-  }, [currentTenant]);
-
   // Load spots for current event
   const loadSpots = useCallback(async () => {
     if (!currentTenantEvent) return;
@@ -628,13 +586,12 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setSpots(data ?? []);
   }, [currentTenantEvent]);
 
-  // Load events and members when tenant changes
+  // Load events when tenant changes
   useEffect(() => {
     if (currentTenant) {
       loadTenantEvents();
-      loadMembers();
     }
-  }, [currentTenant, loadTenantEvents, loadMembers]);
+  }, [currentTenant, loadTenantEvents]);
 
   // Load spots when event changes (custom highlight types loaded separately below)
   useEffect(() => {
@@ -720,44 +677,6 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     await loadTenantEvents();
     return { success: true, event: { id: data.id, title, slug } };
   }, [currentTenant, user, loadTenantEvents]);
-
-  const removeMember = useCallback(async (userId: string) => {
-    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
-
-    const supabase = createClient();
-
-    const { error } = await supabase
-      .from("memberships")
-      .delete()
-      .eq("tenant_id", currentTenant.id)
-      .eq("user_id", userId);
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    await loadMembers();
-    return { success: true };
-  }, [currentTenant, isAdmin, loadMembers]);
-
-  const updateMemberRole = useCallback(async (userId: string, role: 'admin' | 'member') => {
-    if (!currentTenant || !isAdmin) return { success: false, error: "Not authorized" };
-
-    const supabase = createClient();
-
-    const { error } = await supabase
-      .from("memberships")
-      .update({ role })
-      .eq("tenant_id", currentTenant.id)
-      .eq("user_id", userId);
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    await loadMembers();
-    return { success: true };
-  }, [currentTenant, isAdmin, loadMembers]);
 
   const updateUserProfile = useCallback(async (name: string, email?: string) => {
     if (!user) return { success: false, error: "Not authenticated" };
@@ -1415,7 +1334,6 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         tenants,
         currentTenant,
         tenantEvents,
-        members,
         isAdmin,
         loading,
         currentTenantEvent,
@@ -1438,10 +1356,7 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         joinTenant,
         searchTenants,
         loadTenantEvents,
-        loadMembers,
         createTenantEvent,
-        removeMember,
-        updateMemberRole,
         setCurrentTenantEvent,
         updateUserProfile,
         updateTenant,
