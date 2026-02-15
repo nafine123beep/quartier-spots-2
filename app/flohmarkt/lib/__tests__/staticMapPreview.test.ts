@@ -8,20 +8,32 @@ import { TenantEvent } from "../../types";
 
 describe("staticMapPreview", () => {
   describe("getStaticMapUrl", () => {
-    it("should generate correct static map URL with default parameters", () => {
+    it("should generate SVG data URI with default parameters", () => {
       const url = getStaticMapUrl(52.520008, 13.404954);
-      expect(url).toContain("staticmap.openstreetmap.de");
-      expect(url).toContain("center=52.520008,13.404954");
-      expect(url).toContain("zoom=14");
-      expect(url).toContain("size=600x400");
-      expect(url).toContain("maptype=mapnik");
+      expect(url).toMatch(/^data:image\/svg\+xml,/);
+      expect(url).toContain("52.5200"); // Formatted latitude
+      expect(url).toContain("13.4050"); // Formatted longitude
+      expect(url).toContain("600"); // Width
+      expect(url).toContain("400"); // Height
+      expect(url).toContain("Kartenvorschau"); // German label
     });
 
-    it("should generate correct static map URL with custom parameters", () => {
+    it("should generate SVG data URI with custom dimensions", () => {
       const url = getStaticMapUrl(48.8566, 2.3522, 800, 600, 12);
-      expect(url).toContain("center=48.8566,2.3522");
-      expect(url).toContain("zoom=12");
-      expect(url).toContain("size=800x600");
+      expect(url).toMatch(/^data:image\/svg\+xml,/);
+      expect(url).toContain("48.8566"); // Formatted latitude
+      expect(url).toContain("2.3522"); // Formatted longitude
+      expect(url).toContain("800"); // Custom width
+      expect(url).toContain("600"); // Custom height
+    });
+
+    it("should include location pin and grid pattern in SVG", () => {
+      const url = getStaticMapUrl(52.520008, 13.404954);
+      const decoded = decodeURIComponent(url.replace('data:image/svg+xml,', ''));
+      expect(decoded).toContain("<svg");
+      expect(decoded).toContain("path"); // Location pin
+      expect(decoded).toContain("pattern"); // Grid pattern
+      expect(decoded).toContain("linearGradient"); // Background gradient
     });
   });
 
@@ -67,8 +79,9 @@ describe("staticMapPreview", () => {
       const result = getEventPreviewImage(event);
       expect(result.type).toBe("map");
       expect(result.alt).toBe("Karten-Vorschau für Test Event");
-      expect(result.url).toContain("staticmap.openstreetmap.de");
-      expect(result.url).toContain("center=52.520008,13.404954");
+      expect(result.url).toMatch(/^data:image\/svg\+xml,/); // SVG data URI
+      expect(result.url).toContain("52.5200"); // Contains formatted coordinates
+      expect(result.url).toContain("13.4050");
     });
 
     it("should return 'placeholder' type when event has no images and no coordinates", () => {
@@ -112,7 +125,8 @@ describe("staticMapPreview", () => {
       };
 
       const result = getEventPreviewImage(event, 800, 600);
-      expect(result.url).toContain("size=800x600");
+      expect(result.url).toContain("width=\"800\""); // SVG width attribute
+      expect(result.url).toContain("height=\"600\""); // SVG height attribute
     });
 
     it("should handle null coordinates gracefully", () => {

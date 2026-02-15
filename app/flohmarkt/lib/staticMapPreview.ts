@@ -6,15 +6,15 @@
 import { TenantEvent } from "../types";
 
 /**
- * Generates a static map image URL centered on the given coordinates
- * Uses the free staticmap.openstreetmap.de service
+ * Generates a static map-style placeholder with location coordinates
+ * Uses SVG data URI for immediate display without external dependencies
  *
  * @param lat - Latitude
  * @param lng - Longitude
  * @param width - Image width in pixels
  * @param height - Image height in pixels
- * @param zoom - Zoom level (1-19, default 14)
- * @returns Static map image URL
+ * @param zoom - Zoom level (1-19, default 14) - unused in SVG version but kept for compatibility
+ * @returns SVG data URI showing location info
  */
 export function getStaticMapUrl(
   lat: number,
@@ -23,17 +23,50 @@ export function getStaticMapUrl(
   height: number = 400,
   zoom: number = 14
 ): string {
-  // Use staticmap.openstreetmap.de - a free static map service for OSM
-  const baseUrl = "https://staticmap.openstreetmap.de/staticmap.php";
+  // Create an SVG placeholder showing the location coordinates
+  // This is reliable and works without external API dependencies
+  const latFormatted = lat.toFixed(4);
+  const lngFormatted = lng.toFixed(4);
 
-  const params = new URLSearchParams({
-    center: `${lat},${lng}`,
-    zoom: zoom.toString(),
-    size: `${width}x${height}`,
-    maptype: "mapnik", // Standard OSM rendering
-  });
+  const svg = `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background with subtle gradient -->
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#e8f4f8;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#d0e8f0;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      <rect width="${width}" height="${height}" fill="url(#bg)"/>
 
-  return `${baseUrl}?${params.toString()}`;
+      <!-- Grid pattern to simulate map -->
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cce5ee" stroke-width="1"/>
+      </pattern>
+      <rect width="${width}" height="${height}" fill="url(#grid)" opacity="0.5"/>
+
+      <!-- Location pin icon -->
+      <g transform="translate(${width / 2}, ${height / 2 - 20})">
+        <path d="M0-20 C-6-20 -10-16 -10-10 C-10-4 0,10 0,10 C0,10 10,-4 10,-10 C10,-16 6,-20 0,-20 Z" fill="#003366"/>
+        <circle cx="0" cy="-10" r="3" fill="white"/>
+      </g>
+
+      <!-- Coordinates text -->
+      <text x="${width / 2}" y="${height - 30}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#003366" font-weight="600">
+        ${latFormatted}, ${lngFormatted}
+      </text>
+      <text x="${width / 2}" y="${height - 12}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">
+        Kartenvorschau
+      </text>
+    </svg>
+  `.trim();
+
+  // Convert to data URI
+  const encoded = encodeURIComponent(svg)
+    .replace(/'/g, '%27')
+    .replace(/"/g, '%22');
+
+  return `data:image/svg+xml,${encoded}`;
 }
 
 /**
