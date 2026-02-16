@@ -17,7 +17,7 @@ interface ManageStepProps {
 type ManageTab = "spots" | "highlights" | "deletion-requests";
 
 export function ManageStep(_props: ManageStepProps) {
-  const { currentTenantEvent, currentTenant, spots, deletionRequests, isAdmin, archiveEvent } = useFlohmarkt();
+  const { currentTenantEvent, currentTenant, spots, deletionRequests, archiveEvent } = useFlohmarkt();
   const [activeTab, setActiveTab] = useState<ManageTab>("spots");
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
@@ -25,9 +25,8 @@ export function ManageStep(_props: ManageStepProps) {
 
   // Debug logging - remove after testing
   console.log('ManageStep Debug:', {
-    isAdmin,
     eventStatus: currentTenantEvent?.status,
-    shouldShowButton: isAdmin && currentTenantEvent?.status === 'active'
+    shouldShowButton: currentTenantEvent?.status === 'active'
   });
 
   if (!currentTenantEvent || !currentTenant) return null;
@@ -97,8 +96,8 @@ export function ManageStep(_props: ManageStepProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            {/* Archive button - only for admins and active events */}
-            {isAdmin && currentTenantEvent?.status === 'active' && (
+            {/* Archive button - only for active events */}
+            {currentTenantEvent?.status === 'active' && (
               <button
                 onClick={() => setShowArchiveDialog(true)}
                 className="flex items-center gap-2 px-4 py-2 border-2 border-orange-400 text-orange-600 rounded-lg font-medium hover:bg-orange-50 transition-colors text-sm"
