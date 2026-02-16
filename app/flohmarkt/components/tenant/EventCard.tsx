@@ -58,16 +58,25 @@ export function EventCard({ event, variant = 'default' }: EventCardProps) {
     }`}>
       {/* Preview Image (uploaded image, map preview, or placeholder) */}
       <div className={`relative bg-gray-100 ${isCompact ? 'h-32' : 'h-40'}`}>
-        {previewImage.url ? (
+        {previewImage.type === 'uploaded' ? (
+          // Uploaded image: Generate URL from Supabase storage
           <img
-            src={previewImage.type === 'uploaded'
-              ? getPublicImageUrl(event.images!.find(img => img.is_cover)?.storage_path || event.images![0].storage_path)
-              : previewImage.url
-            }
+            src={getPublicImageUrl(
+              event.images!.find(img => img.is_cover)?.storage_path ||
+              event.images![0].storage_path
+            )}
+            alt={previewImage.alt}
+            className="w-full h-full object-cover"
+          />
+        ) : previewImage.type === 'map' && previewImage.url ? (
+          // Map preview: Use SVG data URI
+          <img
+            src={previewImage.url}
             alt={previewImage.alt}
             className="w-full h-full object-cover"
           />
         ) : (
+          // Placeholder: No image or coordinates
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
             <ImageOff className="h-12 w-12 text-gray-400" aria-hidden="true" />
             <span className="sr-only">{previewImage.alt}</span>
