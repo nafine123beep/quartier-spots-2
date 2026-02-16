@@ -8,6 +8,7 @@ export function MemberManagementSection() {
   const { currentTenant } = useFlohmarkt();
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [loadingToken, setLoadingToken] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
@@ -28,12 +29,17 @@ export function MemberManagementSection() {
         body: JSON.stringify({ tenant_id: currentTenant.id }),
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setInviteToken(data.invite_token);
+        setTokenError(null);
+      } else {
+        console.error("[MemberManagement] Token ensure failed:", data);
+        setTokenError(data.details || data.error || "Fehler beim Generieren des Einladungslinks");
       }
-    } catch {
-      // Silently fail — invite link won't be shown
+    } catch (err) {
+      console.error("[MemberManagement] Network error:", err);
+      setTokenError("Netzwerkfehler beim Generieren des Einladungslinks");
     } finally {
       setLoadingToken(false);
     }
@@ -81,6 +87,12 @@ export function MemberManagementSection() {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
+        {tokenError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+            {tokenError}
+          </div>
+        )}
+
         {/* Block A: Invite Link */}
         <div className="mb-6">
           <label className="block text-sm font-bold text-gray-700 mb-1">

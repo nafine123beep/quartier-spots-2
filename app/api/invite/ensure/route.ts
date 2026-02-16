@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,15 +10,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'tenant_id is required' }, { status: 400 });
     }
 
-    // Verify the user is authenticated and is an admin of this tenant
+    // Verify the user is authenticated and is a member of this tenant
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error('[invite/ensure] Auth error:', authError);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: membership } = await supabase
+    const { data: membership, error: membershipError } = await supabase
       .from('memberships')
       .select('role')
       .eq('tenant_id', tenant_id)
@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
       .eq('status', 'active')
       .single();
 
-    if (!membership || membership.role !== 'admin') {
+    if (membershipError || !membership) {
+      console.error('[invite/ensure] Membership check failed:', membershipError);
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -38,18 +39,26 @@ export async function POST(request: NextRequest) {
     );
 
     // Check if tenant already has an invite_token
-    const { data: tenant } = await serviceClient
+    const { data: tenant, error: tenantError } = await serviceClient
       .from('tenants')
       .select('invite_token')
       .eq('id', tenant_id)
       .single();
 
+    if (tenantError) {
+      console.error('[invite/ensure] Tenant lookup error:', tenantError);
+      return NextResponse.json(
+        { error: 'Tenant lookup failed', details: tenantError.message },
+        { status: 500 }
+      );
+    }
+
     if (tenant?.invite_token) {
       return NextResponse.json({ invite_token: tenant.invite_token });
     }
 
-    // Generate a new token
-    const invite_token = randomBytes(24).toString('hex');
+    // Generate a new token using Web Crypto API (works in all runtimes)
+    const invite_token = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
 
     const { error: updateError } = await serviceClient
       .from('tenants')
@@ -57,11 +66,16 @@ export async function POST(request: NextRequest) {
       .eq('id', tenant_id);
 
     if (updateError) {
-      return NextResponse.json({ error: 'Failed to generate invite token' }, { status: 500 });
+      console.error('[invite/ensure] Token update error:', updateError);
+      return NextResponse.json(
+        { error: 'Failed to generate invite token', details: updateError.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ invite_token });
-  } catch {
+  } catch (err) {
+    console.error('[invite/ensure] Unexpected error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

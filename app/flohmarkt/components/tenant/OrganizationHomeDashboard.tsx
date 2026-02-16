@@ -74,7 +74,7 @@ export function OrganizationHomeDashboard() {
           <p className="text-gray-600 mb-8">Übersicht & nächste Schritte</p>
 
           <UpcomingEventsSection events={upcomingEvents} />
-          {isAdmin && <MemberManagementSection />}
+          <MemberManagementSection />
           <TutorialsSection />
         </div>
       </main>
