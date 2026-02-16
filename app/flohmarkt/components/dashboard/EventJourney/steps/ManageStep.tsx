@@ -95,29 +95,14 @@ export function ManageStep(_props: ManageStepProps) {
               Setze wichtige Infrastrukturpunkte wie Registrierung, Toiletten, Info-Points, etc.
             </p>
           </div>
-          <div className="flex gap-2">
-            {/* Archive button - only for active events */}
-            {currentTenantEvent?.status === 'active' && (
-              <button
-                onClick={() => setShowArchiveDialog(true)}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-orange-400 text-orange-600 rounded-lg font-medium hover:bg-orange-50 transition-colors text-sm"
-                title="Event archivieren"
-              >
-                <Archive className="h-4 w-4" />
-                <span className="hidden sm:inline">Archivieren</span>
-              </button>
-            )}
-
-            {/* PDF button */}
-            <button
-              onClick={() => setIsPrintModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#003366] text-white rounded-lg font-medium hover:bg-[#002244] transition-colors text-sm"
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">PDF-Liste erstellen</span>
-              <span className="sm:hidden">PDF</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsPrintModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#003366] text-white rounded-lg font-medium hover:bg-[#002244] transition-colors text-sm"
+          >
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">PDF-Liste erstellen</span>
+            <span className="sm:hidden">PDF</span>
+          </button>
         </div>
       </div>
 
@@ -203,6 +188,31 @@ export function ManageStep(_props: ManageStepProps) {
           <p className="text-sm text-gray-600">Offene Löschanfragen</p>
         </div>
       </div>
+
+      {/* Archive Section - only for active events */}
+      {currentTenantEvent?.status === 'active' && (
+        <div className="bg-white rounded-lg shadow-sm p-5 border-l-4 border-orange-400">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <Archive className="h-5 w-5 text-orange-600" />
+                Event archivieren
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                Archivierte Events sind nicht mehr öffentlich sichtbar und können nicht mehr bearbeitet werden.
+                Diese Aktion kann nicht rückgängig gemacht werden.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowArchiveDialog(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors ml-4"
+            >
+              <Archive className="h-4 w-4" />
+              Archivieren
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Print View Modal */}
       <PrintViewModal
