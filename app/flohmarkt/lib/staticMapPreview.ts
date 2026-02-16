@@ -6,15 +6,15 @@
 import { TenantEvent } from "../types";
 
 /**
- * Generates a static map-style placeholder with location coordinates
+ * Generates a static map-style placeholder with location pin
  * Uses SVG data URI for immediate display without external dependencies
  *
- * @param lat - Latitude
- * @param lng - Longitude
+ * @param lat - Latitude (used for unique gradient/pattern IDs)
+ * @param lng - Longitude (used for unique gradient/pattern IDs)
  * @param width - Image width in pixels
  * @param height - Image height in pixels
  * @param zoom - Zoom level (unused in SVG version but kept for API compatibility)
- * @returns SVG data URI showing location info
+ * @returns SVG data URI showing gradient background, grid pattern, and location pin
  */
 export function getStaticMapUrl(
   lat: number,
@@ -43,18 +43,10 @@ export function getStaticMapUrl(
       <rect width="${width}" height="${height}" fill="url(#grid-${latFormatted}-${lngFormatted})" opacity="0.5"/>
 
       <!-- Location pin icon -->
-      <g transform="translate(${width / 2}, ${height / 2 - 20})">
+      <g transform="translate(${width / 2}, ${height / 2})">
         <path d="M0-20 C-6-20 -10-16 -10-10 C-10-4 0,10 0,10 C0,10 10,-4 10,-10 C10,-16 6,-20 0,-20 Z" fill="#003366"/>
         <circle cx="0" cy="-10" r="3" fill="white"/>
       </g>
-
-      <!-- Coordinates text -->
-      <text x="${width / 2}" y="${height - 30}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#003366" font-weight="600">
-        ${latFormatted}, ${lngFormatted}
-      </text>
-      <text x="${width / 2}" y="${height - 12}" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">
-        Kartenvorschau
-      </text>
     </svg>
   `.trim();
 
