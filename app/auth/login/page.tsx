@@ -90,8 +90,17 @@ export default function LoginPage() {
       if (!profile?.display_name) {
         router.replace("/onboarding");
       } else {
-        // Existing user - redirect to organizations page (even if they have no memberships yet)
-        router.replace("/flohmarkt/organizations");
+        // Check for pending join redirect
+        const pendingRedirect = typeof window !== 'undefined'
+          ? localStorage.getItem('pending_join_redirect')
+          : null;
+        if (pendingRedirect) {
+          localStorage.removeItem('pending_join_redirect');
+          router.replace(pendingRedirect);
+        } else {
+          // Existing user - redirect to organizations page (even if they have no memberships yet)
+          router.replace("/flohmarkt/organizations");
+        }
       }
     } else {
       // Magic link login

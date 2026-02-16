@@ -26,6 +26,18 @@ export default function AuthCallbackPage() {
         .eq("user_id", session.user.id)
         .limit(1);
 
+      // Check for pending join redirect
+      const pendingRedirect = typeof window !== 'undefined'
+        ? localStorage.getItem('pending_join_redirect')
+        : null;
+
+      if (pendingRedirect) {
+        localStorage.removeItem('pending_join_redirect');
+        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
+        window.location.replace(pendingRedirect);
+        return;
+      }
+
       // If user has memberships, they've completed onboarding - go to dashboard
       if (memberships && memberships.length > 0) {
         setStatus("Erfolgreich eingeloggt! Weiterleitung...");

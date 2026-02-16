@@ -48,6 +48,7 @@ export interface Tenant {
   created_by: string;
   created_at: string;
   join_password?: string; // only visible to admins
+  invite_token?: string; // only visible to admins
 }
 
 export interface Member {

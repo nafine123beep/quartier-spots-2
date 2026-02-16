@@ -239,7 +239,8 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
           slug,
           created_by,
           created_at,
-          join_password
+          join_password,
+          invite_token
         )
       `)
       .eq("user_id", user.id)
@@ -255,10 +256,10 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
       ?.filter((m) => m.tenants)
       .map((m) => {
         const t = m.tenants as unknown as Tenant;
-        // Only include join_password if user is admin
+        // Only include join_password and invite_token if user is admin
         if (m.role !== 'admin') {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { join_password, ...rest } = t;
+          const { join_password, invite_token, ...rest } = t;
           return rest as Tenant;
         }
         return t;

@@ -6,6 +6,7 @@ import { Settings, HelpCircle } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import { UpcomingEventsSection } from "./UpcomingEventsSection";
+import { MemberManagementSection } from "./MemberManagementSection";
 import { TutorialsSection } from "./TutorialsSection";
 import { SupportFormModal } from "../shared/SupportFormModal";
 
@@ -73,6 +74,7 @@ export function OrganizationHomeDashboard() {
           <p className="text-gray-600 mb-8">Übersicht & nächste Schritte</p>
 
           <UpcomingEventsSection events={upcomingEvents} />
+          {isAdmin && <MemberManagementSection />}
           <TutorialsSection />
         </div>
       </main>
