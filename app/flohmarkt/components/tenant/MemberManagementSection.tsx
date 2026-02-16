@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Users } from "lucide-react";
+import Link from "next/link";
+import { Users, Pencil } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { LinkCopyField } from "../dashboard/EventJourney/shared/LinkCopyField";
 
@@ -91,16 +92,22 @@ export function MemberManagementSection() {
         ) : null}
 
         {/* Team Code */}
-        {currentTenant.join_password && (
-          <>
-            <div className="border-t border-gray-200" />
-            <LinkCopyField
-              label="Team-Code"
-              description="Alternativ, falls jemand den Link nicht öffnen kann"
-              url={currentTenant.join_password}
-            />
-          </>
-        )}
+        <div className="border-t border-gray-200" />
+        <div className="flex items-center justify-between gap-3 p-3 bg-white rounded-lg border border-gray-200">
+          <div className="flex-grow min-w-0">
+            <p className="font-medium text-gray-700 text-sm">Team-Code</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {currentTenant.join_password || "Noch nicht festgelegt"}
+            </p>
+          </div>
+          <Link
+            href="/flohmarkt/settings/organization"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-all whitespace-nowrap no-underline focus:outline-none focus:ring-2 focus:ring-[#003366] focus:ring-offset-2"
+          >
+            <Pencil className="h-4 w-4" />
+            <span>Bearbeiten</span>
+          </Link>
+        </div>
       </div>
     </section>
   );
