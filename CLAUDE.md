@@ -308,6 +308,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=      # Supabase anon key (public)
 SUPABASE_SERVICE_ROLE_KEY=          # Service role key (server-only, sensitive)
 ```
 
+**Optional Variables:**
+```env
+NEXT_PUBLIC_MAPTILER_API_KEY=       # MapTiler API key for static map previews
+```
+- Get free API key at [maptiler.com/cloud](https://www.maptiler.com/cloud/)
+- Free tier: 100,000 requests/month
+- Shows real maps on event cards instead of placeholders
+- No credit card required for free tier
+
 **Test Environment:**
 - Test-specific values in `.env.test`
 - See `.env.test.example` for template
