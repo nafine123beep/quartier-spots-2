@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -10,7 +9,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'token or teamCode is required' }, { status: 400 });
     }
 
-    // Verify the user is authenticated
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -18,13 +16,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Use service role to look up tenant (bypasses RLS)
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    let query = serviceClient
+    // Look up tenant by token or team code
+    let query = supabase
       .from('tenants')
       .select('id, name, slug');
 
@@ -41,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already a member
-    const { data: existingMembership } = await serviceClient
+    const { data: existingMembership } = await supabase
       .from('memberships')
       .select('tenant_id')
       .eq('tenant_id', tenant.id)
@@ -56,15 +49,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Ensure user profile exists
-    const { data: profile } = await serviceClient
+    // Ensure user profile exists (same pattern as FlohmarktContext.joinTenant)
+    const { data: profile } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', user.id)
       .maybeSingle();
 
     if (!profile) {
-      await serviceClient
+      await supabase
         .from('profiles')
         .upsert({
           id: user.id,
@@ -74,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create membership
-    const { error: membershipError } = await serviceClient
+    const { error: membershipError } = await supabase
       .from('memberships')
       .insert({
         tenant_id: tenant.id,
@@ -84,7 +77,10 @@ export async function POST(request: NextRequest) {
       });
 
     if (membershipError) {
-      return NextResponse.json({ error: 'Failed to create membership' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to create membership', details: membershipError.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -92,7 +88,8 @@ export async function POST(request: NextRequest) {
       orgSlug: tenant.slug,
       orgName: tenant.name,
     });
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: 'Internal server error', details: message }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -9,12 +9,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'token or teamCode is required' }, { status: 400 });
     }
 
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = await createClient();
 
-    let query = serviceClient
+    let query = supabase
       .from('tenants')
       .select('id, name, slug');
 
@@ -35,7 +32,8 @@ export async function POST(request: NextRequest) {
       orgName: tenant.name,
       orgSlug: tenant.slug,
     });
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: 'Internal server error', details: message }, { status: 500 });
   }
 }
