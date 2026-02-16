@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Settings, HelpCircle } from "lucide-react";
+import { Settings, HelpCircle, LogOut } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import { UpcomingEventsSection } from "./UpcomingEventsSection";
@@ -45,22 +45,24 @@ export function OrganizationHomeDashboard() {
             aria-label="Hilfe & Support"
           >
             <HelpCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Hilfe & Support</span>
+            <span className="hidden sm:inline">Hilfe</span>
           </button>
 
           <Link
             href="/flohmarkt/settings/profile"
-            className="flex items-center justify-center w-10 h-10 bg-transparent border border-white text-white rounded hover:bg-white/10 transition-colors no-underline"
+            className="flex items-center gap-2 bg-transparent border border-white text-white px-3 py-2 rounded hover:bg-white/10 transition-colors text-sm no-underline"
             aria-label="Einstellungen"
           >
-            <Settings className="h-5 w-5" />
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Einstellungen</span>
           </Link>
 
           <button
             onClick={logout}
-            className="bg-white/10 border border-white text-white px-4 py-2 rounded hover:bg-white/20 transition-colors text-sm"
+            className="flex items-center gap-2 bg-transparent border border-white text-white px-3 py-2 rounded hover:bg-white/10 transition-colors text-sm"
           >
-            Logout
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
