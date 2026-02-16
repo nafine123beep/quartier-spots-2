@@ -23,6 +23,13 @@ export function ManageStep(_props: ManageStepProps) {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
+  // Debug logging - remove after testing
+  console.log('ManageStep Debug:', {
+    isAdmin,
+    eventStatus: currentTenantEvent?.status,
+    shouldShowButton: isAdmin && currentTenantEvent?.status === 'active'
+  });
+
   if (!currentTenantEvent || !currentTenant) return null;
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
