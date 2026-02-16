@@ -102,7 +102,7 @@ export function MemberManagementSection() {
           </div>
           <Link
             href="/flohmarkt/settings/organization"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-all whitespace-nowrap no-underline focus:outline-none focus:ring-2 focus:ring-[#003366] focus:ring-offset-2"
+            className="flex items-center justify-center gap-2 min-w-[8rem] px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-all whitespace-nowrap no-underline focus:outline-none focus:ring-2 focus:ring-[#003366] focus:ring-offset-2"
           >
             <Pencil className="h-4 w-4" />
             <span>Bearbeiten</span>
