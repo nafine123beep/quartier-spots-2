@@ -74,8 +74,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ invite_token });
-  } catch (err) {
-    console.error('[invite/ensure] Unexpected error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error('[invite/ensure] Unexpected error:', message, stack);
+    return NextResponse.json({ error: 'Internal server error', details: message }, { status: 500 });
   }
 }
