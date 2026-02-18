@@ -38,6 +38,18 @@ export default function AuthCallbackPage() {
         return;
       }
 
+      // Check for pending auth redirect (from middleware login redirect)
+      const pendingAuthRedirect = typeof window !== 'undefined'
+        ? localStorage.getItem('pending_auth_redirect')
+        : null;
+
+      if (pendingAuthRedirect) {
+        localStorage.removeItem('pending_auth_redirect');
+        setStatus("Erfolgreich eingeloggt! Weiterleitung...");
+        window.location.replace(pendingAuthRedirect);
+        return;
+      }
+
       // If user has memberships, they've completed onboarding - go to dashboard
       if (memberships && memberships.length > 0) {
         setStatus("Erfolgreich eingeloggt! Weiterleitung...");

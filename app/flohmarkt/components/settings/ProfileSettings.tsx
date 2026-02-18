@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { createClient } from "@/lib/supabase/client";
+import { AppShell } from "../shared/AppShell";
 
 export function ProfileSettings() {
   const { user, updateUserProfile } = useFlohmarkt();
@@ -169,22 +168,8 @@ export function ProfileSettings() {
   const passwordValid = newPassword.length >= 6 && newPassword === confirmPassword;
 
   return (
-    <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div>
-          <span className="font-bold text-lg">Profil bearbeiten</span>
-        </div>
-        <Link
-          href="/flohmarkt/settings"
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-        >
-          <ArrowLeft className="h-4 w-4" /> Zurück
-        </Link>
-      </div>
-
-      {/* Content */}
-      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+    <AppShell title="Profil bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-[#003366] mt-0 mb-4 font-bold">Dein Profil</h3>
 
@@ -344,6 +329,6 @@ export function ProfileSettings() {
         </div>
 
       </div>
-    </div>
+    </AppShell>
   );
 }

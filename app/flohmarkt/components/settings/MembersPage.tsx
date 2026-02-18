@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Users, ArrowLeft } from "lucide-react";
+import { Users } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { AppShell } from "../shared/AppShell";
 
 export function MembersPage() {
   const { currentTenant, members, loadMembers, user } = useFlohmarkt();
@@ -16,17 +17,8 @@ export function MembersPage() {
 
   if (!currentTenant) {
     return (
-      <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-        <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-          <span className="font-bold text-lg">Mitglieder</span>
-          <Link
-            href="/flohmarkt/settings"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-          >
-            <ArrowLeft className="h-4 w-4" /> Zurück
-          </Link>
-        </div>
-        <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+      <AppShell title="Mitglieder" backHref="/flohmarkt/settings" showLogout={false}>
+        <div className="p-5 w-full max-w-[600px] mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <p className="text-gray-600">Keine Organisation ausgewählt.</p>
             <Link
@@ -37,7 +29,7 @@ export function MembersPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
@@ -47,24 +39,16 @@ export function MembersPage() {
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
 
-  return (
-    <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5" aria-hidden="true" />
-          <span className="font-bold text-lg">Mitglieder</span>
-        </div>
-        <Link
-          href="/flohmarkt"
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-        >
-          <ArrowLeft className="h-4 w-4" /> Zurück
-        </Link>
-      </div>
+  const titleEl = (
+    <span className="font-bold text-lg flex items-center gap-2">
+      <Users className="h-5 w-5" aria-hidden="true" />
+      Mitglieder
+    </span>
+  );
 
-      {/* Content */}
-      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+  return (
+    <AppShell title={titleEl} backHref="/flohmarkt/settings" showLogout={false}>
+      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-[#003366] m-0 font-bold">{currentTenant.name}</h3>
@@ -115,6 +99,6 @@ export function MembersPage() {
           )}
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { generateSlug } from "../../utils/slug";
+import { AppShell } from "../shared/AppShell";
 
 export function OrganizationSettings() {
   const router = useRouter();
@@ -88,17 +88,8 @@ export function OrganizationSettings() {
 
   if (!currentTenant) {
     return (
-      <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-        <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-          <span className="font-bold text-lg">Organisation bearbeiten</span>
-          <Link
-            href="/flohmarkt/settings"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-          >
-            <ArrowLeft className="h-4 w-4" /> Zurück
-          </Link>
-        </div>
-        <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+      <AppShell title="Organisation bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+        <div className="p-5 w-full max-w-[600px] mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <p className="text-gray-600">Keine Organisation ausgewählt.</p>
             <Link
@@ -109,23 +100,14 @@ export function OrganizationSettings() {
             </Link>
           </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-        <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-          <span className="font-bold text-lg">Organisation bearbeiten</span>
-          <Link
-            href="/flohmarkt/settings"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-          >
-            <ArrowLeft className="h-4 w-4" /> Zurück
-          </Link>
-        </div>
-        <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+      <AppShell title="Organisation bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+        <div className="p-5 w-full max-w-[600px] mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <p className="text-gray-600">Du benötigst Admin-Rechte, um die Organisation zu bearbeiten.</p>
             <Link
@@ -136,27 +118,13 @@ export function OrganizationSettings() {
             </Link>
           </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div>
-          <span className="font-bold text-lg">Organisation bearbeiten</span>
-        </div>
-        <Link
-          href="/flohmarkt/settings"
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-        >
-          <ArrowLeft className="h-4 w-4" /> Zurück
-        </Link>
-      </div>
-
-      {/* Content */}
-      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+    <AppShell title="Organisation bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto">
         {/* Edit Section */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">
           <h3 className="text-[#003366] mt-0 mb-4 font-bold">{currentTenant.name}</h3>
@@ -301,6 +269,6 @@ export function OrganizationSettings() {
           )}
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }

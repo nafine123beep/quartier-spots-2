@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Settings, Archive } from "lucide-react";
+import { Settings, Archive } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { AppShell } from "../shared/AppShell";
 import { EventCard } from "./EventCard";
 import { CreateEventCard } from "./CreateEventCard";
 import { EventCreatedNotification } from "./EventCreatedNotification";
@@ -36,46 +36,23 @@ export function EventOverview() {
     .filter(e => e.status === 'archived')
     .sort(sortByDateTime);
 
-  return (
-    <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/flohmarkt/organizations"
-            className="bg-transparent border-none text-white cursor-pointer hover:opacity-80 no-underline"
-            aria-label="Zurück zu Organisationen"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <span className="font-bold text-lg">{currentTenant.name}</span>
-            {user && (
-              <div className="text-sm text-gray-300 mt-1">
-                {user.name !== user.email ? `${user.name} (${user.email})` : user.email}
-                {isAdmin && <span className="ml-2 bg-yellow-500 text-black px-2 py-0.5 rounded text-xs">Admin</span>}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/flohmarkt/settings"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center"
-            aria-label="Einstellungen"
-          >
-            <Settings className="h-5 w-5" />
-          </Link>
-          <button
-            onClick={logout}
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+  const subtitleEl = user && (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span>{user.name !== user.email ? `${user.name} (${user.email})` : user.email}</span>
+      {isAdmin && <span className="bg-yellow-500 text-black px-2 py-0.5 rounded text-xs">Admin</span>}
+    </div>
+  );
 
-      {/* Main Content */}
+  return (
+    <AppShell
+      title={currentTenant.name}
+      subtitle={subtitleEl}
+      backHref="/flohmarkt/organizations"
+      backLabel="Zurück zu Organisationen"
+      actions={[
+        { icon: <Settings className="h-5 w-5" />, label: "Einstellungen", href: "/flohmarkt/settings", showLabel: "never" },
+      ]}
+    >
       <div className="p-5 overflow-y-auto flex-grow">
         <div className="w-full max-w-[1000px] mx-auto">
           {/* Active Events Section */}
@@ -130,6 +107,6 @@ export function EventOverview() {
           tenantSlug={currentTenant.slug}
         />
       )}
-    </div>
+    </AppShell>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { AppShell } from "../shared/AppShell";
 import { CreateTenantForm } from "./CreateTenantForm";
 import { JoinTenantForm } from "./JoinTenantForm";
 import { TenantCard } from "./TenantCard";
@@ -54,46 +54,21 @@ export function TenantDashboard() {
   }
 
   // Otherwise show existing multi-tenant selector/create/join UI
-  return (
-    <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/flohmarkt"
-            className="bg-transparent border-none text-white cursor-pointer hover:opacity-80 no-underline"
-            aria-label="Zurück zur Startseite"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Link>
-          <div>
-            <span className="font-bold text-lg">Meine Organisationen</span>
-            {user && (
-              <div className="text-sm text-gray-300 mt-1">
-                {user.name !== user.email ? `${user.name} (${user.email})` : user.email}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/flohmarkt/settings"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center"
-            aria-label="Profil bearbeiten"
-          >
-            <Settings className="h-5 w-5" />
-          </Link>
-          <button
-            onClick={logout}
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+  const subtitle = user
+    ? (user.name !== user.email ? `${user.name} (${user.email})` : user.email)
+    : undefined;
 
-      {/* Content */}
-      <div className="p-5 overflow-y-auto w-full max-w-[800px] mx-auto flex-grow">
+  return (
+    <AppShell
+      title="Meine Organisationen"
+      subtitle={subtitle}
+      backHref="/flohmarkt"
+      backLabel="Zurück zur Startseite"
+      actions={[
+        { icon: <Settings className="h-5 w-5" />, label: "Einstellungen", href: "/flohmarkt/settings", showLabel: "never" },
+      ]}
+    >
+      <div className="p-5 overflow-y-auto w-full max-w-[800px] mx-auto">
         {mode === "list" && (
           <>
             {loadingTimeout ? (
@@ -181,6 +156,6 @@ export function TenantDashboard() {
           <JoinTenantForm onBack={() => setMode("list")} />
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }

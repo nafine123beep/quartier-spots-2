@@ -28,7 +28,7 @@ function LoginPageContent() {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user) {
-        router.replace("/flohmarkt/organizations");
+        router.replace(redirectParam || "/flohmarkt/organizations");
       } else {
         setCheckingSession(false);
       }
@@ -99,12 +99,17 @@ function LoginPageContent() {
         if (pendingRedirect) {
           localStorage.removeItem('pending_join_redirect');
           router.replace(pendingRedirect);
+        } else if (redirectParam) {
+          router.replace(redirectParam);
         } else {
-          // Existing user - redirect to organizations page (even if they have no memberships yet)
           router.replace("/flohmarkt/organizations");
         }
       }
     } else {
+      // Store redirect target for callback page
+      if (redirectParam) {
+        localStorage.setItem('pending_auth_redirect', redirectParam);
+      }
       // Magic link login
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -128,6 +133,11 @@ function LoginPageContent() {
   const handleGoogleLogin = async () => {
     setError(null);
     setLoading(true);
+
+    // Store redirect target for callback page
+    if (redirectParam) {
+      localStorage.setItem('pending_auth_redirect', redirectParam);
+    }
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
@@ -497,5 +507,17 @@ function LoginPageContent() {
 
               </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="fixed inset-0 bg-gray-100 z-[4000] flex items-center justify-center">
+        <div className="text-[#003366] font-semibold">Laden...</div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

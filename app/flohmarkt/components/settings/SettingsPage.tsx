@@ -1,29 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
+import { AppShell } from "../shared/AppShell";
 
 export function SettingsPage() {
   const { user, currentTenant, isAdmin, logout } = useFlohmarkt();
 
-  return (
-    <div className="fixed inset-0 bg-gray-100 z-[3500] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
-        <div>
-          <span className="font-bold text-lg">Einstellungen</span>
-        </div>
-        <Link
-          href={currentTenant ? `/flohmarkt/organizations/${currentTenant.slug}` : "/flohmarkt/organizations"}
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
-        >
-          <ArrowLeft className="h-4 w-4" /> Zurück
-        </Link>
-      </div>
+  const backHref = currentTenant
+    ? `/flohmarkt/organizations/${currentTenant.slug}`
+    : "/flohmarkt/organizations";
 
-      {/* Content */}
-      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
+  return (
+    <AppShell title="Einstellungen" backHref={backHref} showLogout={false}>
+      <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto">
         {/* Profile Section */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-5">
           <div className="flex justify-between items-center mb-4">
@@ -114,6 +105,6 @@ export function SettingsPage() {
           </button>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }
