@@ -169,9 +169,22 @@ export function useEventAutosave({
               setError(msg);
               return { success: false, error: msg };
             }
+            const now = new Date();
+            if (startDate <= now) {
+              setSaveStatus("error");
+              const msg = "Das Startdatum muss in der Zukunft liegen";
+              setError(msg);
+              return { success: false, error: msg };
+            }
             if (endDate <= startDate) {
               setSaveStatus("error");
               const msg = "Das Enddatum muss nach dem Startdatum liegen";
+              setError(msg);
+              return { success: false, error: msg };
+            }
+            if (endDate <= now) {
+              setSaveStatus("error");
+              const msg = "Das Enddatum muss in der Zukunft liegen";
               setError(msg);
               return { success: false, error: msg };
             }

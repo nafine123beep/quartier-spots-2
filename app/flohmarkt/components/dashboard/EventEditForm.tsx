@@ -77,6 +77,39 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Inline date validation errors
+  const [startDateError, setStartDateError] = useState<string | null>(null);
+  const [endDateError, setEndDateError] = useState<string | null>(null);
+
+  const validateDates = (start: string, end: string) => {
+    let startErr: string | null = null;
+    let endErr: string | null = null;
+    const now = new Date();
+
+    if (start) {
+      const startDate = new Date(start);
+      if (!isNaN(startDate.getTime()) && startDate <= now) {
+        startErr = "Das Startdatum muss in der Zukunft liegen";
+      }
+    }
+
+    if (end) {
+      const endDate = new Date(end);
+      if (start) {
+        const startDate = new Date(start);
+        if (!isNaN(endDate.getTime()) && !isNaN(startDate.getTime()) && endDate <= startDate) {
+          endErr = "Das Enddatum muss nach dem Startdatum liegen";
+        }
+      }
+      if (!isNaN(endDate.getTime()) && endDate <= now) {
+        endErr = endErr || "Das Enddatum muss in der Zukunft liegen";
+      }
+    }
+
+    setStartDateError(startErr);
+    setEndDateError(endErr);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -99,8 +132,20 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
         return;
       }
 
+      if (startDate <= new Date()) {
+        setError("Das Startdatum muss in der Zukunft liegen.");
+        setSubmitting(false);
+        return;
+      }
+
       if (endDate <= startDate) {
         setError("Das Enddatum muss nach dem Startdatum liegen.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (endDate <= new Date()) {
+        setError("Das Enddatum muss in der Zukunft liegen.");
         setSubmitting(false);
         return;
       }
@@ -226,9 +271,17 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
             <input
               type="datetime-local"
               value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md text-gray-900"
+              onChange={(e) => {
+                setStartsAt(e.target.value);
+                validateDates(e.target.value, endsAt);
+              }}
+              className={`w-full p-3 rounded-md text-gray-900 ${
+                startDateError ? "border-2 border-red-500" : "border border-gray-300"
+              }`}
             />
+            {startDateError && (
+              <p className="text-xs text-red-600 mt-1">{startDateError}</p>
+            )}
           </div>
           <div>
             <label className="block mb-2 font-bold text-gray-700 text-sm">
@@ -237,9 +290,17 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
             <input
               type="datetime-local"
               value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-md text-gray-900"
+              onChange={(e) => {
+                setEndsAt(e.target.value);
+                validateDates(startsAt, e.target.value);
+              }}
+              className={`w-full p-3 rounded-md text-gray-900 ${
+                endDateError ? "border-2 border-red-500" : "border border-gray-300"
+              }`}
             />
+            {endDateError && (
+              <p className="text-xs text-red-600 mt-1">{endDateError}</p>
+            )}
           </div>
         </div>
 

@@ -44,6 +44,10 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
   // Images
   const [images, setImages] = useState<EventImage[]>(currentTenantEvent?.images ?? []);
 
+  // Inline date validation errors
+  const [startDateError, setStartDateError] = useState<string | null>(null);
+  const [endDateError, setEndDateError] = useState<string | null>(null);
+
   // Form data ref for autosave hook
   const formDataRef = useRef<EventFormData>({
     title: currentTenantEvent?.title || "",
@@ -110,6 +114,36 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
+  // Inline date validation (called on every change)
+  const validateDates = (start: string, end: string) => {
+    let startErr: string | null = null;
+    let endErr: string | null = null;
+    const now = new Date();
+
+    if (start) {
+      const startDate = new Date(start);
+      if (!isNaN(startDate.getTime()) && startDate <= now) {
+        startErr = "Das Startdatum muss in der Zukunft liegen";
+      }
+    }
+
+    if (end) {
+      const endDate = new Date(end);
+      if (start) {
+        const startDate = new Date(start);
+        if (!isNaN(endDate.getTime()) && !isNaN(startDate.getTime()) && endDate <= startDate) {
+          endErr = "Das Enddatum muss nach dem Startdatum liegen";
+        }
+      }
+      if (!isNaN(endDate.getTime()) && endDate <= now) {
+        endErr = endErr || "Das Enddatum muss in der Zukunft liegen";
+      }
+    }
+
+    setStartDateError(startErr);
+    setEndDateError(endErr);
+  };
+
   // Validation function for navigation
   const validateForm = (): { valid: boolean; error?: string } => {
     if (!title.trim()) {
@@ -123,8 +157,14 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       return { valid: false, error: "Ungültiges Datum. Bitte überprüfe die Eingabe" };
     }
+    if (startDate <= new Date()) {
+      return { valid: false, error: "Das Startdatum muss in der Zukunft liegen" };
+    }
     if (endDate <= startDate) {
       return { valid: false, error: "Das Enddatum muss nach dem Startdatum liegen" };
+    }
+    if (endDate <= new Date()) {
+      return { valid: false, error: "Das Enddatum muss in der Zukunft liegen" };
     }
     if (!mapCenterAddress.trim()) {
       return { valid: false, error: "Bitte gib eine Adresse für das Kartenzentrum ein" };
@@ -270,13 +310,19 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
               onChange={(e) => {
                 const val = e.target.value;
                 setStartsAt(val);
+                validateDates(val, endsAt);
                 formDataRef.current = { ...formDataRef.current, startsAt: val };
                 updateFormData(formDataRef.current);
                 markDirty("startsAt");
                 save({ immediate: true });
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent"
+              className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent ${
+                startDateError ? "border-2 border-red-500" : "border border-gray-300"
+              }`}
             />
+            {startDateError && (
+              <p className="text-xs text-red-600 mt-1">{startDateError}</p>
+            )}
           </div>
           <div>
             <label htmlFor="endsAt" className="block text-sm font-medium text-gray-700 mb-1">
@@ -289,13 +335,19 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
               onChange={(e) => {
                 const val = e.target.value;
                 setEndsAt(val);
+                validateDates(startsAt, val);
                 formDataRef.current = { ...formDataRef.current, endsAt: val };
                 updateFormData(formDataRef.current);
                 markDirty("endsAt");
                 save({ immediate: true });
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent"
+              className={`w-full px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-transparent ${
+                endDateError ? "border-2 border-red-500" : "border border-gray-300"
+              }`}
             />
+            {endDateError && (
+              <p className="text-xs text-red-600 mt-1">{endDateError}</p>
+            )}
           </div>
         </div>
       </div>

@@ -28,9 +28,67 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Inline date validation errors
+  const [startDateError, setStartDateError] = useState<string | null>(null);
+  const [endDateError, setEndDateError] = useState<string | null>(null);
+
+  const validateDates = (start: string, end: string) => {
+    let startErr: string | null = null;
+    let endErr: string | null = null;
+    const now = new Date();
+
+    if (start) {
+      const startDate = new Date(start);
+      if (!isNaN(startDate.getTime()) && startDate <= now) {
+        startErr = "Das Startdatum muss in der Zukunft liegen";
+      }
+    }
+
+    if (end) {
+      const endDate = new Date(end);
+      if (start) {
+        const startDate = new Date(start);
+        if (!isNaN(endDate.getTime()) && !isNaN(startDate.getTime()) && endDate <= startDate) {
+          endErr = "Das Enddatum muss nach dem Startdatum liegen";
+        }
+      }
+      if (!isNaN(endDate.getTime()) && endDate <= now) {
+        endErr = endErr || "Das Enddatum muss in der Zukunft liegen";
+      }
+    }
+
+    setStartDateError(startErr);
+    setEndDateError(endErr);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate dates before submission
+    if (!startsAt || !endsAt) {
+      setError("Bitte gib Start- und Enddatum ein.");
+      return;
+    }
+    const startDate = new Date(startsAt);
+    const endDate = new Date(endsAt);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      setError("Ungültiges Datum. Bitte überprüfe die Eingabe.");
+      return;
+    }
+    if (startDate <= new Date()) {
+      setError("Das Startdatum muss in der Zukunft liegen.");
+      return;
+    }
+    if (endDate <= startDate) {
+      setError("Das Enddatum muss nach dem Startdatum liegen.");
+      return;
+    }
+    if (endDate <= new Date()) {
+      setError("Das Enddatum muss in der Zukunft liegen.");
+      return;
+    }
+
     setLoading(true);
 
     // Geocode the map center address
@@ -145,10 +203,18 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
             <input
               type="datetime-local"
               value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
+              onChange={(e) => {
+                setStartsAt(e.target.value);
+                validateDates(e.target.value, endsAt);
+              }}
               disabled={loading}
-              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+              className={`w-full p-3 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100 ${
+                startDateError ? "border-2 border-red-500" : "border border-gray-300"
+              }`}
             />
+            {startDateError && (
+              <p className="text-xs text-red-600 mt-1">{startDateError}</p>
+            )}
           </div>
           <div className="flex-1 mb-4">
             <label className="block mb-1 font-bold text-gray-700 text-sm">
@@ -157,10 +223,18 @@ export function CreateEventForm({ onSuccess }: CreateEventFormProps) {
             <input
               type="datetime-local"
               value={endsAt}
-              onChange={(e) => setEndsAt(e.target.value)}
+              onChange={(e) => {
+                setEndsAt(e.target.value);
+                validateDates(startsAt, e.target.value);
+              }}
               disabled={loading}
-              className="w-full p-3 border border-gray-300 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100"
+              className={`w-full p-3 rounded-md text-base text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100 ${
+                endDateError ? "border-2 border-red-500" : "border border-gray-300"
+              }`}
             />
+            {endDateError && (
+              <p className="text-xs text-red-600 mt-1">{endDateError}</p>
+            )}
           </div>
         </div>
 
