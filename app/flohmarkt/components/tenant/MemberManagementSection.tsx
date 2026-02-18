@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Users, Pencil, Link2, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
+import { Users, Pencil, Link2, KeyRound, ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { LinkCopyField } from "../dashboard/EventJourney/shared/LinkCopyField";
 
@@ -161,6 +161,18 @@ export function MemberManagementSection() {
             </div>
           )}
         </div>
+
+        {/* Link to members list */}
+        <Link
+          href="/flohmarkt/settings/members"
+          className="flex items-center justify-between mt-5 pt-4 border-t border-gray-200 text-sm text-gray-600 hover:text-[#003366] transition-colors no-underline group"
+        >
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4" aria-hidden="true" />
+            <span>Alle Mitglieder anzeigen</span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-[#003366] transition-colors" />
+        </Link>
       </div>
     </section>
   );

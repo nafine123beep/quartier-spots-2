@@ -99,6 +99,10 @@ interface FlohmarktContextType {
   addCustomHighlightType: (typeKey: string, label: string, icon: string) => Promise<boolean>;
   deleteCustomHighlightType: (id: string) => Promise<boolean>;
 
+  // Members
+  members: Member[];
+  loadMembers: () => Promise<void>;
+
   // Dashboard state & actions
   upcomingEvents: TenantEvent[];
   lastSelectedTenantSlug: string | null;
@@ -320,6 +324,47 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
     setIsAdmin(membership?.role === 'admin');
     setCurrentView("eventOverview");
   }, [user]);
+
+  const loadMembers = useCallback(async () => {
+    if (!currentTenant) return;
+
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("memberships")
+      .select(`
+        user_id,
+        tenant_id,
+        role,
+        status,
+        created_at,
+        profiles (
+          email,
+          display_name
+        )
+      `)
+      .eq("tenant_id", currentTenant.id)
+      .eq("status", "active");
+
+    if (error) {
+      console.error("[FlohmarktContext] Failed to load members:", error);
+      return;
+    }
+
+    const loaded: Member[] = (data || []).map((m) => {
+      const profile = m.profiles as unknown as { email?: string; display_name?: string } | null;
+      return {
+        user_id: m.user_id,
+        tenant_id: m.tenant_id,
+        role: m.role as "admin" | "member",
+        status: m.status as "active" | "pending" | "invited",
+        email: profile?.email,
+        display_name: profile?.display_name,
+        created_at: m.created_at,
+      };
+    });
+
+    setMembers(loaded);
+  }, [currentTenant]);
 
   const createTenant = useCallback(async (name: string, joinPassword: string) => {
     if (!user) return { success: false, error: "Not authenticated" };
@@ -1375,6 +1420,8 @@ export function FlohmarktProvider({ children }: { children: ReactNode }) {
         deleteHighlight,
         addCustomHighlightType,
         deleteCustomHighlightType,
+        members,
+        loadMembers,
         upcomingEvents,
         lastSelectedTenantSlug,
         setLastSelectedTenantSlug,
