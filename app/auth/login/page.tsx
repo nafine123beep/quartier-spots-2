@@ -24,18 +24,26 @@ function LoginPageContent() {
   // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
 
-      if (session?.user) {
-        router.replace(redirectParam || "/flohmarkt/organizations");
-      } else {
-        setCheckingSession(false);
+        if (session?.user) {
+          router.replace(redirectParam || "/flohmarkt/organizations");
+          return;
+        }
+      } catch (err) {
+        console.error("Session check failed:", err);
       }
+      setCheckingSession(false);
     };
 
     checkSession();
-  }, [router]);
+
+    // Fallback: show login form after 3 seconds even if getSession hangs
+    const timeout = setTimeout(() => setCheckingSession(false), 3000);
+    return () => clearTimeout(timeout);
+  }, [router, redirectParam]);
 
   // Show nothing while checking session to avoid flash
   if (checkingSession) {

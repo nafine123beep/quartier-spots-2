@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Settings } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { AppShell } from "../shared/AppShell";
@@ -14,6 +14,7 @@ type Mode = "list" | "create" | "join";
 
 export function TenantDashboard() {
   const { tenants, currentTenant, user, logout, loading, isAuthenticated } = useFlohmarkt();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const viewAll = searchParams.get('view') === 'all';
   const [mode, setMode] = useState<Mode>("list");
@@ -62,8 +63,8 @@ export function TenantDashboard() {
     <AppShell
       title="Meine Organisationen"
       subtitle={subtitle}
-      backHref="/flohmarkt"
-      backLabel="Zurück zur Startseite"
+      onBack={() => router.back()}
+      backLabel="Zurück"
       actions={[
         { icon: <Settings className="h-5 w-5" />, label: "Einstellungen", href: "/flohmarkt/settings", showLabel: "never" },
       ]}

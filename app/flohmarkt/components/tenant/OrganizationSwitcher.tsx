@@ -22,7 +22,7 @@ export function OrganizationSwitcher() {
 
     selectTenant(tenant);
     setLastSelectedTenantSlug(tenantSlug);
-    router.push(`/flohmarkt/organizations/${tenantSlug}`);
+    router.push('/flohmarkt/organizations');
     setIsOpen(false);
   };
 
