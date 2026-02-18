@@ -57,7 +57,7 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
   });
 
   // Initialize autosave hook
-  const { saveStatus, error: saveError, markDirty, save } = useEventAutosave({
+  const { saveStatus, error: saveError, markDirty, updateFormData, save } = useEventAutosave({
     eventId: currentTenantEvent!.id,
     initialData: formDataRef.current,
     updateEvent,
@@ -207,7 +207,10 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
               type="text"
               value={title}
               onChange={(e) => {
-                setTitle(e.target.value);
+                const val = e.target.value;
+                setTitle(val);
+                formDataRef.current = { ...formDataRef.current, title: val };
+                updateFormData(formDataRef.current);
                 markDirty("title");
               }}
               onBlur={() => save({ immediate: true })}
@@ -224,7 +227,10 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
               id="description"
               value={description}
               onChange={(e) => {
-                setDescription(e.target.value);
+                const val = e.target.value;
+                setDescription(val);
+                formDataRef.current = { ...formDataRef.current, description: val };
+                updateFormData(formDataRef.current);
                 markDirty("description");
               }}
               onBlur={() => save({ immediate: true })}
@@ -260,7 +266,10 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
               type="datetime-local"
               value={startsAt}
               onChange={(e) => {
-                setStartsAt(e.target.value);
+                const val = e.target.value;
+                setStartsAt(val);
+                formDataRef.current = { ...formDataRef.current, startsAt: val };
+                updateFormData(formDataRef.current);
                 markDirty("startsAt");
                 save({ immediate: true });
               }}
@@ -276,7 +285,10 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
               type="datetime-local"
               value={endsAt}
               onChange={(e) => {
-                setEndsAt(e.target.value);
+                const val = e.target.value;
+                setEndsAt(val);
+                formDataRef.current = { ...formDataRef.current, endsAt: val };
+                updateFormData(formDataRef.current);
                 markDirty("endsAt");
                 save({ immediate: true });
               }}
@@ -302,7 +314,10 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
             type="text"
             value={mapCenterAddress}
             onChange={(e) => {
-              setMapCenterAddress(e.target.value);
+              const val = e.target.value;
+              setMapCenterAddress(val);
+              formDataRef.current = { ...formDataRef.current, mapCenterAddress: val };
+              updateFormData(formDataRef.current);
               markDirty("mapCenterAddress");
             }}
             onBlur={() => save({ immediate: true })}

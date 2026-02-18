@@ -29,6 +29,7 @@ export interface UseEventAutosaveReturn {
   saveStatus: SaveStatus;
   error: string | null;
   markDirty: (field: keyof EventFormData) => void;
+  updateFormData: (data: EventFormData) => void;
   save: (options?: {
     immediate?: boolean;
     validate?: boolean;
@@ -53,14 +54,12 @@ export function useEventAutosave({
   const lastGeocodedResult = useRef<GeocodeResult | null>(null);
   const currentFormData = useRef<EventFormData>(initialData);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const dirtyFieldsRef = useRef<Set<keyof EventFormData>>(new Set());
 
-  // Mark a field as dirty
+  // Mark a field as dirty (updates both ref and state)
   const markDirty = useCallback((field: keyof EventFormData) => {
-    setDirtyFields((prev) => {
-      const next = new Set(prev);
-      next.add(field);
-      return next;
-    });
+    dirtyFieldsRef.current = new Set([...dirtyFieldsRef.current, field]);
+    setDirtyFields(new Set(dirtyFieldsRef.current));
     setSaveStatus("unsaved");
   }, []);
 
@@ -77,7 +76,7 @@ export function useEventAutosave({
       const { immediate = false, validate = false } = options;
 
       // If no dirty fields and not forced, skip save
-      if (dirtyFields.size === 0 && !validate) {
+      if (dirtyFieldsRef.current.size === 0 && !validate) {
         return { success: true };
       }
 
@@ -190,6 +189,7 @@ export function useEventAutosave({
           if (result.success) {
             setSaveStatus("saved");
             setError(null);
+            dirtyFieldsRef.current = new Set();
             setDirtyFields(new Set());
 
             // Auto-hide "saved" status after 3 seconds
@@ -214,11 +214,12 @@ export function useEventAutosave({
       saveQueue.current = savePromise;
       return savePromise;
     },
-    [dirtyFields, eventId, updateEvent]
+    [eventId, updateEvent]
   );
 
   // Reset state
   const reset = useCallback(() => {
+    dirtyFieldsRef.current = new Set();
     setDirtyFields(new Set());
     setSaveStatus("saved");
     setError(null);
@@ -258,6 +259,7 @@ export function useEventAutosave({
     saveStatus,
     error,
     markDirty,
+    updateFormData,
     save,
     reset,
   };
