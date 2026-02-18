@@ -161,6 +161,7 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
       spotTermSingular,
       spotTermPlural,
     };
+    updateFormData(formDataRef.current);
   }, [
     title,
     description,
@@ -173,6 +174,7 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
     selectedTermPreset,
     customTermSingular,
     customTermPlural,
+    updateFormData,
   ]);
 
   // Expose save callback to parent for navigation
