@@ -17,7 +17,7 @@ export function MembersPage() {
 
   if (!currentTenant) {
     return (
-      <AppShell title="Mitglieder" backHref="/flohmarkt/settings" showLogout={false}>
+      <AppShell title="Mitglieder" backHref="/flohmarkt/organizations" showLogout={false}>
         <div className="p-5 w-full max-w-[600px] mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <p className="text-gray-600">Keine Organisation ausgewählt.</p>
@@ -47,7 +47,7 @@ export function MembersPage() {
   );
 
   return (
-    <AppShell title={titleEl} backHref="/flohmarkt/settings" showLogout={false}>
+    <AppShell title={titleEl} backHref={`/flohmarkt/organizations/${currentTenant.slug}`} showLogout={false}>
       <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">

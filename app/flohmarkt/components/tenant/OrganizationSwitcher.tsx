@@ -12,9 +12,8 @@ export function OrganizationSwitcher() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Only show if user has multiple orgs
-  if (!currentTenant || tenants.length <= 1) {
-    return <h2 className="text-xl font-bold m-0 text-white">{currentTenant?.name}</h2>;
+  if (!currentTenant) {
+    return null;
   }
 
   const handleSwitch = async (tenantSlug: string) => {

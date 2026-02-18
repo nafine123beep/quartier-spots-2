@@ -88,7 +88,7 @@ export function OrganizationSettings() {
 
   if (!currentTenant) {
     return (
-      <AppShell title="Organisation bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+      <AppShell title="Organisation bearbeiten" onBack={() => router.back()} showLogout={false}>
         <div className="p-5 w-full max-w-[600px] mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <p className="text-gray-600">Keine Organisation ausgewählt.</p>
@@ -106,7 +106,7 @@ export function OrganizationSettings() {
 
   if (!isAdmin) {
     return (
-      <AppShell title="Organisation bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+      <AppShell title="Organisation bearbeiten" onBack={() => router.back()} showLogout={false}>
         <div className="p-5 w-full max-w-[600px] mx-auto">
           <div className="bg-white p-8 rounded-lg shadow-md text-center">
             <p className="text-gray-600">Du benötigst Admin-Rechte, um die Organisation zu bearbeiten.</p>
@@ -123,7 +123,7 @@ export function OrganizationSettings() {
   }
 
   return (
-    <AppShell title="Organisation bearbeiten" backHref="/flohmarkt/settings" showLogout={false}>
+    <AppShell title="Organisation bearbeiten" onBack={() => router.back()} showLogout={false}>
       <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto">
         {/* Edit Section */}
         <div className="bg-white p-6 rounded-lg shadow-md mb-6">
