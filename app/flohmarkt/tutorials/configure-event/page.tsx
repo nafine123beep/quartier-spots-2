@@ -2,8 +2,8 @@ import { Settings, Type, MapIcon, Archive, ChevronRight } from 'lucide-react';
 
 export default function ConfigureEventTutorial() {
   return (
-    <article className="prose lg:prose-lg max-w-none [--tw-prose-body:#1f2937] [--tw-prose-counters:#1f2937] [--tw-prose-bullets:#1f2937]">
-      <h1>Events konfigurieren</h1>
+    <article className="prose lg:prose-lg max-w-none">
+      <h1 className="text-gray-900">Events konfigurieren</h1>
       <p className="lead text-xl text-gray-800">
         Passe dein Event an deine Bedürfnisse an: von benutzerdefinierten Bezeichnungen
         bis hin zu Karteneinstellungen.
@@ -14,7 +14,7 @@ export default function ConfigureEventTutorial() {
           <Type className="inline h-6 w-6 text-[#003366]" />
           Spot-Bezeichnungen anpassen
         </h2>
-        <p>
+        <p className="text-gray-900">
           Standardmäßig werden Teilnehmer-Einträge als "Spots" bezeichnet. Du kannst diese
           Bezeichnung ändern, um sie an dein Event anzupassen.
         </p>
@@ -27,11 +27,11 @@ export default function ConfigureEventTutorial() {
             <li>Kunstmarkt: "Ausstellungsfläche" / "Ausstellungsflächen"</li>
           </ul>
         </div>
-        <p>
+        <p className="text-gray-900">
           Die Bezeichnung wird überall in der App verwendet: in Formularen, Listen und auf der Karte.
         </p>
-        <h3>So passt du die Bezeichnung an:</h3>
-        <ol className="space-y-2">
+        <h3 className="text-gray-900">So passt du die Bezeichnung an:</h3>
+        <ol className="space-y-2 text-gray-900">
           <li>Öffne dein Event</li>
           <li>Gehe zum Tab <strong>"Einstellungen"</strong></li>
           <li>Unter <strong>"Spot-Bezeichnung"</strong> kannst du Singular und Plural festlegen</li>
@@ -44,18 +44,18 @@ export default function ConfigureEventTutorial() {
           <MapIcon className="inline h-6 w-6 text-[#003366]" />
           Kartenzentrum und Radius anpassen
         </h2>
-        <p>
+        <p className="text-gray-900">
           Das Kartenzentrum bestimmt, wo die Karte zentriert wird. Der Grenzradius definiert,
           wie weit Teilnehmer von diesem Zentrum entfernt Spots anmelden können.
         </p>
-        <h3>Kartenzentrum ändern:</h3>
-        <ol className="space-y-2">
+        <h3 className="text-gray-900">Kartenzentrum ändern:</h3>
+        <ol className="space-y-2 text-gray-900">
           <li>Event-Einstellungen öffnen</li>
           <li>Neue zentrale Adresse eingeben</li>
           <li>System findet automatisch die Koordinaten</li>
         </ol>
-        <h3>Grenzradius festlegen:</h3>
-        <p>
+        <h3 className="text-gray-900">Grenzradius festlegen:</h3>
+        <p className="text-gray-900">
           Optional kannst du einen Radius in Metern festlegen. Spot-Anmeldungen außerhalb
           dieses Bereichs werden abgelehnt. Nützlich für lokale Events mit definiertem Gebiet.
         </p>
@@ -72,16 +72,16 @@ export default function ConfigureEventTutorial() {
           <Archive className="inline h-6 w-6 text-[#003366]" />
           Event archivieren
         </h2>
-        <p>
+        <p className="text-gray-900">
           Nach dem Event kannst du es archivieren. Archivierte Events:
         </p>
-        <ul>
+        <ul className="text-gray-900">
           <li>Sind weiterhin sichtbar für Mitglieder (nur ansehen)</li>
           <li>Erlauben keine neuen Spot-Anmeldungen</li>
           <li>Bleiben als Referenz für zukünftige Events erhalten</li>
           <li>Können reaktiviert werden, falls nötig</li>
         </ul>
-        <p>
+        <p className="text-gray-900">
           Um ein Event zu archivieren, öffne es und klicke auf <strong>"Archivieren"</strong>
           im Einstellungen-Tab.
         </p>
@@ -89,13 +89,13 @@ export default function ConfigureEventTutorial() {
 
       <section className="my-8">
         <h2 className="text-2xl font-bold text-gray-800">Weitere Einstellungen</h2>
-        <h3>Event bearbeiten:</h3>
-        <p>
+        <h3 className="text-gray-900">Event bearbeiten:</h3>
+        <p className="text-gray-900">
           Du kannst jederzeit Titel, Beschreibung, Zeiten und Cover-Bild deines Events ändern.
           Änderungen sind sofort sichtbar.
         </p>
-        <h3>Event löschen:</h3>
-        <p>
+        <h3 className="text-gray-900">Event löschen:</h3>
+        <p className="text-gray-900">
           Events können nur von Admins gelöscht werden. Gelöschte Events können nicht
           wiederhergestellt werden. Verwende stattdessen "Archivieren", um Events
           zu behalten aber zu deaktivieren.

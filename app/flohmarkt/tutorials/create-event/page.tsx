@@ -2,8 +2,8 @@ import { Calendar, MapPin, Image, CheckCircle, ChevronRight } from 'lucide-react
 
 export default function CreateEventTutorial() {
   return (
-    <article className="prose lg:prose-lg max-w-none [--tw-prose-body:#1f2937] [--tw-prose-counters:#1f2937] [--tw-prose-bullets:#1f2937]">
-      <h1>Event anlegen</h1>
+    <article className="prose lg:prose-lg max-w-none">
+      <h1 className="text-gray-900">Event anlegen</h1>
       <p className="lead text-xl text-gray-800">
         In diesem Tutorial lernst du, wie du in wenigen Schritten ein neues Event erstellst
         und für Teilnehmer veröffentlichst.
@@ -14,7 +14,7 @@ export default function CreateEventTutorial() {
           <Calendar className="inline h-6 w-6 text-[#003366]" />
           Schritt 1: Event-Grunddaten eingeben
         </h2>
-        <p>
+        <p className="text-gray-900">
           Öffne die Event-Erstellung über den Button <strong>"Neues Event"</strong> im Dashboard
           oder in der Event-Übersicht deiner Organisation.
         </p>
@@ -34,7 +34,7 @@ export default function CreateEventTutorial() {
           <MapPin className="inline h-6 w-6 text-[#003366]" />
           Schritt 2: Kartenzentrum festlegen
         </h2>
-        <p>
+        <p className="text-gray-900">
           Gib die zentrale Adresse deines Events ein. Diese wird als Mittelpunkt der Karte verwendet
           und hilft Teilnehmern, das Event zu finden.
         </p>
@@ -51,11 +51,11 @@ export default function CreateEventTutorial() {
           <Image className="inline h-6 w-6 text-[#003366]" />
           Schritt 3: Cover-Bild hochladen (Optional)
         </h2>
-        <p>
+        <p className="text-gray-900">
           Füge ein ansprechendes Bild hinzu, das auf der Event-Karte und im Dashboard angezeigt wird.
           Ein gutes Bild macht dein Event attraktiver!
         </p>
-        <ul>
+        <ul className="text-gray-900">
           <li>Unterstützte Formate: JPG, PNG, WebP</li>
           <li>Maximale Dateigröße: 5 MB</li>
           <li>Empfohlenes Format: 16:9 (Querformat)</li>
@@ -67,7 +67,7 @@ export default function CreateEventTutorial() {
           <CheckCircle className="inline h-6 w-6 text-[#003366]" />
           Schritt 4: Event erstellen
         </h2>
-        <p>
+        <p className="text-gray-900">
           Klicke auf <strong>"Event erstellen"</strong>. Dein Event ist jetzt aktiv und öffentlich
           zugänglich. Teilnehmer können ab sofort Spots registrieren!
         </p>

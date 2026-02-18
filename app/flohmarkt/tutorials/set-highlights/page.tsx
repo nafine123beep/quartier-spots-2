@@ -2,8 +2,8 @@ import { Star, MapPin, Plus, Edit, ChevronRight } from 'lucide-react';
 
 export default function SetHighlightsTutorial() {
   return (
-    <article className="prose lg:prose-lg max-w-none [--tw-prose-body:#1f2937] [--tw-prose-counters:#1f2937] [--tw-prose-bullets:#1f2937]">
-      <h1>Highlights für Events setzen</h1>
+    <article className="prose lg:prose-lg max-w-none">
+      <h1 className="text-gray-900">Highlights für Events setzen</h1>
       <p className="lead text-xl text-gray-800">
         Highlights sind besondere Orte auf deiner Event-Karte, die du hervorheben möchtest —
         wie Toiletten, Getränkestände, Infopoints oder besondere Attraktionen.
@@ -14,7 +14,7 @@ export default function SetHighlightsTutorial() {
           <Star className="inline h-6 w-6 text-[#003366]" />
           Was sind Highlights?
         </h2>
-        <p>
+        <p className="text-gray-900">
           Highlights unterscheiden sich von normalen Spots: Sie werden von dir als Organisator
           erstellt und zeigen wichtige Orte, die alle Teilnehmer sehen sollten.
         </p>
@@ -35,10 +35,10 @@ export default function SetHighlightsTutorial() {
           <Plus className="inline h-6 w-6 text-[#003366]" />
           Highlights hinzufügen
         </h2>
-        <p>
+        <p className="text-gray-900">
           Um ein Highlight hinzuzufügen:
         </p>
-        <ol className="space-y-2">
+        <ol className="space-y-2 text-gray-900">
           <li>Öffne dein Event im Dashboard</li>
           <li>Wechsle zum Tab <strong>"Highlights"</strong></li>
           <li>Klicke auf <strong>"Highlight hinzufügen"</strong></li>
@@ -54,16 +54,16 @@ export default function SetHighlightsTutorial() {
           <Edit className="inline h-6 w-6 text-[#003366]" />
           Eigene Highlight-Typen erstellen
         </h2>
-        <p>
+        <p className="text-gray-900">
           Du kannst auch eigene Highlight-Typen mit individuellen Icons und Bezeichnungen erstellen:
         </p>
-        <ol className="space-y-2">
+        <ol className="space-y-2 text-gray-900">
           <li>Im Highlights-Tab auf <strong>"Neuer Typ"</strong> klicken</li>
           <li>Bezeichnung eingeben (z.B. "Kinderspielplatz")</li>
           <li>Icon auswählen (Emoji oder Text)</li>
           <li>Speichern</li>
         </ol>
-        <p>
+        <p className="text-gray-900">
           Dieser Typ steht dann für alle Highlights in diesem Event zur Verfügung.
         </p>
       </section>
@@ -73,7 +73,7 @@ export default function SetHighlightsTutorial() {
           <MapPin className="inline h-6 w-6 text-[#003366]" />
           Highlights auf der Karte
         </h2>
-        <p>
+        <p className="text-gray-900">
           Highlights werden auf der öffentlichen Event-Karte mit speziellen Icons angezeigt
           und heben sich optisch von normalen Spots ab. So finden Teilnehmer wichtige Orte sofort!
         </p>
