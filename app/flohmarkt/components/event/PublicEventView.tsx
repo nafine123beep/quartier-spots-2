@@ -215,6 +215,7 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
               className={`
                 flex-1 min-w-[120px] px-5 py-3 font-medium text-sm min-h-[44px]
                 transition-all duration-200 border-b-2
+                flex items-center justify-center gap-2
                 ${
                   currentTab === tab.id
                     ? "border-[#003366] text-[#003366] bg-blue-50"
@@ -222,7 +223,7 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
                 }
               `}
             >
-              <span className="mr-2">{tab.icon}</span>
+              {tab.icon}
               {tab.label}
             </button>
           ))}

@@ -2,7 +2,7 @@ import { Settings, Type, MapIcon, Archive, ChevronRight } from 'lucide-react';
 
 export default function ConfigureEventTutorial() {
   return (
-    <article className="prose lg:prose-lg max-w-none">
+    <article className="prose lg:prose-lg max-w-none [--tw-prose-body:#1f2937] [--tw-prose-counters:#1f2937] [--tw-prose-bullets:#1f2937]">
       <h1>Events konfigurieren</h1>
       <p className="lead text-xl text-gray-800">
         Passe dein Event an deine Bedürfnisse an: von benutzerdefinierten Bezeichnungen

@@ -2,7 +2,7 @@ import { Calendar, MapPin, Image, CheckCircle, ChevronRight } from 'lucide-react
 
 export default function CreateEventTutorial() {
   return (
-    <article className="prose lg:prose-lg max-w-none">
+    <article className="prose lg:prose-lg max-w-none [--tw-prose-body:#1f2937] [--tw-prose-counters:#1f2937] [--tw-prose-bullets:#1f2937]">
       <h1>Event anlegen</h1>
       <p className="lead text-xl text-gray-800">
         In diesem Tutorial lernst du, wie du in wenigen Schritten ein neues Event erstellst

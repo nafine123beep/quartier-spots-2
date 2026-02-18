@@ -2,7 +2,7 @@ import { Star, MapPin, Plus, Edit, ChevronRight } from 'lucide-react';
 
 export default function SetHighlightsTutorial() {
   return (
-    <article className="prose lg:prose-lg max-w-none">
+    <article className="prose lg:prose-lg max-w-none [--tw-prose-body:#1f2937] [--tw-prose-counters:#1f2937] [--tw-prose-bullets:#1f2937]">
       <h1>Highlights für Events setzen</h1>
       <p className="lead text-xl text-gray-800">
         Highlights sind besondere Orte auf deiner Event-Karte, die du hervorheben möchtest —
