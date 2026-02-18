@@ -49,7 +49,7 @@ export function OrganizationHomeDashboard() {
           </button>
 
           <Link
-            href="/flohmarkt/settings/profile"
+            href="/flohmarkt/settings"
             className="flex items-center gap-2 bg-transparent border border-white text-white px-3 py-2 rounded hover:bg-white/10 transition-colors text-sm no-underline"
             aria-label="Einstellungen"
           >

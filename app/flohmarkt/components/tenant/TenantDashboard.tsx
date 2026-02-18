@@ -77,7 +77,7 @@ export function TenantDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="/flohmarkt/settings/profile"
+            href="/flohmarkt/settings"
             className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center"
             aria-label="Profil bearbeiten"
           >

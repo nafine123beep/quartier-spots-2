@@ -72,7 +72,7 @@ export function ManageStep(_props: ManageStepProps) {
     if (result.success) {
       setShowArchiveDialog(false);
       // Redirect to organization page after archiving
-      window.location.href = `/flohmarkt/organizations/${currentTenant?.slug}/events`;
+      window.location.href = `/flohmarkt/organizations/${currentTenant?.slug}`;
     } else {
       alert(`Fehler beim Archivieren: ${result.error}`);
     }

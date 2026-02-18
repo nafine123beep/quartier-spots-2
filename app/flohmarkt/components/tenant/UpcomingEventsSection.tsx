@@ -18,7 +18,7 @@ export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-800 m-0">Nächste Events</h2>
         <Link
-          href={`/flohmarkt/organizations/${currentTenant?.slug}/events`}
+          href={`/flohmarkt/organizations/${currentTenant?.slug}`}
           className="text-[#003366] hover:underline text-sm font-medium"
         >
           Alle Events anzeigen <ChevronRight className="h-4 w-4 inline" aria-hidden="true" />
@@ -35,7 +35,7 @@ export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
             Erstelle dein erstes Event, um loszulegen!
           </p>
           <Link
-            href={`/flohmarkt/organizations/${currentTenant?.slug}/events?mode=create`}
+            href={`/flohmarkt/organizations/${currentTenant?.slug}`}
             className="inline-block bg-[#003366] text-white px-6 py-3 rounded-md font-bold hover:bg-[#002244] no-underline"
           >
             Event anlegen

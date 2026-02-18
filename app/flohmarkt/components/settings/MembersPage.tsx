@@ -20,7 +20,7 @@ export function MembersPage() {
         <div className="bg-[#003366] text-white p-5 flex justify-between items-center">
           <span className="font-bold text-lg">Mitglieder</span>
           <Link
-            href="/flohmarkt"
+            href="/flohmarkt/settings"
             className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
           >
             <ArrowLeft className="h-4 w-4" /> Zurück
