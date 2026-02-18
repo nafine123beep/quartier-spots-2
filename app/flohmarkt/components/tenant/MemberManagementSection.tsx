@@ -2,20 +2,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Users, Pencil, Link2, KeyRound } from "lucide-react";
+import { Users, Pencil, Link2, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { LinkCopyField } from "../dashboard/EventJourney/shared/LinkCopyField";
 
 export function MemberManagementSection() {
-  const { currentTenant } = useFlohmarkt();
+  const { currentTenant, isAdmin } = useFlohmarkt();
   const [inviteToken, setInviteToken] = useState<string | null>(null);
   const [loadingToken, setLoadingToken] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
+  const [showRawLink, setShowRawLink] = useState(false);
 
   const ensureInviteToken = useCallback(async () => {
     if (!currentTenant) return;
 
-    // Use existing token from context if available
     if (currentTenant.invite_token) {
       setInviteToken(currentTenant.invite_token);
       return;
@@ -65,8 +65,8 @@ export function MemberManagementSection() {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm p-5">
-        <p className="text-gray-600 text-sm mb-5">
-          Neue Mitglieder können auf zwei Wegen beitreten.
+        <p className="text-lg font-semibold text-gray-700 mb-5">
+          Lade neue Organisationsmitglieder ein
         </p>
 
         {tokenError && (
@@ -92,10 +92,29 @@ export function MemberManagementSection() {
               </div>
             </div>
           ) : inviteUrl ? (
-            <LinkCopyField
-              label="Einladungslink"
-              url={inviteUrl}
-            />
+            <>
+              <LinkCopyField
+                label="Einladungslink"
+                url={inviteUrl}
+              />
+              <button
+                type="button"
+                onClick={() => setShowRawLink(!showRawLink)}
+                className="flex items-center gap-1 mt-2 text-xs text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer transition-colors"
+              >
+                {showRawLink ? (
+                  <ChevronUp className="h-3 w-3" />
+                ) : (
+                  <ChevronDown className="h-3 w-3" />
+                )}
+                Einladungs-Link anzeigen
+              </button>
+              {showRawLink && (
+                <p className="mt-1 p-2 bg-white border border-blue-200 rounded text-xs text-gray-600 font-mono break-all select-all">
+                  {inviteUrl}
+                </p>
+              )}
+            </>
           ) : null}
         </div>
 
@@ -121,15 +140,26 @@ export function MemberManagementSection() {
             </span>
           </div>
 
-          <div className="flex justify-end">
-            <Link
-              href="/flohmarkt/settings/organization"
-              className="flex items-center justify-center gap-2 min-w-[8rem] px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-all whitespace-nowrap no-underline focus:outline-none focus:ring-2 focus:ring-[#003366] focus:ring-offset-2"
-            >
-              <Pencil className="h-4 w-4" />
-              <span>Bearbeiten</span>
-            </Link>
-          </div>
+          {currentTenant.join_password && (
+            <div className="mb-3">
+              <LinkCopyField
+                label="Team-Code"
+                url={currentTenant.join_password}
+              />
+            </div>
+          )}
+
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Link
+                href="/flohmarkt/settings/organization"
+                className="flex items-center justify-center gap-2 min-w-[8rem] px-4 py-2 rounded-lg font-medium text-sm bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition-all whitespace-nowrap no-underline focus:outline-none focus:ring-2 focus:ring-[#003366] focus:ring-offset-2"
+              >
+                <Pencil className="h-4 w-4" />
+                <span>Bearbeiten</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>
