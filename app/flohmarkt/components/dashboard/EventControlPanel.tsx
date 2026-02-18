@@ -1,5 +1,6 @@
 "use client";
 
+import { Copy, Sparkles, Link as LinkIcon } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { getSpotTerms } from "../../lib/spotTerms";
 
@@ -50,7 +51,7 @@ export function EventControlPanel() {
       {/* Registration Link - Primary/Prominent */}
       <div className="mb-5 p-4 bg-green-50 border-2 border-green-400 rounded-lg">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-2xl">✨</span>
+          <Sparkles className="h-6 w-6 text-green-600" aria-hidden="true" />
           <h4 className="m-0 text-green-800 font-bold">{terms.spotRegistrationRecommended}</h4>
         </div>
         <p className="text-sm text-gray-700 mb-3 mt-2">
@@ -66,15 +67,15 @@ export function EventControlPanel() {
             title="Anmelde-Link kopieren"
             className="bg-green-500 hover:bg-green-600 text-white border-none p-2.5 rounded cursor-pointer text-xl transition-colors"
           >
-            📋
+            <Copy className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
 
         <button
           onClick={goToRegistrationPage}
-          className="w-full bg-green-600 text-white px-5 py-3 rounded-md font-bold cursor-pointer hover:bg-green-700 transition-colors"
+          className="w-full bg-green-600 text-white px-5 py-3 rounded-md font-bold cursor-pointer hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
         >
-          🔗 Anmelde-Seite öffnen
+          <LinkIcon className="h-5 w-5" aria-hidden="true" /> Anmelde-Seite öffnen
         </button>
       </div>
 
@@ -94,7 +95,7 @@ export function EventControlPanel() {
             title="Link kopieren"
             className="bg-gray-200 border border-gray-300 p-2 rounded cursor-pointer text-lg hover:bg-gray-300"
           >
-            📋
+            <Copy className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 

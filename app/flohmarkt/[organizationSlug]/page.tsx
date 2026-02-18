@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, XCircle, Calendar, Flag, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Tenant, TenantEvent } from "../types";
 
@@ -114,7 +115,7 @@ export default function OrganizationPublicPage() {
     return (
       <div className="fixed inset-0 bg-gray-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-6xl mb-4">❌</div>
+          <div className="mb-4 flex justify-center"><XCircle className="h-16 w-16 text-red-500" /></div>
           <h2 className="text-2xl font-bold text-[#003366] mb-2">Organisation nicht gefunden</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           <a
@@ -137,7 +138,7 @@ export default function OrganizationPublicPage() {
             href="/flohmarkt"
             className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm mb-3 no-underline"
           >
-            <span>←</span>
+            <ArrowLeft className="h-4 w-4" />
             <span>Zurück zur Startseite</span>
           </Link>
           <h1 className="text-3xl font-bold m-0">{tenant.name}</h1>
@@ -151,7 +152,7 @@ export default function OrganizationPublicPage() {
 
           {events.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center">
-              <div className="text-6xl mb-4">📅</div>
+              <div className="mb-4 flex justify-center"><Calendar className="h-16 w-16 text-gray-400" /></div>
               <h3 className="text-xl font-bold text-gray-700 mb-2">Keine Veranstaltungen</h3>
               <p className="text-gray-600">
                 Diese Organisation hat derzeit keine aktiven Veranstaltungen.
@@ -174,20 +175,20 @@ export default function OrganizationPublicPage() {
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                     {event.starts_at && (
                       <div className="flex items-center gap-2">
-                        <span>📅</span>
+                        <Calendar className="h-4 w-4" aria-hidden="true" />
                         <span>Start: {formatDate(event.starts_at)}</span>
                       </div>
                     )}
                     {event.ends_at && (
                       <div className="flex items-center gap-2">
-                        <span>🏁</span>
+                        <Flag className="h-4 w-4" aria-hidden="true" />
                         <span>Ende: {formatDate(event.ends_at)}</span>
                       </div>
                     )}
                   </div>
                   <div className="mt-4 text-[#003366] font-medium flex items-center gap-2">
                     <span>Zur Veranstaltung</span>
-                    <span>→</span>
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
                   </div>
                 </Link>
               ))}

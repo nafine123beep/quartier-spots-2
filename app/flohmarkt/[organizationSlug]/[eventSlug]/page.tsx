@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { XCircle } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { PublicEventView } from "../../components/event/PublicEventView";
 import { loadEventData, AccessMode } from "../../lib/loadEventData";
@@ -95,7 +96,7 @@ function PublicEventPageContent() {
     return (
       <div className="fixed inset-0 bg-gray-100 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-6xl mb-4">❌</div>
+          <div className="mb-4 flex justify-center"><XCircle className="h-16 w-16 text-red-500" /></div>
           <h2 className="text-2xl font-bold text-[#003366] mb-2">Event nicht gefunden</h2>
           <p className="text-gray-600 mb-4">{error}</p>
           {!isEmbedded && (

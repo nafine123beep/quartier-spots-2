@@ -26,7 +26,7 @@ export default function TutorialsIndexPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-800 mb-4">Tutorials & Anleitungen</h1>
-      <p className="text-gray-600 mb-8">
+      <p className="text-gray-800 mb-8">
         Lerne, wie du QuartierSpots optimal nutzt und deine Events erfolgreich verwaltest.
       </p>
 
@@ -43,7 +43,7 @@ export default function TutorialsIndexPage() {
                 <Icon className="h-6 w-6 text-white" />
               </div>
               <h2 className="text-lg font-bold text-gray-800 mb-2">{tutorial.title}</h2>
-              <p className="text-gray-600 text-sm">{tutorial.description}</p>
+              <p className="text-gray-800 text-sm">{tutorial.description}</p>
             </Link>
           );
         })}

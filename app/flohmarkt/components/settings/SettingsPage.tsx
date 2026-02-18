@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 
 export function SettingsPage() {
@@ -15,9 +16,9 @@ export function SettingsPage() {
         </div>
         <Link
           href={currentTenant ? `/flohmarkt/organizations/${currentTenant.slug}` : "/flohmarkt/organizations"}
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline"
+          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
         >
-          ← Zurück
+          <ArrowLeft className="h-4 w-4" /> Zurück
         </Link>
       </div>
 
@@ -29,10 +30,10 @@ export function SettingsPage() {
             <h3 className="text-[#003366] m-0 font-bold">Profil</h3>
             <Link
               href="/flohmarkt/settings/profile"
-              className="text-gray-500 hover:text-[#003366] text-lg no-underline"
-              title="Bearbeiten"
+              className="text-gray-500 hover:text-[#003366] no-underline"
+              aria-label="Profil bearbeiten"
             >
-              ✏️
+              <Pencil className="h-5 w-5" />
             </Link>
           </div>
 
@@ -58,10 +59,10 @@ export function SettingsPage() {
               {isAdmin && (
                 <Link
                   href="/flohmarkt/settings/organization"
-                  className="text-gray-500 hover:text-[#003366] text-lg no-underline"
-                  title="Bearbeiten"
+                  className="text-gray-500 hover:text-[#003366] no-underline"
+                  aria-label="Organisation bearbeiten"
                 >
-                  ✏️
+                  <Pencil className="h-5 w-5" />
                 </Link>
               )}
             </div>

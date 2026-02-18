@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ClipboardList, Loader2 } from "lucide-react";
 import { TenantEvent } from "../../types";
 import { DEFAULT_POSTER_DESCRIPTION, MIN_DESCRIPTION_LENGTH } from "../pdf/posterStyles";
 
@@ -154,7 +155,7 @@ export function PosterPreviewModal({
 
           {/* Info Box */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-            <p className="font-semibold mb-1">📋 Das Poster enthält:</p>
+            <p className="font-semibold mb-1 flex items-center gap-1"><ClipboardList className="h-4 w-4" aria-hidden="true" /> Das Poster enthält:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Titel, Datum und Standort</li>
               <li>
@@ -183,7 +184,7 @@ export function PosterPreviewModal({
             disabled={isGenerating || description.trim().length < MIN_DESCRIPTION_LENGTH}
             className="bg-[#003366] text-white px-4 py-2 rounded-md font-bold hover:bg-[#002244] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isGenerating ? "⏳ Poster wird erstellt..." : "📋 Poster erstellen"}
+            {isGenerating ? (<><Loader2 className="h-4 w-4 inline animate-spin mr-1" aria-hidden="true" /> Poster wird erstellt...</>) : (<><ClipboardList className="h-4 w-4 inline mr-1" aria-hidden="true" /> Poster erstellen</>)}
           </button>
         </div>
       </div>

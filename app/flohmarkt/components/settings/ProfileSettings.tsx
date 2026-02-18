@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { createClient } from "@/lib/supabase/client";
 
@@ -176,9 +177,9 @@ export function ProfileSettings() {
         </div>
         <Link
           href="/flohmarkt/settings"
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline"
+          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
         >
-          ← Zurück
+          <ArrowLeft className="h-4 w-4" /> Zurück
         </Link>
       </div>
 

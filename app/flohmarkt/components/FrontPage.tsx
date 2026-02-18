@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { Map as MapIcon } from "lucide-react";
 import type { Map as LeafletMap } from "leaflet";
 import { SupportFormModal } from "./shared/SupportFormModal";
 
@@ -101,9 +102,9 @@ export function FrontPage() {
             {/* Demo Button - Combined */}
             <Link
               href="/flohmarkt/demo"
-              className="text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline"
+              className="text-lg font-bold p-4 border border-gray-300 border-b-[3px] border-b-gray-400 rounded-lg bg-gray-100 text-gray-800 cursor-pointer hover:bg-gray-200 transition-colors text-center no-underline flex items-center justify-center gap-2"
             >
-              🗺️ Demo ansehen
+              <MapIcon className="h-5 w-5" aria-hidden="true" /> Demo ansehen
             </Link>
 
             {/* Login/Registration - Primary CTA */}

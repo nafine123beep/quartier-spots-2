@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Calendar } from "lucide-react";
+import { Calendar, ChevronRight } from "lucide-react";
 import { TenantEvent } from "../../types";
 import { EventCard } from "./EventCard";
 import { useFlohmarkt } from "../../FlohmarktContext";
@@ -21,7 +21,7 @@ export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
           href={`/flohmarkt/organizations/${currentTenant?.slug}/events`}
           className="text-[#003366] hover:underline text-sm font-medium"
         >
-          Alle Events anzeigen →
+          Alle Events anzeigen <ChevronRight className="h-4 w-4 inline" aria-hidden="true" />
         </Link>
       </div>
 

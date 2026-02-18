@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { ArrowLeft, Settings } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { CreateTenantForm } from "./CreateTenantForm";
 import { JoinTenantForm } from "./JoinTenantForm";
@@ -60,9 +61,10 @@ export function TenantDashboard() {
         <div className="flex items-center gap-4">
           <Link
             href="/flohmarkt"
-            className="bg-transparent border-none text-white text-2xl cursor-pointer hover:opacity-80 no-underline"
+            className="bg-transparent border-none text-white cursor-pointer hover:opacity-80 no-underline"
+            aria-label="Zurück zur Startseite"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <div>
             <span className="font-bold text-lg">Meine Organisationen</span>
@@ -76,10 +78,10 @@ export function TenantDashboard() {
         <div className="flex items-center gap-2">
           <Link
             href="/flohmarkt/settings/profile"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline text-lg"
-            title="Profil bearbeiten"
+            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center"
+            aria-label="Profil bearbeiten"
           >
-            ⚙️
+            <Settings className="h-5 w-5" />
           </Link>
           <button
             onClick={logout}

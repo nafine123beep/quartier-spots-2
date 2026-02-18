@@ -13,7 +13,7 @@ import {
   saveLocationToCache,
   isCompleteCache,
 } from "../../lib/locationCache";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Lock } from "lucide-react";
 
 const FORM_STORAGE_KEY = "spotFormData";
 
@@ -433,7 +433,7 @@ export function SpotForm() {
 
             {/* Data Security Notice - Always visible */}
             <div className="flex items-start gap-2 px-3 py-2 bg-blue-50 border-t border-blue-200">
-              <span className="text-lg flex-shrink-0">🔒</span>
+              <Lock className="h-5 w-5 flex-shrink-0 text-blue-600" aria-hidden="true" />
               <p className="text-xs text-gray-600 m-0">
                 Name, E-Mail und Telefon werden nicht öffentlich angezeigt und dienen nur der Kontaktaufnahme durch Veranstalter:innen.
               </p>

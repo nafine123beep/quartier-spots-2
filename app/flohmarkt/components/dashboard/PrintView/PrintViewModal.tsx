@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+import { XCircle } from 'lucide-react';
 import { useFlohmarkt } from '../../../FlohmarktContext';
 import { generateEventPDF, downloadPDF } from '../../pdf/PDFGenerator';
 import { sortSpotsForPrint, generatePDFFilename } from '../../../lib/printUtils';
@@ -135,7 +136,7 @@ export function PrintViewModal({ isOpen, onClose }: PrintViewModalProps) {
           {/* Error message */}
           {state === 'error' && errorMessage && (
             <div className="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-start gap-3">
-              <span className="text-xl">❌</span>
+              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <div>
                 <p className="font-bold m-0">Fehler bei der PDF-Erstellung</p>
                 <p className="m-0 text-sm">{errorMessage}</p>

@@ -1,10 +1,10 @@
-import { Star, MapPin, Plus, Edit } from 'lucide-react';
+import { Star, MapPin, Plus, Edit, ChevronRight } from 'lucide-react';
 
 export default function SetHighlightsTutorial() {
   return (
     <article className="prose lg:prose-lg max-w-none">
       <h1>Highlights für Events setzen</h1>
-      <p className="lead text-xl text-gray-600">
+      <p className="lead text-xl text-gray-800">
         Highlights sind besondere Orte auf deiner Event-Karte, die du hervorheben möchtest —
         wie Toiletten, Getränkestände, Infopoints oder besondere Attraktionen.
       </p>
@@ -20,7 +20,7 @@ export default function SetHighlightsTutorial() {
         </p>
         <div className="bg-gray-100 p-4 rounded-lg my-4 not-prose">
           <h3 className="text-sm font-bold mb-2 text-gray-800">Beispiele für Highlights:</h3>
-          <ul className="text-sm text-gray-700 space-y-1">
+          <ul className="text-sm text-gray-800 space-y-1">
             <li>🚻 Toiletten</li>
             <li>🍺 Getränkestände</li>
             <li>ℹ️ Informationspunkte</li>
@@ -81,7 +81,7 @@ export default function SetHighlightsTutorial() {
 
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 my-6">
         <h3 className="text-blue-800 font-bold mt-0 text-lg">Best Practice</h3>
-        <p className="text-blue-700 mb-0">
+        <p className="text-blue-800 mb-0">
           Füge Highlights schon vor dem Event hinzu, damit Teilnehmer bei der Anmeldung sehen,
           wo sich wichtige Orte befinden. Das verbessert die Orientierung und das Event-Erlebnis!
         </p>
@@ -91,13 +91,13 @@ export default function SetHighlightsTutorial() {
         <h3 className="text-lg font-bold text-gray-800">Nächste Schritte</h3>
         <ul className="space-y-2">
           <li>
-            <a href="/flohmarkt/tutorials/create-event" className="text-[#003366] hover:underline">
-              → Event anlegen
+            <a href="/flohmarkt/tutorials/create-event" className="text-[#003366] hover:underline inline-flex items-center gap-1">
+              <ChevronRight className="h-4 w-4" aria-hidden="true" /> Event anlegen
             </a>
           </li>
           <li>
-            <a href="/flohmarkt/tutorials/configure-event" className="text-[#003366] hover:underline">
-              → Events konfigurieren
+            <a href="/flohmarkt/tutorials/configure-event" className="text-[#003366] hover:underline inline-flex items-center gap-1">
+              <ChevronRight className="h-4 w-4" aria-hidden="true" /> Events konfigurieren
             </a>
           </li>
         </ul>

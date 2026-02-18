@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, Settings, Archive } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { EventCard } from "./EventCard";
 import { CreateEventCard } from "./CreateEventCard";
@@ -42,9 +43,10 @@ export function EventOverview() {
         <div className="flex items-center gap-4">
           <Link
             href="/flohmarkt/organizations"
-            className="bg-transparent border-none text-white text-2xl cursor-pointer hover:opacity-80 no-underline"
+            className="bg-transparent border-none text-white cursor-pointer hover:opacity-80 no-underline"
+            aria-label="Zurück zu Organisationen"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <div>
             <span className="font-bold text-lg">{currentTenant.name}</span>
@@ -59,10 +61,10 @@ export function EventOverview() {
         <div className="flex gap-2">
           <Link
             href="/flohmarkt/settings"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline"
-            title="Einstellungen"
+            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center"
+            aria-label="Einstellungen"
           >
-            ⚙️
+            <Settings className="h-5 w-5" />
           </Link>
           <button
             onClick={logout}
@@ -104,7 +106,7 @@ export function EventOverview() {
           {archivedEvents.length > 0 && (
             <div className="mt-10">
               <h2 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <span>📦</span>
+                <Archive className="h-5 w-5" aria-hidden="true" />
                 <span>Archivierte Events ({archivedEvents.length})</span>
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

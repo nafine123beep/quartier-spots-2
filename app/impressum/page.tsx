@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function ImpressumPage() {
   return (
@@ -10,9 +11,10 @@ export default function ImpressumPage() {
         <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link
             href="/flohmarkt"
-            className="text-2xl text-white hover:text-[#FFCC00] no-underline transition-colors"
+            className="text-white hover:text-[#FFCC00] no-underline transition-colors"
+            aria-label="Zurück zur Startseite"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <h1 className="text-2xl font-bold m-0">Impressum & Datenschutz</h1>
         </div>
@@ -141,7 +143,7 @@ export default function ImpressumPage() {
 
           <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <p className="text-blue-900 font-medium">
-              ℹ️ Diese Datenschutzerklärung ist eine Vorlage und wird noch mit den spezifischen
+              Diese Datenschutzerklärung ist eine Vorlage und wird noch mit den spezifischen
               Informationen ergänzt.
             </p>
           </div>

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Users, ArrowLeft } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 
 export function MembersPage() {
@@ -21,9 +21,9 @@ export function MembersPage() {
           <span className="font-bold text-lg">Mitglieder</span>
           <Link
             href="/flohmarkt"
-            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline"
+            className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
           >
-            ← Zurück
+            <ArrowLeft className="h-4 w-4" /> Zurück
           </Link>
         </div>
         <div className="p-5 overflow-y-auto w-full max-w-[600px] mx-auto flex-grow">
@@ -57,9 +57,9 @@ export function MembersPage() {
         </div>
         <Link
           href="/flohmarkt"
-          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline"
+          className="bg-transparent border border-white text-white px-2.5 py-1.5 rounded cursor-pointer hover:bg-white/10 no-underline flex items-center gap-1.5"
         >
-          ← Zurück
+          <ArrowLeft className="h-4 w-4" /> Zurück
         </Link>
       </div>
 

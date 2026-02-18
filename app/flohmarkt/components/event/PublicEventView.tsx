@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { List, Map as MapIcon, Plus, Settings } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { AppTabType } from "../../types";
 import { AccessMode } from "../../lib/loadEventData";
@@ -124,10 +125,10 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
     setCurrentTab("form");
   };
 
-  const tabButtons: { id: AppTabType; label: string; icon: string }[] = [
-    { id: "list", label: "Liste", icon: "📋" },
-    { id: "map", label: "Karte", icon: "🗺️" },
-    { id: "form", label: terms.registerSpot, icon: "➕" },
+  const tabButtons: { id: AppTabType; label: string; icon: React.ReactNode }[] = [
+    { id: "list", label: "Liste", icon: <List className="h-4 w-4" aria-hidden="true" /> },
+    { id: "map", label: "Karte", icon: <MapIcon className="h-4 w-4" aria-hidden="true" /> },
+    { id: "form", label: terms.registerSpot, icon: <Plus className="h-4 w-4" aria-hidden="true" /> },
   ];
 
   const handleBackToAdmin = () => {
@@ -197,7 +198,7 @@ export function PublicEventView({ accessMode = 'public', embedded = false }: Pub
               onClick={handleBackToAdmin}
               className="w-full flex items-center justify-center gap-2 bg-[#003366] hover:bg-[#002244] text-white px-4 py-3 rounded-lg font-medium text-sm transition-colors"
             >
-              <span>⚙️</span>
+              <Settings className="h-4 w-4" aria-hidden="true" />
               <span>Event verwalten</span>
             </button>
           ) : undefined

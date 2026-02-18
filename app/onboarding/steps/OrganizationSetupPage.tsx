@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { useFlohmarkt } from "@/app/flohmarkt/FlohmarktContext";
 import { generateSlug } from "@/app/flohmarkt/utils/slug";
 
@@ -376,7 +377,7 @@ export default function OrganizationSetupPage({ onComplete, onBack, username }: 
               <div className="font-bold text-lg">Organisation erstellen</div>
               <div className="text-gray-200 text-sm">Starte deine eigene Organisation</div>
             </div>
-            <div className="text-2xl">→</div>
+            <ChevronRight className="h-6 w-6" aria-hidden="true" />
           </button>
 
           <button
@@ -387,7 +388,7 @@ export default function OrganizationSetupPage({ onComplete, onBack, username }: 
               <div className="font-bold text-lg">Organisation beitreten</div>
               <div className="text-gray-600 text-sm">Tritt einer bestehenden Organisation bei</div>
             </div>
-            <div className="text-2xl">→</div>
+            <ChevronRight className="h-6 w-6" aria-hidden="true" />
           </button>
 
           <button

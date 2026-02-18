@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
@@ -77,9 +78,10 @@ export default function ResetPasswordPage() {
         <div className="p-5 flex items-center">
           <Link
             href="/flohmarkt"
-            className="bg-transparent border-none text-2xl text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            className="bg-transparent border-none text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            aria-label="Zurück zur Startseite"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <span>Startseite</span>
         </div>
@@ -109,9 +111,10 @@ export default function ResetPasswordPage() {
       <div className="p-5 flex items-center">
         <Link
           href="/flohmarkt"
-          className="bg-transparent border-none text-2xl text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+          className="bg-transparent border-none text-[#003366] p-0 mr-4 cursor-pointer no-underline flex items-center"
+          aria-label="Zurück zur Startseite"
         >
-          ←
+          <ArrowLeft className="h-6 w-6" />
         </Link>
         <span>Startseite</span>
       </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Mail, User, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, User, Users, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -172,9 +172,10 @@ export default function LoginPage() {
         <div className="p-5 flex items-center">
           <Link
             href="/flohmarkt"
-            className="bg-transparent border-none text-2xl text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            className="bg-transparent border-none text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            aria-label="Zurück zur Startseite"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <span className="text-gray-900">Startseite</span>
         </div>
@@ -209,9 +210,10 @@ export default function LoginPage() {
         <div className="p-5 flex items-center">
           <Link
             href="/flohmarkt"
-            className="bg-transparent border-none text-2xl text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            className="bg-transparent border-none text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            aria-label="Zurück zur Startseite"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <span className="text-gray-900">Startseite</span>
         </div>
@@ -245,9 +247,10 @@ export default function LoginPage() {
         <div className="p-5 flex items-center">
           <Link
             href="/flohmarkt"
-            className="bg-transparent border-none text-2xl text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            className="bg-transparent border-none text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+            aria-label="Zurück zur Startseite"
           >
-            ←
+            <ArrowLeft className="h-6 w-6" />
           </Link>
           <span className="text-gray-900">Startseite</span>
         </div>
@@ -309,9 +312,10 @@ export default function LoginPage() {
       <div className="p-5 flex items-center">
         <Link
           href="/flohmarkt"
-          className="bg-transparent border-none text-2xl text-[#003366] p-0 mr-4 cursor-pointer no-underline"
+          className="bg-transparent border-none text-[#003366] p-0 mr-4 cursor-pointer no-underline flex items-center"
+          aria-label="Zurück zur Startseite"
         >
-          ←
+          <ArrowLeft className="h-6 w-6" />
         </Link>
         <span className="text-gray-900">Startseite</span>
       </div>

@@ -11,6 +11,7 @@ import { getSpotTerms } from "../../lib/spotTerms";
 import { getHighlightIcon, getHighlightTypeLabel } from "../../lib/highlightConfig";
 import { iconToSvgString } from "../../lib/iconResolver";
 import { Trash2 } from "@/app/flohmarkt/components/icons";
+import { Mail } from "lucide-react";
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { Map as LeafletMap, Marker as LeafletMarker, Circle as LeafletCircle } from "leaflet";
 
@@ -366,7 +367,7 @@ export function MapView() {
         "
         title="Veranstalter:in kontaktieren"
       >
-        ✉️
+        <Mail className="h-8 w-8" aria-hidden="true" />
       </button>
 
       {/* Contact Form Modal */}

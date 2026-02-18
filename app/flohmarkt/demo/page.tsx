@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { ArrowLeft, Map as MapIcon, List } from "lucide-react";
 import { AppHeader } from "../components/app/AppHeader";
 import { TabNavigation } from "../components/app/TabNavigation";
 import { SpotItem } from "../components/shared/SpotItem";
@@ -381,9 +382,9 @@ function DemoPageContent() {
       <header className="bg-[#003366] text-white px-4 py-3 flex items-center justify-between">
         <a
           href="/flohmarkt"
-          className="text-white/80 hover:text-white text-sm no-underline"
+          className="text-white/80 hover:text-white text-sm no-underline flex items-center gap-1.5"
         >
-          ← Zurück
+          <ArrowLeft className="h-4 w-4" /> Zurück
         </a>
         <h1 className="text-lg font-bold m-0">QuartierSpots Demo</h1>
       </header>
@@ -398,7 +399,7 @@ function DemoPageContent() {
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          🗺️ Karte
+          <MapIcon className="h-4 w-4 inline mr-1" aria-hidden="true" /> Karte
         </button>
         <button
           onClick={() => setCurrentTab("list")}
@@ -408,7 +409,7 @@ function DemoPageContent() {
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          📋 Liste
+          <List className="h-4 w-4 inline mr-1" aria-hidden="true" /> Liste
         </button>
       </nav>
 

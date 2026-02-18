@@ -44,7 +44,7 @@ function TutorialCard({ title, description, icon: Icon, href }: TutorialCardProp
         <Icon className="h-6 w-6 text-white" />
       </div>
       <h3 className="text-lg font-bold text-gray-800 mb-2 m-0">{title}</h3>
-      <p className="text-gray-600 text-sm mb-3">{description}</p>
+      <p className="text-gray-800 text-sm mb-3">{description}</p>
       <div className="text-[#003366] text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
         Starten <ChevronRight className="h-4 w-4" />
       </div>

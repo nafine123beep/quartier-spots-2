@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useFlohmarkt } from "../../FlohmarktContext";
 import { Tenant } from "../../types";
 
@@ -59,9 +60,9 @@ export function JoinTenantForm({ onBack }: JoinTenantFormProps) {
     <div className="bg-white p-6 rounded-lg shadow-md max-w-[500px] mx-auto">
       <button
         onClick={onBack}
-        className="text-[#003366] mb-4 cursor-pointer bg-transparent border-none text-base hover:underline"
+        className="text-[#003366] mb-4 cursor-pointer bg-transparent border-none text-base hover:underline flex items-center gap-1.5"
       >
-        ← Zurück
+        <ArrowLeft className="h-4 w-4" /> Zurück
       </button>
 
       <h2 className="text-[#003366] mt-0">Organisation beitreten</h2>

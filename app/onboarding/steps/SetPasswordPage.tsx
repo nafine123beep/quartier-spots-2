@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 
 interface SetPasswordPageProps {
   onComplete: (password: string) => void;
@@ -49,7 +50,7 @@ export default function SetPasswordPage({ onComplete, onBack, username }: SetPas
       <div className="max-w-md w-full bg-white rounded-xl shadow-2xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#003366] mb-2">
-            Hallo {username}! 🔒
+            Hallo {username}! <Lock className="h-7 w-7 inline" aria-hidden="true" />
           </h1>
           <p className="text-gray-600">
             Setze ein Passwort für dein Konto
@@ -100,7 +101,7 @@ export default function SetPasswordPage({ onComplete, onBack, username }: SetPas
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? "👁️" : "👁️‍🗨️"}
+                {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
               </button>
             </div>
           </div>

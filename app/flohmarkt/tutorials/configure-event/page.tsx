@@ -1,10 +1,10 @@
-import { Settings, Type, MapIcon, Archive } from 'lucide-react';
+import { Settings, Type, MapIcon, Archive, ChevronRight } from 'lucide-react';
 
 export default function ConfigureEventTutorial() {
   return (
     <article className="prose lg:prose-lg max-w-none">
       <h1>Events konfigurieren</h1>
-      <p className="lead text-xl text-gray-600">
+      <p className="lead text-xl text-gray-800">
         Passe dein Event an deine Bedürfnisse an: von benutzerdefinierten Bezeichnungen
         bis hin zu Karteneinstellungen.
       </p>
@@ -20,7 +20,7 @@ export default function ConfigureEventTutorial() {
         </p>
         <div className="bg-gray-100 p-4 rounded-lg my-4 not-prose">
           <h3 className="text-sm font-bold mb-2 text-gray-800">Beispiele:</h3>
-          <ul className="text-sm text-gray-700 space-y-1">
+          <ul className="text-sm text-gray-800 space-y-1">
             <li>Flohmarkt: "Stand" / "Stände"</li>
             <li>Food-Festival: "Tisch" / "Tische"</li>
             <li>Straßenfest: "Platz" / "Plätze"</li>
@@ -104,7 +104,7 @@ export default function ConfigureEventTutorial() {
 
       <div className="bg-green-50 border-l-4 border-green-400 p-4 my-6">
         <h3 className="text-green-800 font-bold mt-0 text-lg">Wichtig zu wissen</h3>
-        <p className="text-green-700 mb-0">
+        <p className="text-green-800 mb-0">
           Alle Einstellungen können jederzeit geändert werden, ohne bestehende Spot-Anmeldungen
           zu beeinträchtigen. Experimentiere ruhig, um die beste Konfiguration für dein Event zu finden!
         </p>
@@ -114,13 +114,13 @@ export default function ConfigureEventTutorial() {
         <h3 className="text-lg font-bold text-gray-800">Nächste Schritte</h3>
         <ul className="space-y-2">
           <li>
-            <a href="/flohmarkt/tutorials/create-event" className="text-[#003366] hover:underline">
-              → Event anlegen
+            <a href="/flohmarkt/tutorials/create-event" className="text-[#003366] hover:underline inline-flex items-center gap-1">
+              <ChevronRight className="h-4 w-4" aria-hidden="true" /> Event anlegen
             </a>
           </li>
           <li>
-            <a href="/flohmarkt/tutorials/set-highlights" className="text-[#003366] hover:underline">
-              → Highlights für Events setzen
+            <a href="/flohmarkt/tutorials/set-highlights" className="text-[#003366] hover:underline inline-flex items-center gap-1">
+              <ChevronRight className="h-4 w-4" aria-hidden="true" /> Highlights für Events setzen
             </a>
           </li>
         </ul>
