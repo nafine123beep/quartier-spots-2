@@ -138,18 +138,43 @@ export function useEventAutosave({
             spot_term_plural: formData.spotTermPlural,
           };
 
-          // Only add date fields if they're valid
+          // Parse and validate date fields
+          let startDate: Date | null = null;
+          let endDate: Date | null = null;
+
           if (formData.startsAt && formData.startsAt.trim()) {
-            const startDate = new Date(formData.startsAt);
+            startDate = new Date(formData.startsAt);
             if (!isNaN(startDate.getTime())) {
               updateData.starts_at = startDate.toISOString();
+            } else {
+              console.warn("useEventAutosave: Invalid start date:", formData.startsAt);
+              startDate = null;
             }
           }
 
           if (formData.endsAt && formData.endsAt.trim()) {
-            const endDate = new Date(formData.endsAt);
+            endDate = new Date(formData.endsAt);
             if (!isNaN(endDate.getTime())) {
               updateData.ends_at = endDate.toISOString();
+            } else {
+              console.warn("useEventAutosave: Invalid end date:", formData.endsAt);
+              endDate = null;
+            }
+          }
+
+          // Validation checks when navigating (validate=true)
+          if (validate) {
+            if (!startDate || !endDate) {
+              setSaveStatus("error");
+              const msg = "Bitte gib Start- und Enddatum ein";
+              setError(msg);
+              return { success: false, error: msg };
+            }
+            if (endDate <= startDate) {
+              setSaveStatus("error");
+              const msg = "Das Enddatum muss nach dem Startdatum liegen";
+              setError(msg);
+              return { success: false, error: msg };
             }
           }
 

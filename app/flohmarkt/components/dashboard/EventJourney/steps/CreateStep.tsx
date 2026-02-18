@@ -118,6 +118,14 @@ export function CreateStep({ onNext, onUnsavedChanges, onSave }: CreateStepProps
     if (!startsAt || !endsAt) {
       return { valid: false, error: "Bitte gib Start- und Enddatum ein" };
     }
+    const startDate = new Date(startsAt);
+    const endDate = new Date(endsAt);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return { valid: false, error: "Ungültiges Datum. Bitte überprüfe die Eingabe" };
+    }
+    if (endDate <= startDate) {
+      return { valid: false, error: "Das Enddatum muss nach dem Startdatum liegen" };
+    }
     if (!mapCenterAddress.trim()) {
       return { valid: false, error: "Bitte gib eine Adresse für das Kartenzentrum ein" };
     }

@@ -83,6 +83,28 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
     setError(null);
 
     try {
+      // Validate dates
+      if (!startsAt || !endsAt) {
+        setError("Bitte gib Start- und Enddatum ein.");
+        setSubmitting(false);
+        return;
+      }
+
+      const startDate = new Date(startsAt);
+      const endDate = new Date(endsAt);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        setError("Ungültiges Datum. Bitte überprüfe die Eingabe.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (endDate <= startDate) {
+        setError("Das Enddatum muss nach dem Startdatum liegen.");
+        setSubmitting(false);
+        return;
+      }
+
       let mapCenterLat = event.map_center_lat;
       let mapCenterLng = event.map_center_lng;
 
@@ -130,8 +152,8 @@ export function EventEditForm({ event, onSave, onCancel }: EventEditFormProps) {
       const result = await updateEvent(event.id, {
         title,
         description,
-        starts_at: startsAt || undefined,
-        ends_at: endsAt || undefined,
+        starts_at: startDate.toISOString(),
+        ends_at: endDate.toISOString(),
         map_center_address: mapCenterAddress || undefined,
         map_center_lat: mapCenterLat,
         map_center_lng: mapCenterLng,
