@@ -13,16 +13,17 @@ export default function TenantPage() {
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
 
-  // Auto-select tenant based on URL slug and redirect to dashboard
+  // Auto-select tenant based on URL slug so this route shows the tenant's
+  // full events list (EventOverview), which contains the "Neues Event" create tile.
+  // Guard on the slug so selectTenant only runs when the tenant actually changes.
   useEffect(() => {
-    if (slug) {
+    if (slug && currentTenant?.slug !== slug) {
       const tenant = findTenantBySlug(slug);
       if (tenant) {
         selectTenant(tenant);
-        router.replace('/flohmarkt/organizations');
       }
     }
-  }, [slug, findTenantBySlug, selectTenant, router]);
+  }, [slug, currentTenant?.slug, findTenantBySlug, selectTenant]);
 
   // Track when we've checked authentication status
   useEffect(() => {
