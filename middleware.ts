@@ -71,11 +71,14 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Use getUser() (not getSession()) in server-side code: it revalidates the
+  // JWT against the Supabase Auth server, whereas getSession() trusts the
+  // unverified cookie and can be spoofed.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     const loginUrl = new URL("/auth/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

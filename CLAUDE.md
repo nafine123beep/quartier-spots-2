@@ -132,8 +132,10 @@ app/
 │   ├── login/                         # Login page
 │   └── reset-password/                # Password reset
 ├── api/                                # API routes
-│   ├── debug-env/                     # Environment debugging endpoint
-│   └── test-cleanup/                  # Test data cleanup endpoint
+│   ├── invite/ensure/                 # Generate/return tenant invite token (admin/member)
+│   ├── join/validate/                 # Validate an invite token / team code (pre-auth)
+│   ├── join/accept/                   # Join a tenant via token / team code (authed)
+│   └── test-cleanup/                  # Test data cleanup endpoint (non-prod only)
 └── app/                                # Old/non-flohmarkt pages (if any)
 ```
 
